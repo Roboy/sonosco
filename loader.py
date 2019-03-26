@@ -80,10 +80,11 @@ class AudioDataset(Dataset):
             win_length = n_fft
             hop_length = int(self.sample_rate * self.window_stride)
             # STFT
-            D = librosa.stft(y, n_fft=n_fft, hop_length=hop_length,
+            D = librosa.stft(sound, n_fft=n_fft, hop_length=hop_length,
                              win_length=win_length, window=self.window)
             spectrogram, phase = librosa.magphase(D)
             # S = log(S+1)
+
             spectrogram = torch.FloatTensor(np.log1p(spectrogram))
         else:
             # TODO: Why these are different from librosa.stft?
