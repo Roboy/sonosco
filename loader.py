@@ -2,6 +2,7 @@ import math
 import warnings
 from typing import Tuple
 
+import librosa
 import numpy as np
 import torch
 import torchaudio
@@ -9,14 +10,14 @@ from torch.utils.data import Dataset, DataLoader, Sampler
 from torch.distributed import get_rank
 from torch.distributed import get_world_size
 
-windows = {'bartlett': torch.bartlett_window,
-           'blackman': torch.blackman_window,
-           'hamming': torch.hamming_window,
-           'hann': torch.hann_window}
+windows = {"bartlett": torch.bartlett_window,
+           "blackman": torch.blackman_window,
+           "hamming": torch.hamming_window,
+           "hann": torch.hann_window}
 
 
 class AudioDataset(Dataset):
-    def __init__(self, audio_conf, manifest_filepath, labels, normalize=False, augment=False):
+    def __init__(self, audio_conf, manifest_filepath, labels, normalize=False, augment=False, legacy=True):
         """
         Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
         a comma. Each new line is a different sample. Example below:
@@ -36,14 +37,13 @@ class AudioDataset(Dataset):
         self.ids = ids
         self.size = len(ids)
         self.labels_map = dict([(labels[i], i) for i in range(len(labels))])
-        self.window_stride = audio_conf['window_stride']
-        self.window_size = audio_conf['window_size']
-        self.sample_rate = audio_conf['sample_rate']
-        self.window = windows.get(audio_conf['window'], windows['hamming'])
+        self.window_stride = audio_conf["window_stride"]
+        self.window_size = audio_conf["window_size"]
+        self.sample_rate = audio_conf["sample_rate"]
+        self.window = windows.get(audio_conf["window"], windows["hamming"])
         self.normalize = normalize
         self.augment = augment
-        self.noise_prob = audio_conf.get('noise_prob')
-        self.mixer = torchaudio.transforms.DownmixMono()
+        self.legacy = legacy
         self.transform = torchaudio.transforms.Spectrogram(n_fft=int(self.sample_rate * self.window_size),
                                                            hop=int(self.sample_rate * self.window_stride),
                                                            window=self.window, normalize=self.normalize)
@@ -65,12 +65,43 @@ class AudioDataset(Dataset):
         sound, sample_rate = torchaudio.load(audio_path)
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
-        #sound = self.mixer(sound)
 
         if self.augment:
             sound = self.augment_audio(sound)
 
-        spectrogram = self.transform(sound)[-1, :, :].transpose(0, 1)
+        if self.legacy:
+            sound = sound.numpy().T
+            if len(sound.shape) > 1:
+                if sound.shape[1] == 1:
+                    sound = sound.squeeze()
+                else:
+                    sound = sound.mean(axis=1)
+            n_fft = int(self.sample_rate * self.window_size)
+            win_length = n_fft
+            hop_length = int(self.sample_rate * self.window_stride)
+            # STFT
+            D = librosa.stft(y, n_fft=n_fft, hop_length=hop_length,
+                             win_length=win_length, window=self.window)
+            spectrogram, phase = librosa.magphase(D)
+            # S = log(S+1)
+            spectrogram = torch.FloatTensor(np.log1p(spectrogram))
+        else:
+            # TODO: Why these are different from librosa.stft?
+            sound = sound.cuda()
+            spectrogram = self.transform(sound)[-1, :, :].transpose(0, 1)
+
+            # spectrogram = torch.stft(torch.from_numpy(sound.numpy().T.squeeze()),
+            #                          n_fft=int(self.sample_rate * self.window_size),
+            #                          hop_length=int(self.sample_rate * self.window_stride),
+            #                          win_length=int(self.sample_rate * self.window_size),
+            #                          window=torch.hamming_window(int(self.sample_rate * self.window_size)))[:, :, -1]
+
+        if self.normalize:
+            mean = spectrogram.mean()
+            std = spectrogram.std()
+            spectrogram.add_(-mean)
+            spectrogram.div_(std)
+
         return spectrogram
 
     def parse_transcript(self, transcript_path):
@@ -145,7 +176,7 @@ class BucketingSampler(Sampler):
     def __len__(self):
         return len(self.bins)
 
-    def shuffle(self):
+    def shuffle(self, epoch):
         np.random.shuffle(self.bins)
 
 
