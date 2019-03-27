@@ -4,9 +4,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.nn.parameter import Parameter
 
-from apex.parallel import DistributedDataParallel
 
 supported_rnns = {
     'lstm': nn.LSTM,
@@ -34,7 +32,10 @@ class SequenceWise(nn.Module):
         return x
 
     def __repr__(self):
-        return self.__class__.__name__ + ' (\n' + self.module.__repr__() + ')'
+        tmpstr = self.__class__.__name__ + ' (\n'
+        tmpstr += self.module.__repr__()
+        tmpstr += ')'
+        return tmpstr
 
 
 class MaskConv(nn.Module):
@@ -55,7 +56,6 @@ class MaskConv(nn.Module):
         :return: Masked output from the module
         """
         for module in self.seq_module:
-            #x = module(x.half())
             x = module(x)
             mask = torch.ByteTensor(x.size()).fill_(0)
             if x.is_cuda:
@@ -77,15 +77,13 @@ class InferenceBatchSoftmax(nn.Module):
 
 
 class BatchRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, rnn_type=nn.LSTM, bidirectional=False, batch_norm=True):
+    def __init__(self, input_size, hidden_size, rnn_type=nn.LSTM, batch_norm=True):
         super(BatchRNN, self).__init__()
         self.input_size = input_size
         self.hidden_size = hidden_size
-        self.bidirectional = bidirectional
         self.batch_norm = SequenceWise(nn.BatchNorm1d(input_size)) if batch_norm else None
         self.rnn = rnn_type(input_size=input_size, hidden_size=hidden_size,
-                            bidirectional=bidirectional, bias=True)
-        self.num_directions = 2 if bidirectional else 1
+                            bidirectional=True, bias=True)
 
     def flatten_parameters(self):
         self.rnn.flatten_parameters()
@@ -101,62 +99,22 @@ class BatchRNN(nn.Module):
         return x
 
 
-class Lookahead(nn.Module):
-    # Wang et al 2016 - Lookahead Convolution Layer for Unidirectional Recurrent Neural Networks
-    # input shape - sequence, batch, feature - TxNxH
-    # output shape - same as input
-    def __init__(self, n_features, context):
-        # should we handle batch_first=True?
-        super(Lookahead, self).__init__()
-        self.n_features = n_features
-        self.weight = Parameter(torch.Tensor(n_features, context + 1))
-        assert context > 0
-        self.context = context
-        self.register_parameter('bias', None)
-        self.init_parameters()
-
-    def init_parameters(self):  # what's a better way initialiase this layer?
-        stdv = 1. / math.sqrt(self.weight.size(1))
-        self.weight.uniform_(-stdv, stdv)
-
-    def forward(self, input):
-        seq_len = input.size(0)
-        # pad the 0th dimension (T/sequence) with zeroes whose number = context
-        # Once pytorch's padding functions have settled, should move to those.
-        padding = torch.zeros(self.context, *(input.size()[1:])).type_as(input)
-        x = torch.cat((input, padding), 0)
-
-        # add lookahead windows (with context+1 width) as a fourth dimension
-        # for each seq-batch-feature combination
-        x = [x[i:i + self.context + 1] for i in range(seq_len)]  # TxLxNxH - sequence, context, batch, feature
-        x = torch.stack(x)
-        x = x.permute(0, 2, 3, 1)  # TxNxHxL - sequence, batch, feature, context
-
-        x = torch.mul(x, self.weight).sum(dim=3)
-        return x
-
-    def __repr__(self):
-        return self.__class__.__name__ + '(' \
-               + 'n_features=' + str(self.n_features) \
-               + ', context=' + str(self.context) + ')'
-
-
-class DeepSpeech(nn.Module):
-    def __init__(self, rnn_type=nn.LSTM, labels="abc", rnn_hidden_size=768, nb_layers=5, audio_conf=None,
-                 bidirectional=True, context=20, mixed_precision=False):
-        super(DeepSpeech, self).__init__()
+class DeepSpeech2(nn.Module):
+    def __init__(self, rnn_type=nn.LSTM, labels="abc", rnn_hid_size=768, nb_layers=5, audio_conf=None,
+                 bidirectional=True):
+        super(DeepSpeech2, self).__init__()
 
         # model metadata needed for serialization/deserialization
         if audio_conf is None:
             audio_conf = {}
         self.version = '0.0.1'
-        self.hidden_size = rnn_hidden_size
+        self.hidden_size = rnn_hid_size
         self.hidden_layers = nb_layers
         self.rnn_type = rnn_type
         self.audio_conf = audio_conf or {}
         self.labels = labels
         self.bidirectional = bidirectional
-        self.mixed_precision = mixed_precision
+        # self.mixed_precision = mixed_precision
 
         sample_rate = self.audio_conf.get("sample_rate", 16000)
         window_size = self.audio_conf.get("window_size", 0.02)
@@ -171,47 +129,30 @@ class DeepSpeech(nn.Module):
             nn.Hardtanh(0, 20, inplace=True)
         ))
         # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
-        rnn_input_size = int(math.floor((sample_rate * window_size) / 2) + 1)
-        rnn_input_size = int(math.floor(rnn_input_size + 2 * 20 - 41) / 2 + 1)
-        rnn_input_size = int(math.floor(rnn_input_size + 2 * 10 - 21) / 2 + 1)
-        rnn_input_size *= 32
+        rnn_in_size = int(math.floor((sample_rate * window_size) / 2) + 1)
+        rnn_in_size = int(math.floor(rnn_in_size + 2 * 20 - 41) / 2 + 1)
+        rnn_in_size = int(math.floor(rnn_in_size + 2 * 10 - 21) / 2 + 1)
+        rnn_in_size *= 32
 
-        rnns = []
-        rnn = BatchRNN(input_size=rnn_input_size, hidden_size=rnn_hidden_size, rnn_type=rnn_type,
-                       bidirectional=bidirectional, batch_norm=False)
-        rnns.append(('0', rnn))
-        for x in range(nb_layers - 1):
-            rnn = BatchRNN(input_size=rnn_hidden_size, hidden_size=rnn_hidden_size, rnn_type=rnn_type,
-                           bidirectional=bidirectional)
-            rnns.append(('%d' % (x + 1), rnn))
+        rnns = [('0', BatchRNN(input_size=rnn_in_size, hidden_size=rnn_hid_size, rnn_type=rnn_type, batch_norm=False))]
+        rnns.extend([(f"{x + 1}", BatchRNN(input_size=rnn_hid_size, hidden_size=rnn_hid_size, rnn_type=rnn_type))
+                     for x in range(nb_layers - 1)])
         self.rnns = nn.Sequential(OrderedDict(rnns))
-        self.lookahead = nn.Sequential(
-            # consider adding batch norm?
-            Lookahead(rnn_hidden_size, context=context),
-            nn.Hardtanh(0, 20, inplace=True)
-        ) if not bidirectional else None
 
         fully_connected = nn.Sequential(
-            nn.BatchNorm1d(rnn_hidden_size),
-            nn.Linear(rnn_hidden_size, num_classes, bias=False)
+            nn.BatchNorm1d(rnn_hid_size),
+            nn.Linear(rnn_hid_size, num_classes, bias=False)
         )
+
         self.fc = nn.Sequential(
             SequenceWise(fully_connected),
         )
+
         self.inference_softmax = InferenceBatchSoftmax()
 
-        #print("00000000000000000000000000000000000000000000000000000000000\n"
-        #      "00000000000000000000000000000000000000000000000000000000000\n")
-        #self.half()
-        #for layer in self.modules():
-        #  if isinstance(layer, nn.BatchNorm1d) or isinstance(layer, nn.BatchNorm2d):
-        #      layer.float()
-        #print("00000000000000000000000000000000000000000000000000000000000\n"
-        #      "00000000000000000000000000000000000000000000000000000000000\n")
-
     def forward(self, x, lengths):
-        if x.is_cuda and self.mixed_precision:
-            x = x.half()
+        # if x.is_cuda and self.mixed_precision:
+        #     x = x.half()
         lengths = lengths.cpu().int()
         output_lengths = self.get_seq_lens(lengths)
         x, _ = self.conv(x, output_lengths)
@@ -255,15 +196,6 @@ class DeepSpeech(nn.Module):
         for x in model.rnns:
             x.flatten_parameters()
 
-        #print("00000000000000000000000000000000000000000000000000000000000\n"
-        #      "00000000000000000000000000000000000000000000000000000000000\n")
-        #model.half()
-        #for layer in model.modules():
-        #   if isinstance(layer, nn.BatchNorm1d):
-        #       layer.float()
-        #print("00000000000000000000000000000000000000000000000000000000000\n"
-        #      "00000000000000000000000000000000000000000000000000000000000\n")
-
         return model
 
     @classmethod
@@ -273,24 +205,11 @@ class DeepSpeech(nn.Module):
                     rnn_type=supported_rnns[package['rnn_type']], bidirectional=package.get('bidirectional', True))
         model.load_state_dict(package['state_dict'])
 
-        #print("00000000000000000000000000000000000000000000000000000000000\n"
-        #      "00000000000000000000000000000000000000000000000000000000000\n")
-        #model.half()
-        #for layer in model.modules():
-        #   if isinstance(layer, nn.BatchNorm1d):
-        #       layer.float()
-        #print("00000000000000000000000000000000000000000000000000000000000\n"
-        #      "00000000000000000000000000000000000000000000000000000000000\n")
-
         return model
 
     @staticmethod
     def serialize(model, optimizer=None, epoch=None, iteration=None, loss_results=None,
                   cer_results=None, wer_results=None, avg_loss=None, meta=None):
-
-        if isinstance(model, DistributedDataParallel):
-            model = model.module
-
         package = {
             'version': model.version,
             'hidden_size': model.hidden_size,
@@ -301,7 +220,6 @@ class DeepSpeech(nn.Module):
             'state_dict': model.state_dict(),
             'bidirectional': model.bidirectional
         }
-
         if optimizer is not None:
             package['optim_dict'] = optimizer.state_dict()
         if avg_loss is not None:
@@ -328,39 +246,19 @@ class DeepSpeech(nn.Module):
             params += tmp
         return params
 
-
-if __name__ == '__main__':
-    import os.path
-    import argparse
-
-    parser = argparse.ArgumentParser(description='DeepSpeech model information')
-    parser.add_argument('--model-path', default='models/deepspeech_final.pth',
-                        help='Path to model file created by training')
-    args = parser.parse_args()
-    package = torch.load(args.model_path, map_location=lambda storage, loc: storage)
-    model = DeepSpeech.load_model(args.model_path)
-
-    print("Model name:         ", os.path.basename(args.model_path))
-    print("DeepSpeech version: ", model.version)
-    print("")
-    print("Recurrent Neural Network Properties")
-    print("  RNN Type:         ", model.rnn_type.__name__.lower())
-    print("  RNN Layers:       ", model.hidden_layers)
-    print("  RNN Size:         ", model.hidden_size)
-    print("  Classes:          ", len(model.labels))
-    print("")
-    print("Model Features")
-    print("  Labels:           ", model.labels)
-    print("  Sample Rate:      ", model.audio_conf.get("sample_rate", "n/a"))
-    print("  Window Type:      ", model.audio_conf.get("window", "n/a"))
-    print("  Window Size:      ", model.audio_conf.get("window_size", "n/a"))
-    print("  Window Stride:    ", model.audio_conf.get("window_stride", "n/a"))
-
-    if package.get('loss_results', None) is not None:
-        print("")
-        print("Training Information")
-        epochs = package['epoch']
-        print("  Epochs:           ", epochs)
-        print("  Current Loss:      {0:.3f}".format(package['loss_results'][epochs - 1]))
-        print("  Current CER:       {0:.3f}".format(package['cer_results'][epochs - 1]))
-        print("  Current WER:       {0:.3f}".format(package['wer_results'][epochs - 1]))
+    def __repr__(self):
+        rep = f"DeepSpeech2 version: {self.version}\n" + \
+               "=======================================" + \
+               "Recurrent Neural Network Properties\n" + \
+               f"  RNN Type:  \t{self.rnn_type.__name__.lower()}\n" + \
+               f"  RNN Layers:\t{self.hidden_layers}\n" + \
+               f"  RNN Size:  \t{self.hidden_size}\n" + \
+               f"  Classes:   \t{len(self.labels)}\n" + \
+               "---------------------------------------\n" + \
+               "Model Features\n" + \
+               f"  Labels:       \t{self.labels}\n" + \
+               f"  Sample Rate:  \t{self.audio_conf.get('sample_rate', 'n/a')}\n" + \
+               f"  Window Type:  \t{self.audio_conf.get('window', 'n/a')}\n" + \
+               f"  Window Size:  \t{self.audio_conf.get('window_size', 'n/a')}\n" + \
+               f"  Window Stride:\t{self.audio_conf.get('window_stride', 'n/a')}"
+        return rep

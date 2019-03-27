@@ -6,6 +6,7 @@ import librosa
 import numpy as np
 import torch
 import torchaudio
+from scipy import signal
 from torch.utils.data import Dataset, DataLoader, Sampler
 from torch.distributed import get_rank
 from torch.distributed import get_world_size
@@ -15,9 +16,14 @@ windows = {"bartlett": torch.bartlett_window,
            "hamming": torch.hamming_window,
            "hann": torch.hann_window}
 
+windows_legacy = {'hamming': signal.hamming,
+                  'hann': signal.hann,
+                  'blackman': signal.blackman,
+                  'bartlett': signal.bartlett}
 
-class AudioDataset(Dataset):
-    def __init__(self, audio_conf, manifest_filepath, labels, normalize=False, augment=False, legacy=True):
+
+class DataProcessor(object):
+    def __init__(self, audio_conf, labels="abc", normalize=False, augment=False, legacy=True):
         """
         Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
         a comma. Each new line is a different sample. Example below:
@@ -26,43 +32,44 @@ class AudioDataset(Dataset):
         ...
 
         :param audio_conf: Dictionary containing the sample rate, window and the window length/stride in seconds
-        :param manifest_filepath: Path to manifest csv as describe above
         :param labels: String containing all the possible characters to map to
         :param normalize: Apply standard mean and deviation normalization to audio tensor
         :param augment(default False):  Apply random tempo and gain perturbations
         """
-        with open(manifest_filepath) as f:
-            ids = f.readlines()
-        ids = [x.strip().split(',') for x in ids]
-        self.ids = ids
-        self.size = len(ids)
         self.labels_map = dict([(labels[i], i) for i in range(len(labels))])
         self.window_stride = audio_conf["window_stride"]
         self.window_size = audio_conf["window_size"]
         self.sample_rate = audio_conf["sample_rate"]
-        self.window = windows.get(audio_conf["window"], windows["hamming"])
+        self.window = windows_legacy.get(audio_conf["window"], windows_legacy["hamming"]) if legacy else windows.get(audio_conf["window"], windows["hamming"])
         self.normalize = normalize
         self.augment = augment
         self.legacy = legacy
         self.transform = torchaudio.transforms.Spectrogram(n_fft=int(self.sample_rate * self.window_size),
                                                            hop=int(self.sample_rate * self.window_stride),
                                                            window=self.window, normalize=self.normalize)
-        super(AudioDataset, self).__init__()
 
-    def __getitem__(self, index):
-        sample = self.ids[index]
-        audio_path, transcript_path = sample[0], sample[1]
+    @staticmethod
+    def retrieve_file(audio_path, legacy=True):
+        sound, sample_rate = torchaudio.load(audio_path)
+        if legacy:
+            sound = sound.numpy().T
+            if len(sound.shape) > 1:
+                if sound.shape[1] == 1:
+                    sound = sound.squeeze()
+                else:
+                    sound = sound.mean(axis=1)
+        return sound, sample_rate
 
-        spectrogram = self.parse_audio(audio_path)
-        transcript = self.parse_transcript(transcript_path)
-
-        return spectrogram, transcript
-
-    def __len__(self):
-        return self.size
+    @staticmethod
+    def augment_audio(sound, tempo_range: Tuple = (0.85, 1.15), gain_range: Tuple = (-6, 8)):
+        """
+        Changes tempo and gain of the wave
+        """
+        warnings.warn("Augmentation is not implemented")  # TODO: Implement
+        return sound
 
     def parse_audio(self, audio_path):
-        sound, sample_rate = torchaudio.load(audio_path)
+        sound, sample_rate = self.retrieve_file(audio_path, self.legacy)
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
 
@@ -70,12 +77,6 @@ class AudioDataset(Dataset):
             sound = self.augment_audio(sound)
 
         if self.legacy:
-            sound = sound.numpy().T
-            if len(sound.shape) > 1:
-                if sound.shape[1] == 1:
-                    sound = sound.squeeze()
-                else:
-                    sound = sound.mean(axis=1)
             n_fft = int(self.sample_rate * self.window_size)
             win_length = n_fft
             hop_length = int(self.sample_rate * self.window_stride)
@@ -112,12 +113,41 @@ class AudioDataset(Dataset):
         transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
         return transcript
 
-    def augment_audio(self, sound, tempo_range: Tuple = (0.85, 1.15), gain_range: Tuple = (-6, 8)):
+
+class AudioDataset(Dataset):
+    def __init__(self, audio_conf, manifest_filepath, labels, normalize=False, augment=False, legacy=True):
         """
-        Changes tempo and gain of the wave
+        Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
+        a comma. Each new line is a different sample. Example below:
+
+        /path/to/audio.wav,/path/to/audio.txt
+        ...
+
+        :param audio_conf: Dictionary containing the sample rate, window and the window length/stride in seconds
+        :param manifest_filepath: Path to manifest csv as describe above
+        :param labels: String containing all the possible characters to map to
+        :param normalize: Apply standard mean and deviation normalization to audio tensor
+        :param augment(default False):  Apply random tempo and gain perturbations
         """
-        warnings.warn("Augmentation is not implemented")  # TODO: Implement
-        return sound
+        super(AudioDataset, self).__init__()
+        with open(manifest_filepath) as f:
+            ids = f.readlines()
+        ids = [x.strip().split(',') for x in ids]
+        self.ids = ids
+        self.size = len(ids)
+        self.processor = DataProcessor(audio_conf, labels, normalize, augment, legacy)
+
+    def __getitem__(self, index):
+        sample = self.ids[index]
+        audio_path, transcript_path = sample[0], sample[1]
+
+        spectrogram = self.parse_audio(audio_path)
+        transcript = self.parse_transcript(transcript_path)
+
+        return spectrogram, transcript
+
+    def __len__(self):
+        return self.size
 
 
 # TODO: Optimise
