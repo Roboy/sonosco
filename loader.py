@@ -1,3 +1,8 @@
+# ----------------------------------------------------------------------------
+# Based on SeanNaren's deepspeech.pytorch:
+# https://github.com/SeanNaren/deepspeech.pytorch
+# ----------------------------------------------------------------------------
+
 import math
 import warnings
 from typing import Tuple
