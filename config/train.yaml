@@ -4,8 +4,8 @@ train:
   labels-path: 'examples/labels.json' # Contains all characters for transcription
   log-dir: 'logs' # Location for log files
   def-dir: 'examples/checkpoints/', # Default location to save/load models
-  model-name: 'deepspeech_final.pth' # File name to save the best model
-  load-from: 'deepspeech_final.pth' # File name containing a checkpoint to continue/finetune
+git
+  load-from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 
   sample-rate: 16000 # Sample rate
   window-size: 0.02 # Window size for spectrogram in seconds
