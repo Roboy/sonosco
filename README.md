@@ -23,6 +23,7 @@ sudo cp cuda/include/cudnn.h /usr/local/cuda/include
 sudo cp cuda/lib64/libcudnn* /usr/local/cuda/lib64
 sudo chmod a+r /usr/local/cuda/include/cudnn.h /usr/local/cuda/lib64/libcudnn*
 ```
+---
 
 **All of the following steps you may perform inside [Anaconda](https://www.anaconda.com/) or [virtualenv](https://virtualenv.pypa.io/en/latest/)**
 
@@ -56,7 +57,6 @@ pip install -r requirements.txt
 
 ### Mixed Precision
 If you want to use mixed precision training, you have to install [NVIDIA Apex](https://devblogs.nvidia.com/apex-pytorch-easy-mixed-precision-training/):
-
 ```
 git clone --recursive https://github.com/NVIDIA/apex.git
 cd apex && pip install .
@@ -67,7 +67,6 @@ cd apex && pip install .
 ### Dataset
 
 To create a dataset you must create a CSV manifest file containing the locations of the training data. This has to be in the format of:
-
 ```
 /path/to/audio.wav,/path/to/text.txt
 /path/to/audio2.wav,/path/to/text2.txt
@@ -78,7 +77,6 @@ There is an example in examples directory.
 ### Training, Testing and Inference
 
 Fundamentally, you can run the scripts the same way:
-
 ```
 python3 train.py --config /path/to/config/file.yaml
 python3 test.py --config /path/to/config/file.yaml
@@ -89,7 +87,6 @@ The scripts are initialised via configuration files.
 #### Configuration
 
 Configuration file contains arguments for ModelWrapper initialisation as well as extra parameters. Like this:
-
 ```
 train:
   ...
