@@ -1,48 +1,48 @@
 train:
-  train-manifest: 'examples/manifests/train_manifest.csv'
-  val-manifest: 'examples/manifests/val_manifest.csv'
-  labels-path: 'examples/labels.json' # Contains all characters for transcription
-  log-dir: 'logs' # Location for log files
-  def-dir: 'examples/checkpoints/', # Default location to save/load models
-git
-  load-from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
+  train_manifest: 'examples/manifests/train_manifest.csv'
+  val_manifest: 'examples/manifests/val_manifest.csv'
+  labels_path: 'examples/labels.json' # Contains all characters for transcription
+  log_dir: 'logs' # Location for log files
+  def_dir: 'examples/checkpoints/', # Default location to save/load models
 
-  sample-rate: 16000 # Sample rate
-  window-size: 0.02 # Window size for spectrogram in seconds
-  window-stride: 0.01 # Window stride for spectrogram in seconds
+  load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
+
+  sample_rate: 16000 # Sample rate
+  window_size: 0.02 # Window size for spectrogram in seconds
+  window_stride: 0.01 # Window stride for spectrogram in seconds
   window: 'hamming' # Window type for spectrogram generation
 
-  batch-size: 32 # Batch size for training
-  hidden-size: 800 # Hidden size of RNNs
-  hidden-layers: 5 # Number of RNN layers
-  rnn-type: 'gru' # Type of the RNN unit: gru|lstm are supported
+  batch_size: 32 # Batch size for training
+  hidden_size: 800 # Hidden size of RNNs
+  hidden_layers: 5 # Number of RNN layers
+  rnn_type: 'gru' # Type of the RNN unit: gru|lstm are supported
 
-  max-epochs: 70 # Number of training epochs
-  learning-rate: 3e-4 # Initial learning rate
+  max_epochs: 70 # Number of training epochs
+  learning_rate: 3e-4 # Initial learning rate
   momentum: 0.9 # Momentum
-  max-norm: 800 # Norm cutoff to prevent explosion of gradients
-  learning-anneal: 1.1n # Annealing applied to learning rate every epoch
+  max_norm: 800 # Norm cutoff to prevent explosion of gradients
+  learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
 
   checkpoint: True # Enables checkpoint saving of model
-  checkpoint-per-epoch: 1 # Save checkpoint per x epochs
+  checkpoint_per_epoch: 1 # Save checkpoint per x epochs
   silent: False # Turn off progress tracking per iteration
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 
-  num-data-workers: 8 # Number of workers used in data-loading
+  num_data_workers: 8 # Number of workers used in data-loading
   augment: False # Use random tempo and gain perturbations
   shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
 
   seed: 123456 # Seed to generators
   cuda: True # Use cuda to train model
-  half-precision: Trues # Uses half precision to train a model
+  half_precision: Trues # Uses half precision to train a model
   apex: True # Uses mixed precision to train a model
-  static-loss-scaling: False # Static loss scale for mixed precision
-  dynamic-loss-scaling: True # Use dynamic loss scaling for mixed precision
+  static_loss_scaling: False # Static loss scale for mixed precision
+  dynamic_loss_scaling: True # Use dynamic loss scaling for mixed precision
 
-  dist-url: 'tcp://127.0.0.1:1550' # URL used to set up distributed training
-  dist-backend: 'nccl' # Distributed backend
-  world-size: 1 # Number of distributed processes
+  dist_url: 'tcp://127.0.0.1:1550' # URL used to set up distributed training
+  dist_backend: 'nccl' # Distributed backend
+  world_size: 1 # Number of distributed processes
   rank: 0 # The rank of the current process
-  gpu-rank: 0 # If using distributed parallel for multi-gpu, sets the GPU for the process
+  gpu_rank: 0 # If using distributed parallel for multi_gpu, sets the GPU for the process
