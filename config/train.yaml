@@ -26,7 +26,8 @@ train:
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs
-  silent: False # Turn off progress tracking per iteration
+  silent: False # Turn on progress tracking per iteration
+  verbose: False # Turn on verbose progress tracking
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 

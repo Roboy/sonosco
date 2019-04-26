@@ -163,25 +163,18 @@ def _collate_fn(batch):
     minibatch_size = len(batch)
     inputs = torch.zeros(minibatch_size, 1, freq_size, max_seqlength)
     input_percentages = torch.FloatTensor(minibatch_size)
-    target_sizes = torch.IntTensor(minibatch_size)
+    target_sizes = np.zeros(minibatch_size, dtype=np.int32)
 
     # TODO: Numpy broadcasting magic
     targets = []
+
     for x in range(minibatch_size):
-        sample = batch[x]
-        tensor = sample[0]
-        target = sample[1]
-        seq_length = tensor.size(1)
+        inputs[x][0].narrow(1, 0, batch[x][0].size(1)).copy_(batch[x][0])
+        input_percentages[x] = batch[x][0].size(1) / float(max_seqlength)
+        target_sizes[x] = len(batch[x][1])
+        targets.extend(batch[x][1])
 
-        inputs[x][0].narrow(1, 0, seq_length).copy_(tensor)
-
-        input_percentages[x] = seq_length / float(max_seqlength)
-        target_sizes[x] = len(target)
-        targets.extend(target)
-    targets = torch.IntTensor(targets)
-    # TODO: Numpy broadcasting magic
-
-    return inputs, targets, input_percentages, target_sizes
+    return inputs, torch.IntTensor(targets), input_percentages, torch.from_numpy(target_sizes)
 
 
 class AudioDataLoader(DataLoader):
