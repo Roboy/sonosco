@@ -4,6 +4,10 @@ from AudioDataset import AudioDataset
 
 
 def main():
+    labels_path = "/Users/florianlay/roboy/sonosco/sonosco/datasets/labels.json"
+    with open(labels_path) as label_file:
+        labels = str(''.join(json.load(label_file)))
+
     audio_conf = dict(sample_rate=16000,
                       window_size=.02,
                       window_stride=.01,
@@ -20,6 +24,6 @@ def main():
     dataloader = AudioDataLoader(test_dataset,num_workers=4, batch_sampler=sampler)
 
     inputs, targets, input_percentages, target_sizes = next(iter(dataloader))
-    print(targets)
+    print(test)
 if __name__ == "__main__":
     main()

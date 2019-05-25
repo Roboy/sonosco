@@ -78,8 +78,10 @@ class DataProcessor(object):
     def parse_transcript(self, transcript_path):
         with open(transcript_path, 'r', encoding='utf8') as transcript_file:
             transcript = transcript_file.read().replace('\n', '')
+            print(f"1: {transcript}")
         # TODO: Is it fast enough?
         transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
+        print(f"transcript_path: {transcript_path}\ntranscript: {transcript}")
         return transcript
 
 
@@ -122,7 +124,7 @@ def main():
                       window_stride=.01,
                       window='hamming')
     test_manifest = '/Users/florianlay/data/libri_test_clean_manifest.csv'
-    labels = 'abc'
+    labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     test_dataset = AudioDataset(audio_conf=audio_conf, manifest_filepath=test_manifest, labels=labels,
                                  normalize=False, augment=False)
     print("Dataset is created\n====================\n")
