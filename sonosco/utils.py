@@ -1,5 +1,11 @@
 import torch
-from apex.fp16_utils import BN_convert_float
+
+try:
+    from apex.fp16_utils import BN_convert_float
+except Exception as e:
+    print(f"Apex import failed: {e}")
+
+
 import torch.distributed as dist
 
 from models.deepspeech2 import DeepSpeech2
@@ -43,7 +49,7 @@ def check_loss(loss, loss_value):
 
 
 def load_model(device, model_path, is_cuda):
-    model = DeepSpeech.load_model(model_path)
+    model = DeepSpeech2.load_model(model_path)
     model.eval()
     model = model.to(device)
     if is_cuda and model.mixed_precision:

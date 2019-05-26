@@ -13,8 +13,10 @@ import torch
 import torchaudio
 from scipy import signal
 from torch.utils.data import Dataset, DataLoader, Sampler
-from torch.distributed import get_rank
-from torch.distributed import get_world_size
+
+# FIXME: Deprecated functions usage
+from torch.distributed.deprecated import get_rank
+from torch.distributed.deprecated import get_world_size
 
 windows = {"bartlett": torch.bartlett_window,
            "blackman": torch.blackman_window,

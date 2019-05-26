@@ -4,6 +4,6 @@ test:
   batch_size: 32 # Batch size for testing
   num_workers: 4 # Number of workers used in loading
   verbose: True # Print out decoded output and error of each sample
-  save_output: Trur # Saves output of model from test
+  save_output: True # Saves output of model from test
   output_path: "" # Where to save raw acoustic output
 
