@@ -3,7 +3,7 @@ import wget
 import tarfile
 import argparse
 import subprocess
-from utils import create_manifest
+from data_utils import create_manifest
 from tqdm import tqdm
 import shutil
 
@@ -22,15 +22,15 @@ parser.add_argument('--max-duration', default=15, type=int,
 args = parser.parse_args()
 
 LIBRI_SPEECH_URLS = {
-    "train": ["http://www.openslr.org/resources/12/train-clean-100.tar.gz",
-              "http://www.openslr.org/resources/12/train-clean-360.tar.gz",
-              "http://www.openslr.org/resources/12/train-other-500.tar.gz"],
+    #"train": ["http://www.openslr.org/resources/12/train-clean-100.tar.gz",
+    #          "http://www.openslr.org/resources/12/train-clean-360.tar.gz",
+    #          "http://www.openslr.org/resources/12/train-other-500.tar.gz"],
 
-    "val": ["http://www.openslr.org/resources/12/dev-clean.tar.gz",
-            "http://www.openslr.org/resources/12/dev-other.tar.gz"],
+    #"val": ["http://www.openslr.org/resources/12/dev-clean.tar.gz",
+    #        "http://www.openslr.org/resources/12/dev-other.tar.gz"],
 
-    "test_clean": ["http://www.openslr.org/resources/12/test-clean.tar.gz"],
-    "test_other": ["http://www.openslr.org/resources/12/test-other.tar.gz"]
+    "test_clean": ["http://www.openslr.org/resources/12/test-clean.tar.gz"]#,
+    #"test_other": ["http://www.openslr.org/resources/12/test-other.tar.gz"]
 }
 
 
@@ -58,12 +58,24 @@ def _process_file(wav_dir, txt_dir, base_filename, root_dir):
 
 
 def main():
-    target_dl_dir = args.target_dir
-    if not os.path.exists(target_dl_dir):
-        os.makedirs(target_dl_dir)
-    files_to_dl = args.files_to_use.strip().split(',')
+    root = os.path.expanduser('~')
+    data_path = '.temp/data/libri'
+
+    filenames = [
+        'train-clean-100.tar.gz',
+        'train-clean-360.tar.gz',
+        'train-other-500.tar.gz',
+        'dev-clean.tar.gz',
+        'dev-other.tar.gz',
+        'test-clean.tar.gz',
+        'test-other.tar.gz'
+    ]
+    path_to_data = os.path.join(root, data_path)
+    if not os.path.exists(path_to_data):
+        os.makedirs(path_to_data)
+
     for split_type, lst_libri_urls in LIBRI_SPEECH_URLS.items():
-        split_dir = os.path.join(target_dl_dir, split_type)
+        split_dir = os.path.join(path_to_data, split_type)
         if not os.path.exists(split_dir):
             os.makedirs(split_dir)
         split_wav_dir = os.path.join(split_dir, "wav")
@@ -78,7 +90,7 @@ def main():
         for url in lst_libri_urls:
             # check if we want to dl this file
             dl_flag = False
-            for f in files_to_dl:
+            for f in filenames:
                 if url.find(f) != -1:
                     dl_flag = True
             if not dl_flag:
