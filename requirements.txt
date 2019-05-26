@@ -21,4 +21,5 @@ torchaudio==0.2
 torchvision==0.3.0
 tqdm==4.32.1
 pyyaml==5.1
+wget==3.2
 -e git+git@github.com:SeanNaren/warp-ctc.git@ab27454d0cf3f936a6e19165682fe2b759f3f8e5#egg=warpctc_pytorch&subdirectory=pytorch_binding
