@@ -1,0 +1,2 @@
+-e git://github.com/pytorch/audio.git#egg=torchaudio-0.2
+-e git://github.com/NVIDIA/apex.git#egg=apex

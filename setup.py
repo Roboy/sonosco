@@ -6,4 +6,5 @@ setup(
     author="The Roboy Gang",
     packages=["sonosco"],
     include_package_data=True,
+    dependency_links=['http://github.com/pytorch/audio/tarball/master#egg=torchaudio-0.2']
 )
