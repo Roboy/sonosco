@@ -12,8 +12,12 @@ case ${i} in
     CUDA="${i#*=}"
     shift # past argument=value
     ;;
+    -e=*|--venv=*)
+    VENV="${i#*=}"
+    shift # past argument=value
+    ;;
     -p=*|--python_path=*)
-    PYTHON_HOME_PATH="${i#*=}"
+    VENV_PATH="${i#*=}"
     shift # past argument=value
     ;;
     *)
@@ -22,10 +26,15 @@ case ${i} in
 esac
 done
 
-PYTHON_HOME_PATH=${PYTHON_HOME_PATH:-./venv}
+VENV=${VENV:-true}
+
+if [ "$VENV" = true ] ; then
+    VENV_PATH=${VENV_PATH:-./venv}
+    source ${VENV_PATH}/bin/activate
+fi
+
 #TODO: Infer this automatically
 CUDA=${CUDA:-false}
-source ${PYTHON_HOME_PATH}/bin/activate
 
 pip install -r requirements.txt
 
