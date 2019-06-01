@@ -12,8 +12,8 @@ class AudioDataLoader(DataLoader):
         super(AudioDataLoader, self).__init__(*args, **kwargs)
         self.collate_fn = self._collate_fn
 
-# TODO: Optimise
-    def _collate_fn(batch):
+    # TODO: Optimise
+    def _collate_fn(self, batch):
         batch = sorted(batch, key=lambda sample: sample[0].size(1), reverse=True)
         longest_sample = batch[0][0]
         freq_size, max_seqlength = longest_sample.size()

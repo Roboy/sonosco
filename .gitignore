@@ -5,6 +5,8 @@ sonosco/experiments/
 sonosco/datasets/download_datasets/
 !sonosco/datasets/download_datasets/*.py
 
+**/.DS_Store
+
 .idea/
 warp-ctc/
 ### Python template

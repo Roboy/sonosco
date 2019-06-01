@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-import datasets.download_datasets.librispeech as librispeech
+#import datasets.download_datasets.librispeech as librispeech
 
 from datasets.AudioDataLoader import AudioDataLoader
 from datasets.AudioDataSampler import BucketingSampler
@@ -23,7 +23,7 @@ def load_datasets(manifest_path, batch_size_train, batch_size_test):
     sampler = BucketingSampler(test_dataset, batch_size=batch_size)
     return AudioDataLoader(test_dataset, num_workers=4, batch_sampler=sampler)
 
-librispeech.main()
+# librispeech.main()
 model = DeepSpeech2().cpu()
 experiment = Experiment('mnist_example')
 train_loader = load_datasets("./datasets/download_datasets/libri_test_clean_manifest.csv",
