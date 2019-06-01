@@ -1,13 +1,13 @@
 import torch
 import torch.nn.functional as F
-import sonosco.datasets.download_datasets.librispeech as librispeech
+import datasets.download_datasets.librispeech as librispeech
 
-from sonosco.datasets.AudioDataLoader import AudioDataLoader
-from sonosco.datasets.AudioDataSampler import BucketingSampler
-from sonosco.datasets.AudioDataset import AudioDataset
-from sonosco.models.deepspeech2 import DeepSpeech2
-from sonosco.pycandle.general.experiment import Experiment
-from sonosco.pycandle.training.model_trainer import ModelTrainer
+from datasets.AudioDataLoader import AudioDataLoader
+from datasets.AudioDataSampler import BucketingSampler
+from datasets.AudioDataset import AudioDataset
+from models.deepspeech2 import DeepSpeech2
+from pycandle.general.experiment import Experiment
+from pycandle.training.model_trainer import ModelTrainer
 
 def load_datasets(manifest_path, batch_size_train, batch_size_test):
     audio_conf = dict(sample_rate=16000,

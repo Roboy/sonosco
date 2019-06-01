@@ -3,7 +3,7 @@ import wget
 import tarfile
 import argparse
 import subprocess
-from data_utils import create_manifest
+from datasets.download_datasets.data_utils import create_manifest
 from tqdm import tqdm
 import shutil
 
