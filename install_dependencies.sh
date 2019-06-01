@@ -40,6 +40,7 @@ pip install -r requirements.txt
 
 git clone https://github.com/SeanNaren/warp-ctc.git
 if [ "$CUDA" = false ] ; then
+    # This works for mac, for other OSes remove '' after -i
     sed -i '' 's/option(WITH_OMP \"compile warp-ctc with openmp.\" ON)/option(WITH_OMP \"compile warp-ctc with openmp.\" ${CUDA_FOUND})/' warp-ctc/CMakeLists.txt
 else
     export CUDA_HOME="/usr/local/cuda"

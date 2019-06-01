@@ -1,18 +1,33 @@
 import torch
-import torchvision
 import torch.nn.functional as F
+import sonosco.datasets.download_datasets.librispeech as librispeech
 
+from sonosco.datasets.AudioDataLoader import AudioDataLoader
+from sonosco.datasets.AudioDataSampler import BucketingSampler
+from sonosco.datasets.AudioDataset import AudioDataset
 from sonosco.models.deepspeech2 import DeepSpeech2
 from sonosco.pycandle.general.experiment import Experiment
 from sonosco.pycandle.training.model_trainer import ModelTrainer
 
+def load_datasets(manifest_path, batch_size_train, batch_size_test):
+    audio_conf = dict(sample_rate=16000,
+                      window_size=.02,
+                      window_stride=.01,
+                      window='hamming')
+    labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    test_dataset = AudioDataset(audio_conf=audio_conf, manifest_filepath=manifest_path, labels=labels,
+                                normalize=False, augment=False)
+    print("Dataset is created\n====================\n")
 
-def load_datasets(batch_size_train, batch_size_test):
-    pass
+    batch_size = 16
+    sampler = BucketingSampler(test_dataset, batch_size=batch_size)
+    return AudioDataLoader(test_dataset, num_workers=4, batch_sampler=sampler)
 
-model = DeepSpeech2().cuda()
+librispeech.main()
+model = DeepSpeech2().cpu()
 experiment = Experiment('mnist_example')
-train_loader, val_loader = load_datasets(batch_size_train=64, batch_size_test=64)
+train_loader = load_datasets("./datasets/download_datasets/libri_test_clean_manifest.csv",
+                                         batch_size_train=64, batch_size_test=64)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 model_trainer = ModelTrainer(model, optimizer, F.nll_loss, 20, train_loader, gpu=0)
 model_trainer.start_training()
