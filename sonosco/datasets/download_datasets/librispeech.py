@@ -1,25 +1,19 @@
 import os
+import click
 import wget
 import tarfile
-import argparse
-import subprocess
-from datasets.download_datasets.data_utils import create_manifest
-from tqdm import tqdm
 import shutil
+import logging
+import sonosco.common.audio_tools as audio_tools
 
-parser = argparse.ArgumentParser(description='Processes and downloads LibriSpeech dataset.')
-parser.add_argument("--target-dir", default='LibriSpeech_dataset/', type=str, help="Directory to store the dataset.")
-parser.add_argument('--sample-rate', default=16000, type=int, help='Sample rate')
-parser.add_argument('--files-to-use', default="train-clean-100.tar.gz,"
-                                              "train-clean-360.tar.gz,train-other-500.tar.gz,"
-                                              "dev-clean.tar.gz,dev-other.tar.gz,"
-                                              "test-clean.tar.gz,test-other.tar.gz", type=str,
-                    help='list of file names to download')
-parser.add_argument('--min-duration', default=1, type=int,
-                    help='Prunes training samples shorter than the min duration (given in seconds, default 1)')
-parser.add_argument('--max-duration', default=15, type=int,
-                    help='Prunes training samples longer than the max duration (given in seconds, default 15)')
-args = parser.parse_args()
+from sonosco.datasets.download_datasets.data_utils import create_manifest
+from sonosco.common.click_extensions import PythonLiteralOption
+from sonosco.common.utils import setup_logging
+from tqdm import tqdm
+
+
+logger = logging.getLogger("sonosco.datasets.download_datasets.librispeech")
+
 
 LIBRI_SPEECH_URLS = {
     #"train": ["http://www.openslr.org/resources/12/train-clean-100.tar.gz",
@@ -38,12 +32,11 @@ def _preprocess_transcript(phrase):
     return phrase.strip().upper()
 
 
-def _process_file(wav_dir, txt_dir, base_filename, root_dir):
+def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
     full_recording_path = os.path.join(root_dir, base_filename)
     assert os.path.exists(full_recording_path) and os.path.exists(root_dir)
     wav_recording_path = os.path.join(wav_dir, base_filename.replace(".flac", ".wav"))
-    subprocess.call(["sox {}  -r {} -b 16 -c 1 {}".format(full_recording_path, str(args.sample_rate),
-                                                          wav_recording_path)], shell=True)
+    audio_tools.transcode_recording(full_recording_path, wav_recording_path, sample_rate)
     # process transcript
     txt_transcript_path = os.path.join(txt_dir, base_filename.replace(".flac", ".txt"))
     transcript_file = os.path.join(root_dir, "-".join(base_filename.split('-')[:-1]) + ".trans.txt")
@@ -57,20 +50,22 @@ def _process_file(wav_dir, txt_dir, base_filename, root_dir):
         f.flush()
 
 
-def main():
-    root = os.path.expanduser('~')
-    data_path = '.temp/data/libri'
+@click.command()
+@click.option("--target-dir", default="temp/data/libri_speech", type=str, help="Directory to store the dataset.")
+@click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
+@click.option("--files-to-use", multiple=True,
+              default=["train-clean-100.tar.gz", "train-clean-360.tar.gz", "train-other-500.tar.gz",
+                       "dev-clean.tar.gz", "dev-other.tar.gz", "test-clean.tar.gz", "test-other.tar.gz"],
+              type=str, help="List of file names to download.")
+@click.option("--min-duration", default=1, type=int,
+              help="Prunes training samples shorter than the min duration (given in seconds).")
+@click.option("--max-duration", default=15, type=int,
+              help="Prunes training samples longer than the max duration (given in seconds).")
+def main(target_dir, sample_rate, files_to_use, min_duration, max_duration):
+    """Processes and downloads LibriSpeech dataset."""
+    setup_logging(logger)
 
-    filenames = [
-        'train-clean-100.tar.gz',
-        'train-clean-360.tar.gz',
-        'train-other-500.tar.gz',
-        'dev-clean.tar.gz',
-        'dev-other.tar.gz',
-        'test-clean.tar.gz',
-        'test-other.tar.gz'
-    ]
-    path_to_data = os.path.join(root, data_path)
+    path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     if not os.path.exists(path_to_data):
         os.makedirs(path_to_data)
 
@@ -90,33 +85,34 @@ def main():
         for url in lst_libri_urls:
             # check if we want to dl this file
             dl_flag = False
-            for f in filenames:
+            for f in files_to_use:
                 if url.find(f) != -1:
                     dl_flag = True
             if not dl_flag:
-                print("Skipping url: {}".format(url))
+                logger.info(f"Skipping url: {url}")
                 continue
             filename = url.split("/")[-1]
             target_filename = os.path.join(split_dir, filename)
             if not os.path.exists(target_filename):
                 wget.download(url, split_dir)
-            print("Unpacking {}...".format(filename))
+            logger.info("Download complete")
+            logger.info(f"Unpacking {filename}...")
             tar = tarfile.open(target_filename)
             tar.extractall(split_dir)
             tar.close()
             os.remove(target_filename)
-            print("Converting flac files to wav and extracting transcripts...")
+            logger.info("Converting flac files to wav and extracting transcripts...")
             assert os.path.exists(extracted_dir), "Archive {} was not properly uncompressed.".format(filename)
             for root, subdirs, files in tqdm(os.walk(extracted_dir)):
                 for f in files:
                     if f.find(".flac") != -1:
                         _process_file(wav_dir=split_wav_dir, txt_dir=split_txt_dir,
-                                      base_filename=f, root_dir=root)
+                                      base_filename=f, root_dir=root, sample_rate=sample_rate)
 
-            print("Finished {}".format(url))
+            logger.info(f"Finished {url}")
             shutil.rmtree(extracted_dir)
         if split_type == 'train':  # Prune to min/max duration
-            create_manifest(split_dir, 'libri_' + split_type + '_manifest.csv', args.min_duration, args.max_duration)
+            create_manifest(split_dir, 'libri_' + split_type + '_manifest.csv', min_duration, max_duration)
         else:
             create_manifest(split_dir, 'libri_' + split_type + '_manifest.csv')
 
