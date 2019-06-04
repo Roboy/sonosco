@@ -12,12 +12,12 @@ case ${i} in
     CUDA="${i#*=}"
     shift # past argument=value
     ;;
-    -e=*|--venv=*)
-    VENV="${i#*=}"
+    -a=*|--anaconda=*)
+    ANACONDA="${i#*=}"
     shift # past argument=value
     ;;
-    -p=*|--python_path=*)
-    VENV_PATH="${i#*=}"
+    -e=*|--venv=*)
+    VENV="${i#*=}"
     shift # past argument=value
     ;;
     *)
@@ -26,11 +26,12 @@ case ${i} in
 esac
 done
 
-VENV=${VENV:-true}
+VENV=${VENV:-./venv}
 
-if [ "$VENV" = true ] ; then
-    VENV_PATH=${VENV_PATH:-./venv}
-    source ${VENV_PATH}/bin/activate
+if [ -z ${ANACONDA+x} ] ; then
+    conda activate ${ANACONDA}
+elif [ -z ${VENV+x} ] ; then
+    source ${VENV}/bin/activate
 fi
 
 #TODO: Infer this automatically
@@ -49,5 +50,10 @@ cd warp-ctc; mkdir build; cd build; cmake ..; make
 cd ../pytorch_binding && python setup.py install
 cd ../..
 rm -rf warp-ctc
+
+git clone git@github.com:pytorch/audio.git
+cd audio; MACOSX_DEPLOYMENT_TARGET=10.9 CC=clang CXX=clang++ python setup.py install
+cd ..
+rm -rf audio
 
 pip install -r post_requirements.txt

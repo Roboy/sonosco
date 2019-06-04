@@ -82,13 +82,14 @@ class InferenceBatchSoftmax(nn.Module):
 
 
 class BatchRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, rnn_type=nn.LSTM, batch_norm=True):
+    def __init__(self, input_size, hidden_size, rnn_type=nn.LSTM, batch_norm=True, bidirectional=True):
         super(BatchRNN, self).__init__()
+        self.bidirectional = bidirectional
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.batch_norm = SequenceWise(nn.BatchNorm1d(input_size)) if batch_norm else None
         self.rnn = rnn_type(input_size=input_size, hidden_size=hidden_size,
-                            bidirectional=True, bias=True)
+                            bidirectional=self.bidirectional, bias=True)
 
     def flatten_parameters(self):
         self.rnn.flatten_parameters()
@@ -155,9 +156,12 @@ class DeepSpeech2(nn.Module):
 
         self.inference_softmax = InferenceBatchSoftmax()
 
-    def forward(self, x, lengths):
+    def forward(self, xx):
         # if x.is_cuda and self.mixed_precision:
         #     x = x.half()
+        x, input_percentages = xx
+
+        lengths = input_percentages.mul_(int(x.size(3))).int()
         lengths = lengths.cpu().int()
         output_lengths = self.get_seq_lens(lengths)
         x, _ = self.conv(x, output_lengths)
@@ -176,7 +180,7 @@ class DeepSpeech2(nn.Module):
         x = x.transpose(0, 1)
         # identity in training mode, softmax in eval mode
         x = self.inference_softmax(x)
-        return x, output_lengths
+        return x
 
     def get_seq_lens(self, input_length):
         """
