@@ -1,18 +1,17 @@
 import os
 import click
-import wget
 import tarfile
 import shutil
 import logging
 import sonosco.common.audio_tools as audio_tools
+import sonosco.common.path_utils as path_utils
 
 from sonosco.datasets.download_datasets.data_utils import create_manifest
-from sonosco.common.click_extensions import PythonLiteralOption
 from sonosco.common.utils import setup_logging
 from tqdm import tqdm
 
 
-logger = logging.getLogger("sonosco.datasets.download_datasets.librispeech")
+logger = logging.getLogger("sonosco")
 
 
 LIBRI_SPEECH_URLS = {
@@ -40,12 +39,12 @@ def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
     # process transcript
     txt_transcript_path = os.path.join(txt_dir, base_filename.replace(".flac", ".txt"))
     transcript_file = os.path.join(root_dir, "-".join(base_filename.split('-')[:-1]) + ".trans.txt")
-    assert os.path.exists(transcript_file), "Transcript file {} does not exist.".format(transcript_file)
+    assert os.path.exists(transcript_file), f"Transcript file {transcript_file} does not exist"
     transcriptions = open(transcript_file).read().strip().split("\n")
     transcriptions = {t.split()[0].split("-")[-1]: " ".join(t.split()[1:]) for t in transcriptions}
     with open(txt_transcript_path, "w") as f:
         key = base_filename.replace(".flac", "").split("-")[-1]
-        assert key in transcriptions, "{} is not in the transcriptions".format(key)
+        assert key in transcriptions, f"{key} is not in the transcriptions"
         f.write(_preprocess_transcript(transcriptions[key]))
         f.flush()
 
@@ -71,17 +70,16 @@ def main(target_dir, sample_rate, files_to_use, min_duration, max_duration):
 
     for split_type, lst_libri_urls in LIBRI_SPEECH_URLS.items():
         split_dir = os.path.join(path_to_data, split_type)
-        if not os.path.exists(split_dir):
-            os.makedirs(split_dir)
+        path_utils.try_create_directory(split_dir)
         split_wav_dir = os.path.join(split_dir, "wav")
-        if not os.path.exists(split_wav_dir):
-            os.makedirs(split_wav_dir)
+        path_utils.try_create_directory(split_wav_dir)
         split_txt_dir = os.path.join(split_dir, "txt")
-        if not os.path.exists(split_txt_dir):
-            os.makedirs(split_txt_dir)
+        path_utils.try_create_directory(split_txt_dir)
         extracted_dir = os.path.join(split_dir, "LibriSpeech")
+
         if os.path.exists(extracted_dir):
             shutil.rmtree(extracted_dir)
+
         for url in lst_libri_urls:
             # check if we want to dl this file
             dl_flag = False
@@ -91,18 +89,19 @@ def main(target_dir, sample_rate, files_to_use, min_duration, max_duration):
             if not dl_flag:
                 logger.info(f"Skipping url: {url}")
                 continue
+
             filename = url.split("/")[-1]
             target_filename = os.path.join(split_dir, filename)
-            if not os.path.exists(target_filename):
-                wget.download(url, split_dir)
+            path_utils.try_download(target_filename, url)
             logger.info("Download complete")
             logger.info(f"Unpacking {filename}...")
             tar = tarfile.open(target_filename)
             tar.extractall(split_dir)
             tar.close()
             os.remove(target_filename)
+            assert os.path.exists(extracted_dir), f"Archive {filename} was not properly uncompressed"
+
             logger.info("Converting flac files to wav and extracting transcripts...")
-            assert os.path.exists(extracted_dir), "Archive {} was not properly uncompressed.".format(filename)
             for root, subdirs, files in tqdm(os.walk(extracted_dir)):
                 for f in files:
                     if f.find(".flac") != -1:
@@ -111,10 +110,15 @@ def main(target_dir, sample_rate, files_to_use, min_duration, max_duration):
 
             logger.info(f"Finished {url}")
             shutil.rmtree(extracted_dir)
+
+        manifest_path = os.path.join(path_to_data, f"libri_{split_type}_manifest.csv")
+        if os.path.exists(manifest_path):
+            continue
+
         if split_type == 'train':  # Prune to min/max duration
-            create_manifest(split_dir, 'libri_' + split_type + '_manifest.csv', min_duration, max_duration)
+            create_manifest(split_dir, manifest_path, min_duration, max_duration)
         else:
-            create_manifest(split_dir, 'libri_' + split_type + '_manifest.csv')
+            create_manifest(split_dir, manifest_path)
 
 
 if __name__ == "__main__":
