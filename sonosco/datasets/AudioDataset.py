@@ -4,6 +4,7 @@
 # ----------------------------------------------------------------------------
 
 import warnings
+import os
 from typing import Tuple
 
 import torch
@@ -118,12 +119,14 @@ class AudioDataset(Dataset):
     def __len__(self):
         return self.size
 
+
 def main():
     audio_conf = dict(sample_rate=16000,
                       window_size=.02,
                       window_stride=.01,
                       window='hamming')
-    test_manifest = '/Users/florianlay/data/libri_test_clean_manifest.csv'
+    manifest_directory = os.path.join(os.path.expanduser("~"), "temp/data/libri_speech")
+    test_manifest = os.path.join(manifest_directory, "libri_test_clean_manifest.csv")
     labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     test_dataset = AudioDataset(audio_conf=audio_conf, manifest_filepath=test_manifest, labels=labels,
                                  normalize=False, augment=False)
@@ -135,5 +138,7 @@ def main():
     dataloader = DataLoader(dataset=test_dataset, num_workers=4, collate_fn=_collate_fn, batch_sampler=sampler)
     test_dataset[0]
     #inputs, targets, input_percentages, target_sizes = next(iter(dataloader))
+
+
 if __name__ == "__main__":
     main()

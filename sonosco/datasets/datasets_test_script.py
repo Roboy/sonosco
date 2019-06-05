@@ -1,3 +1,5 @@
+import os
+
 from AudioDataLoader import AudioDataLoader
 from AudioDataSampler import BucketingSampler, DistributedBucketingSampler
 from AudioDataset import AudioDataset
@@ -12,7 +14,9 @@ def main():
                       window_size=.02,
                       window_stride=.01,
                       window='hamming')
-    test_manifest = '/Users/florianlay/data/libri_test_clean_manifest.csv'
+
+    manifest_directory = os.path.join(os.path.expanduser("~"), "temp/data/libri_speech")
+    test_manifest = os.path.join(manifest_directory, "libri_test_clean_manifest.csv")
     labels = 'abc'
     test_dataset = AudioDataset(audio_conf=audio_conf, manifest_filepath=test_manifest, labels=labels,
                                  normalize=False, augment=False)

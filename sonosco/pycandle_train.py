@@ -1,4 +1,5 @@
 import torch
+import os
 import torch.nn.functional as F
 #import datasets.download_datasets.librispeech as librispeech
 
@@ -23,11 +24,13 @@ def load_datasets(manifest_path, batch_size_train, batch_size_test):
     sampler = BucketingSampler(test_dataset, batch_size=batch_size)
     return AudioDataLoader(test_dataset, num_workers=4, batch_sampler=sampler)
 
+
+manifest_directory = os.path.join(os.path.expanduser("~"), "temp/data/libri_speech")
+test_manifest = os.path.join(manifest_directory, "libri_test_clean_manifest.csv")
 # librispeech.main()
 model = DeepSpeech2().cpu()
 experiment = Experiment('mnist_example')
-train_loader = load_datasets("./datasets/download_datasets/libri_test_clean_manifest.csv",
-                                         batch_size_train=64, batch_size_test=64)
+train_loader = load_datasets(test_manifest, batch_size_train=64, batch_size_test=64)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 model_trainer = ModelTrainer(model, optimizer, F.nll_loss, 20, train_loader, gpu=0)
 model_trainer.start_training()

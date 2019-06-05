@@ -1,14 +1,13 @@
-
 import numpy as np
 import torch
 
 from torch.utils.data import Dataset, DataLoader, Sampler
 
+
 class AudioDataLoader(DataLoader):
+
     def __init__(self, *args, **kwargs):
-        """
-        Creates a data loader for AudioDatasets.
-        """
+        """Creates a data loader for AudioDatasets."""
         super(AudioDataLoader, self).__init__(*args, **kwargs)
         self.collate_fn = self._collate_fn
 
