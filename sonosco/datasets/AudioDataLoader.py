@@ -28,7 +28,6 @@ class AudioDataLoader(DataLoader):
             inputs[x][0].narrow(1, 0, batch[x][0].size(1)).copy_(batch[x][0])
             input_percentages[x] = batch[x][0].size(1) / float(max_seqlength)
             target_sizes[x] = len(batch[x][1])
-            targets.append([batch[x][1]])
+            targets.extend(batch[x][1])
 
-        # return inputs, torch.IntTensor(targets), input_percentages, torch.from_numpy(target_sizes)
-        return (inputs, input_percentages), torch.IntTensor(targets)
+        return inputs, torch.IntTensor(targets), input_percentages, torch.from_numpy(target_sizes)
