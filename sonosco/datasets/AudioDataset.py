@@ -66,8 +66,6 @@ class DataProcessor(object):
                                   win_length=int(self.sample_rate * self.window_size),
                                   window=torch.hamming_window(int(self.sample_rate * self.window_size)))[:, :, -1]
 
-
-
         if self.normalize:
             mean = spectrogram.mean()
             std = spectrogram.std()

@@ -8,10 +8,11 @@ import sonosco.common.path_utils as path_utils
 
 from sonosco.datasets.download_datasets.data_utils import create_manifest
 from sonosco.common.utils import setup_logging
+from sonosco.common.constants import *
 from tqdm import tqdm
 
 
-logger = logging.getLogger("sonosco")
+logger = logging.getLogger(SONOSCO)
 
 
 LIBRI_SPEECH_URLS = {
@@ -27,43 +28,7 @@ LIBRI_SPEECH_URLS = {
 }
 
 
-def _preprocess_transcript(phrase):
-    return phrase.strip().upper()
-
-
-def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
-    full_recording_path = os.path.join(root_dir, base_filename)
-    assert os.path.exists(full_recording_path) and os.path.exists(root_dir)
-    wav_recording_path = os.path.join(wav_dir, base_filename.replace(".flac", ".wav"))
-    audio_tools.transcode_recording(full_recording_path, wav_recording_path, sample_rate)
-    # process transcript
-    txt_transcript_path = os.path.join(txt_dir, base_filename.replace(".flac", ".txt"))
-    transcript_file = os.path.join(root_dir, "-".join(base_filename.split('-')[:-1]) + ".trans.txt")
-    assert os.path.exists(transcript_file), f"Transcript file {transcript_file} does not exist"
-    transcriptions = open(transcript_file).read().strip().split("\n")
-    transcriptions = {t.split()[0].split("-")[-1]: " ".join(t.split()[1:]) for t in transcriptions}
-    with open(txt_transcript_path, "w") as f:
-        key = base_filename.replace(".flac", "").split("-")[-1]
-        assert key in transcriptions, f"{key} is not in the transcriptions"
-        f.write(_preprocess_transcript(transcriptions[key]))
-        f.flush()
-
-
-@click.command()
-@click.option("--target-dir", default="temp/data/libri_speech", type=str, help="Directory to store the dataset.")
-@click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
-@click.option("--files-to-use", multiple=True,
-              default=["train-clean-100.tar.gz", "train-clean-360.tar.gz", "train-other-500.tar.gz",
-                       "dev-clean.tar.gz", "dev-other.tar.gz", "test-clean.tar.gz", "test-other.tar.gz"],
-              type=str, help="List of file names to download.")
-@click.option("--min-duration", default=1, type=int,
-              help="Prunes training samples shorter than the min duration (given in seconds).")
-@click.option("--max-duration", default=15, type=int,
-              help="Prunes training samples longer than the max duration (given in seconds).")
-def main(target_dir, sample_rate, files_to_use, min_duration, max_duration):
-    """Processes and downloads LibriSpeech dataset."""
-    setup_logging(logger)
-
+def try_download_librispeech(target_dir, sample_rate, files_to_use, min_duration, max_duration):
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     if not os.path.exists(path_to_data):
         os.makedirs(path_to_data)
@@ -119,6 +84,45 @@ def main(target_dir, sample_rate, files_to_use, min_duration, max_duration):
             create_manifest(split_dir, manifest_path, min_duration, max_duration)
         else:
             create_manifest(split_dir, manifest_path)
+
+
+def _preprocess_transcript(phrase):
+    return phrase.strip().upper()
+
+
+def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
+    full_recording_path = os.path.join(root_dir, base_filename)
+    assert os.path.exists(full_recording_path) and os.path.exists(root_dir)
+    wav_recording_path = os.path.join(wav_dir, base_filename.replace(".flac", ".wav"))
+    audio_tools.transcode_recording(full_recording_path, wav_recording_path, sample_rate)
+    # process transcript
+    txt_transcript_path = os.path.join(txt_dir, base_filename.replace(".flac", ".txt"))
+    transcript_file = os.path.join(root_dir, "-".join(base_filename.split('-')[:-1]) + ".trans.txt")
+    assert os.path.exists(transcript_file), f"Transcript file {transcript_file} does not exist"
+    transcriptions = open(transcript_file).read().strip().split("\n")
+    transcriptions = {t.split()[0].split("-")[-1]: " ".join(t.split()[1:]) for t in transcriptions}
+    with open(txt_transcript_path, "w") as f:
+        key = base_filename.replace(".flac", "").split("-")[-1]
+        assert key in transcriptions, f"{key} is not in the transcriptions"
+        f.write(_preprocess_transcript(transcriptions[key]))
+        f.flush()
+
+
+@click.command()
+@click.option("--target-dir", default="temp/data/libri_speech", type=str, help="Directory to store the dataset.")
+@click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
+@click.option("--files-to-use", multiple=True,
+              default=["train-clean-100.tar.gz", "train-clean-360.tar.gz", "train-other-500.tar.gz",
+                       "dev-clean.tar.gz", "dev-other.tar.gz", "test-clean.tar.gz", "test-other.tar.gz"],
+              type=str, help="List of file names to download.")
+@click.option("--min-duration", default=1, type=int,
+              help="Prunes training samples shorter than the min duration (given in seconds).")
+@click.option("--max-duration", default=15, type=int,
+              help="Prunes training samples longer than the max duration (given in seconds).")
+def main(**kwargs):
+    """Processes and downloads LibriSpeech dataset."""
+    setup_logging(logger)
+    try_download_librispeech(**kwargs)
 
 
 if __name__ == "__main__":
