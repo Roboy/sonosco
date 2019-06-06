@@ -12,7 +12,7 @@ from sonosco.common.constants import *
 from tqdm import tqdm
 
 
-logger = logging.getLogger(SONOSCO)
+logger = logging.getLogger(__name__)
 
 
 LIBRI_SPEECH_URLS = {
@@ -121,6 +121,8 @@ def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
               help="Prunes training samples longer than the max duration (given in seconds).")
 def main(**kwargs):
     """Processes and downloads LibriSpeech dataset."""
+    global logger
+    logger = logging.getLogger(SONOSCO)
     setup_logging(logger)
     try_download_librispeech(**kwargs)
 

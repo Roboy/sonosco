@@ -5,38 +5,49 @@
 
 import warnings
 import os
-from typing import Tuple
-
+import logging
 import torch
 import torchaudio
-from scipy import signal
+import sonosco.config.global_settings as global_settings
+
+from typing import Tuple
 from torch.utils.data import Dataset
-
-windows = {"bartlett": torch.bartlett_window,
-           "blackman": torch.blackman_window,
-           "hamming": torch.hamming_window,
-           "hann": torch.hann_window}
+from sonosco.common.utils import setup_logging
+from sonosco.common.constants import *
 
 
-class DataProcessor(object):
-    def __init__(self, audio_conf, labels="abc", normalize=False, augment=False):
+logger = logging.getLogger(__name__)
+
+
+class DataProcessor:
+
+    def __init__(self, window_stride, window_size, sample_rate, labels="abc", normalize=False, augment=False):
         """
         Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
         a comma. Each new line is a different sample. Example below:
         /path/to/audio.wav,/path/to/audio.txt
         ...
-        :param audio_conf: Dictionary containing the sample rate, window and the window length/stride in seconds
-        :param labels: String containing all the possible characters to map to
-        :param normalize: Apply standard mean and deviation normalization to audio tensor
-        :param augment(default False):  Apply random tempo and gain perturbations
+        :param window_stride: number of seconds to skip between each window
+        :param window_size: number of seconds to use for a window of spectrogram
+        :param sample_rate: sample rate of the recordings
+        :param labels: string containing all the possible characters to map to
+        :param normalize: apply standard mean and deviation normalization to audio tensor
+        :param augment(default False): apply random tempo and gain perturbations
         """
+        self.window_stride = window_stride
+        self.window_size = window_size
+        self.sample_rate = sample_rate
         self.labels_map = dict([(labels[i], i) for i in range(len(labels))])
-        self.window_stride = audio_conf["window_stride"]
-        self.window_size = audio_conf["window_size"]
-        self.sample_rate = audio_conf["sample_rate"]
-        self.window = windows.get(audio_conf["window"], windows["hamming"])
         self.normalize = normalize
         self.augment = augment
+
+    @property
+    def window_stride_samples(self):
+        return int(self.sample_rate * self.window_stride)
+
+    @property
+    def window_size_samples(self):
+        return int(self.sample_rate * self.window_stride)
 
     @staticmethod
     def retrieve_file(audio_path):
@@ -45,57 +56,52 @@ class DataProcessor(object):
 
     @staticmethod
     def augment_audio(sound, tempo_range: Tuple = (0.85, 1.15), gain_range: Tuple = (-6, 8)):
-        """
-        Changes tempo and gain of the wave
-        """
+        """Changes tempo and gain of the wave."""
         warnings.warn("Augmentation is not implemented")  # TODO: Implement
         return sound
 
     def parse_audio(self, audio_path):
         sound, sample_rate = self.retrieve_file(audio_path)
+
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
 
         if self.augment:
             sound = self.augment_audio(sound)
 
-        #sound = sound.cuda()
-        spectrogram = torch.stft(torch.from_numpy(sound.numpy().T.squeeze()),
-                                  n_fft=int(self.sample_rate * self.window_size),
-                                  hop_length=int(self.sample_rate * self.window_stride),
-                                  win_length=int(self.sample_rate * self.window_size),
-                                  window=torch.hamming_window(int(self.sample_rate * self.window_size)))[:, :, -1]
+        if global_settings.CUDA_ENABLED:
+            sound = sound.cuda()
 
-        if self.normalize:
-            mean = spectrogram.mean()
-            std = spectrogram.std()
-            spectrogram.add_(-mean)
-            spectrogram.div_(std)
+        # TODO: comment why take the last element?
+        spectrogram = torch.stft(torch.from_numpy(sound.numpy().T.squeeze()),
+                                 n_fft=self.window_size_samples,
+                                 hop_length=self.window_stride_samples,
+                                 win_length=self.window_size_samples,
+                                 window=torch.hamming_window(self.window_size_samples),
+                                 normalized=self.normalize)[:, :, -1]
 
         return spectrogram
 
     def parse_transcript(self, transcript_path):
         with open(transcript_path, 'r', encoding='utf8') as transcript_file:
             transcript = transcript_file.read().replace('\n', '')
-            print(f"1: {transcript}")
+            logger.info(f"1: {transcript}")
         # TODO: Is it fast enough?
         transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
-        print(f"transcript_path: {transcript_path}\ntranscript: {transcript}")
+        logger.info(f"transcript_path: {transcript_path} transcript: {transcript}")
         return transcript
 
 
 class AudioDataset(Dataset):
-    def __init__(self, audio_conf, manifest_filepath, labels, normalize=False, augment=False):
+
+    def __init__(self, processor: DataProcessor, manifest_filepath):
         """
         Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
         a comma. Each new line is a different sample. Example below:
         /path/to/audio.wav,/path/to/audio.txt
         ...
-        :param audio_conf: Dictionary containing the sample rate, window and the window length/stride in seconds
+        :param processor: Data processor object
         :param manifest_filepath: Path to manifest csv as describe above
-        :param labels: String containing all the possible characters to map to
-        :param normalize: Apply standard mean and deviation normalization to audio tensor
-        :param augment(default False):  Apply random tempo and gain perturbations
         """
         super(AudioDataset, self).__init__()
         with open(manifest_filepath) as f:
@@ -103,7 +109,7 @@ class AudioDataset(Dataset):
         ids = [x.strip().split(',') for x in ids]
         self.ids = ids
         self.size = len(ids)
-        self.processor = DataProcessor(audio_conf, labels, normalize, augment)
+        self.processor = processor
 
     def __getitem__(self, index):
         sample = self.ids[index]
@@ -119,17 +125,22 @@ class AudioDataset(Dataset):
 
 
 def main():
-    audio_conf = dict(sample_rate=16000,
-                      window_size=.02,
-                      window_stride=.01,
-                      window='hamming')
+    global logger
+    logger = logging.getLogger(SONOSCO)
+    setup_logging(logger)
+
+    # create data processor
+    audio_conf = dict(sample_rate=16000, window_size=.02, window_stride=.01,
+                      labels='ABCDEFGHIJKLMNOPQRSTUVWXYZ', normalize=True, augment=False)
+    processor = DataProcessor(**audio_conf)
+
+    # get manifest file
     manifest_directory = os.path.join(os.path.expanduser("~"), "temp/data/libri_speech")
     test_manifest = os.path.join(manifest_directory, "libri_test_clean_manifest.csv")
-    labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    test_dataset = AudioDataset(audio_conf=audio_conf, manifest_filepath=test_manifest, labels=labels,
-                                 normalize=False, augment=False)
-    print("Dataset is created\n====================\n")
 
+    # create audio dataset
+    test_dataset = AudioDataset(processor, manifest_filepath=test_manifest)
+    logger.info("Dataset is created")
     test = test_dataset[0]
     batch_size = 16
     sampler = BucketingSampler(test_dataset, batch_size=batch_size)

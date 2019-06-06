@@ -7,7 +7,6 @@ import sonosco.common.audio_tools as audio_tools
 
 from tqdm import tqdm
 
-import pdb; pdb.set_trace()
 logger = logging.getLogger(__name__)
 
 
