@@ -94,6 +94,7 @@ def convert_to_wav(csv_file, target_dir, sample_rate):
             pool.map(process, data)
 
 def main(**kwargs):
+    global logger
     logger = logging.getLogger(SONOSCO)
     setup_logging(logger)
     try_download_common_voice(**kwargs)
