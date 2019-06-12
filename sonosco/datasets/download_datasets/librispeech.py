@@ -12,7 +12,7 @@ from sonosco.common.constants import *
 from tqdm import tqdm
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 LIBRI_SPEECH_URLS = {
@@ -52,28 +52,29 @@ def try_download_librispeech(target_dir, sample_rate, files_to_use, min_duration
                 if url.find(f) != -1:
                     dl_flag = True
             if not dl_flag:
-                logger.info(f"Skipping url: {url}")
+                LOGGER.info(f"Skipping url: {url}")
                 continue
 
             filename = url.split("/")[-1]
             target_filename = os.path.join(split_dir, filename)
+            LOGGER.info(f"Downloading from {url}")
             path_utils.try_download(target_filename, url)
-            logger.info("Download complete")
-            logger.info(f"Unpacking {filename}...")
+            LOGGER.info("Download complete")
+            LOGGER.info(f"Unpacking {filename}...")
             tar = tarfile.open(target_filename)
             tar.extractall(split_dir)
             tar.close()
             os.remove(target_filename)
             assert os.path.exists(extracted_dir), f"Archive {filename} was not properly uncompressed"
 
-            logger.info("Converting flac files to wav and extracting transcripts...")
+            LOGGER.info("Converting flac files to wav and extracting transcripts...")
             for root, subdirs, files in tqdm(os.walk(extracted_dir)):
                 for f in files:
                     if f.find(".flac") != -1:
                         _process_file(wav_dir=split_wav_dir, txt_dir=split_txt_dir,
                                       base_filename=f, root_dir=root, sample_rate=sample_rate)
 
-            logger.info(f"Finished {url}")
+            LOGGER.info(f"Finished {url}")
             shutil.rmtree(extracted_dir)
 
         manifest_path = os.path.join(path_to_data, f"libri_{split_type}_manifest.csv")
@@ -121,9 +122,9 @@ def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
               help="Prunes training samples longer than the max duration (given in seconds).")
 def main(**kwargs):
     """Processes and downloads LibriSpeech dataset."""
-    global logger
-    logger = logging.getLogger(SONOSCO)
-    setup_logging(logger)
+    global LOGGER
+    LOGGER = logging.getLogger(SONOSCO)
+    setup_logging(LOGGER)
     try_download_librispeech(**kwargs)
 
 

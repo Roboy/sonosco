@@ -7,15 +7,15 @@ import sonosco.common.audio_tools as audio_tools
 
 from tqdm import tqdm
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 def create_manifest(data_path, output_path, min_duration=None, max_duration=None):
-    logger.info(f"Creating a manifest for path: {data_path}")
+    LOGGER.info(f"Creating a manifest for path: {data_path}")
     file_paths = [os.path.join(dirpath, f)
                   for dirpath, dirnames, files in os.walk(data_path)
                   for f in fnmatch.filter(files, '*.wav')]
-    logger.info(f"Found {len(file_paths)} .wav files")
+    LOGGER.info(f"Found {len(file_paths)} .wav files")
     file_paths = order_and_prune_files(file_paths, min_duration, max_duration)
     with io.FileIO(output_path, "w") as file:
         for wav_path in tqdm(file_paths, total=len(file_paths)):
@@ -25,11 +25,11 @@ def create_manifest(data_path, output_path, min_duration=None, max_duration=None
 
 
 def order_and_prune_files(file_paths, min_duration, max_duration):
-    logger.info("Sorting manifests...")
+    LOGGER.info("Sorting manifests...")
     path_and_duration = [(path, audio_tools.get_duration(path)) for path in file_paths]
 
     if min_duration and max_duration:
-        logger.info(f"Pruning manifests between {min_duration} and {max_duration} seconds")
+        LOGGER.info(f"Pruning manifests between {min_duration} and {max_duration} seconds")
         path_and_duration = [(path, duration) for path, duration in path_and_duration
                              if min_duration <= duration <= max_duration]
 

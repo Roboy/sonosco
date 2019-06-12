@@ -3,7 +3,7 @@ import ast
 import logging
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class PythonLiteralOption(click.Option):
@@ -12,5 +12,5 @@ class PythonLiteralOption(click.Option):
         try:
             return ast.literal_eval(value)
         except Exception as e:
-            logger.error(f"Malformed click input for PythonLiteralOption {e}", exc_info=True)
+            LOGGER.error(f"Malformed click input for PythonLiteralOption {e}", exc_info=True)
             raise click.BadParameter(value)

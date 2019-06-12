@@ -16,7 +16,7 @@ from sonosco.common.utils import setup_logging
 from sonosco.common.constants import *
 
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class DataProcessor:
@@ -85,10 +85,10 @@ class DataProcessor:
     def parse_transcript(self, transcript_path):
         with open(transcript_path, 'r', encoding='utf8') as transcript_file:
             transcript = transcript_file.read().replace('\n', '')
-            logger.info(f"1: {transcript}")
+            LOGGER.info(f"1: {transcript}")
         # TODO: Is it fast enough?
         transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
-        logger.info(f"transcript_path: {transcript_path} transcript: {transcript}")
+        LOGGER.info(f"transcript_path: {transcript_path} transcript: {transcript}")
         return transcript
 
 
@@ -103,7 +103,7 @@ class AudioDataset(Dataset):
         :param processor: Data processor object
         :param manifest_filepath: Path to manifest csv as describe above
         """
-        super(AudioDataset, self).__init__()
+        super().__init__()
         with open(manifest_filepath) as f:
             ids = f.readlines()
         ids = [x.strip().split(',') for x in ids]
@@ -122,32 +122,3 @@ class AudioDataset(Dataset):
 
     def __len__(self):
         return self.size
-
-
-def main():
-    global logger
-    logger = logging.getLogger(SONOSCO)
-    setup_logging(logger)
-
-    # create data processor
-    audio_conf = dict(sample_rate=16000, window_size=.02, window_stride=.01,
-                      labels='ABCDEFGHIJKLMNOPQRSTUVWXYZ', normalize=True, augment=False)
-    processor = DataProcessor(**audio_conf)
-
-    # get manifest file
-    manifest_directory = os.path.join(os.path.expanduser("~"), "temp/data/libri_speech")
-    test_manifest = os.path.join(manifest_directory, "libri_test_clean_manifest.csv")
-
-    # create audio dataset
-    test_dataset = AudioDataset(processor, manifest_filepath=test_manifest)
-    logger.info("Dataset is created")
-    test = test_dataset[0]
-    batch_size = 16
-    sampler = BucketingSampler(test_dataset, batch_size=batch_size)
-    dataloader = DataLoader(dataset=test_dataset, num_workers=4, collate_fn=_collate_fn, batch_sampler=sampler)
-    test_dataset[0]
-    #inputs, targets, input_percentages, target_sizes = next(iter(dataloader))
-
-
-if __name__ == "__main__":
-    main()

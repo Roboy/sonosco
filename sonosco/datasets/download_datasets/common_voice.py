@@ -12,7 +12,7 @@ import subprocess
 from sonosco.datasets.download_datasets.data_utils import create_manifest
 from sonosco.common.utils import setup_logging
 
-logger = logging.getLogger("sonosco")
+LOGGER = logging.getLogger("sonosco")
 
 COMMON_VOICE_URL = "https://common-voice-data-download.s3.amazonaws.com/cv_corpus_v1.tar.gz"
 
@@ -60,7 +60,7 @@ def convert_to_wav(csv_file, target_dir, sample_rate):
 
 
 def main(target_dir, sample_rate, files_to_use, min_duration, max_duration):
-    setup_logging(logger)
+    setup_logging(LOGGER)
 
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     path_utils.try_create_directory(path_to_data)
@@ -74,8 +74,8 @@ def main(target_dir, sample_rate, files_to_use, min_duration, max_duration):
 
     path_utils.try_download(target_unpacked_dir, COMMON_VOICE_URL)
 
-    logger.info("Download complete")
-    logger.info("Unpacking...")
+    LOGGER.info("Download complete")
+    LOGGER.info("Unpacking...")
 
     print("Unpacking corpus to {} ...".format(target_unpacked_dir))
     tar = tarfile.open(target_unpacked_dir)
