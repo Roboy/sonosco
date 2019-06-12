@@ -7,3 +7,6 @@ def get_duration(file_path):
 
 def transcode_recording(source, destination, sample_rate):
     subprocess.call([f"sox {source}  -r {sample_rate} -b 16 -c 1 {destination}"], shell=True)
+
+def transcode_recordings_an4(raw_path, wav_path, sample_rate):
+    subprocess.call([f'sox -t raw -r {sample_rate} -b 16 -e signed-integer -B -c 1 \"{raw_path}\" \"{wav_path}\"'], shell=True)
