@@ -1,4 +1,6 @@
 import os
+import click
+import logging
 from six.moves import urllib
 import argparse
 import re
@@ -7,22 +9,29 @@ import shutil
 import subprocess
 import tarfile
 import io
+import sonosco.common.audio_tools as audio_tools
+import sonosco.common.path_utils as path_utils
+from sonosco.datasets.download_datasets.data_utils import create_manifest
+from sonosco.common.utils import setup_logging
+from sonosco.common.constants import *
 from tqdm import tqdm
 
-from utils import create_manifest
+logger = logging.getLogger(__name__)
 
 VOXFORGE_URL_16kHz = 'http://www.repository.voxforge1.org/downloads/SpeechCorpus/Trunk/Audio/Main/16kHz_16bit/'
 
-parser = argparse.ArgumentParser(description='Processes and downloads VoxForge dataset.')
-parser.add_argument("--target-dir", default='voxforge_dataset/', type=str, help="Directory to store the dataset.")
-parser.add_argument('--sample-rate', default=16000,
-                    type=int, help='Sample rate')
-parser.add_argument('--min-duration', default=1, type=int,
-                    help='Prunes training samples shorter than the min duration (given in seconds, default 1)')
-parser.add_argument('--max-duration', default=15, type=int,
-                    help='Prunes training samples longer than the max duration (given in seconds, default 15)')
-args = parser.parse_args()
+def try_download_voxforge(target_dir, sample_rate, min_duration, max_duration):
+    path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
+    path_utils.try_create_directory(path_to_data)
 
+    logger.info("Start downloading...")
+    request = urllib.request.Request(VOXFORGE_URL_16kHz)
+    response = urllib.request.urlopen(request)
+    content = response.read()
+    all_files = re.findall("href\=\"(.*\.tgz)\"", content.decode("utf-8"))
+    for f in tqdm(all_files, total=len(all_files)):
+        prepare_sample(f.replace(".tgz", ""), VOXFORGE_URL_16kHz + f, path_to_data, sample_rate)
+    create_manifest(path_to_data, os.path.join(path_to_data,'voxforge_train_manifest.csv'), min_duration, max_duration)
 
 def _get_recordings_dir(sample_dir, recording_name):
     wav_dir = os.path.join(sample_dir, recording_name, "wav")
@@ -34,16 +43,14 @@ def _get_recordings_dir(sample_dir, recording_name):
     raise Exception("wav or flac directory was not found for recording name: {}".format(recording_name))
 
 
-def prepare_sample(recording_name, url, target_folder):
+def prepare_sample(recording_name, url, target_folder, sample_rate):
     """
     Downloads and extracts a sample from VoxForge and puts the wav and txt files into :target_folder.
     """
     wav_dir = os.path.join(target_folder, "wav")
-    if not os.path.exists(wav_dir):
-        os.makedirs(wav_dir)
+    path_utils.try_create_directory(wav_dir)
     txt_dir = os.path.join(target_folder, "txt")
-    if not os.path.exists(txt_dir):
-        os.makedirs(txt_dir)
+    path_utils.try_create_directory(txt_dir)
     # check if sample is processed
     filename_set = set(['_'.join(wav_file.split('_')[:-1]) for wav_file in os.listdir(wav_dir)])
     if recording_name in filename_set:
@@ -80,23 +87,27 @@ def prepare_sample(recording_name, url, target_folder):
                 with io.FileIO(target_txt_file, "w") as file:
                     file.write(utterance.encode('utf-8'))
                 original_wav_file = os.path.join(recordings_dir, wav_file)
-                subprocess.call(["sox {}  -r {} -b 16 -c 1 {}".format(original_wav_file, str(args.sample_rate),
-                                                                      target_wav_file)], shell=True)
+                audio_tools.transcode_recording(original_wav_file, target_wav_file, sample_rate)
 
         shutil.rmtree(dirpath)
 
+@click.command()
+@click.option("--target-dir", default="temp/data/voxforge", type=str, help="Directory to store the dataset.")
+@click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
+
+@click.option("--min-duration", default=1, type=int,
+              help="Prunes training samples shorter than the min duration (given in seconds).")
+@click.option("--max-duration", default=15, type=int,
+              help="Prunes training samples longer than the max duration (given in seconds).")
+
+
+
+def main(**kwargs):
+    global logger
+    logger = logging.getLogger(SONOSCO)
+    setup_logging(logger)
+    try_download_voxforge(**kwargs)
+
 
 if __name__ == '__main__':
-    target_dir = args.target_dir
-    sample_rate = args.sample_rate
-
-    if not os.path.isdir(target_dir):
-        os.makedirs(target_dir)
-    request = urllib.request.Request(VOXFORGE_URL_16kHz)
-    response = urllib.request.urlopen(request)
-    content = response.read()
-    all_files = re.findall("href\=\"(.*\.tgz)\"", content.decode("utf-8"))
-    for f in tqdm(all_files, total=len(all_files)):
-        prepare_sample(f.replace(".tgz", ""), VOXFORGE_URL_16kHz + f, target_dir)
-    print('Creating manifests...')
-    create_manifest(target_dir, 'voxforge_train_manifest.csv', args.min_duration, args.max_duration)
+    main()
