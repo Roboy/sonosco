@@ -84,11 +84,7 @@ def convert_to_wav(csv_file, target_dir, sample_rate):
         text = text.strip().upper()
         with open(os.path.join(txt_dir, file_name + '.txt'), 'w') as f:
             f.write(text)
-        cmd = "sox {} -r {} -b 16 -c 1 {}".format(
-            os.path.join(path_to_data, file_path),
-            sample_rate,
-            os.path.join(wav_dir, file_name + '.wav'))
-        subprocess.call([cmd], shell=True)
+        audio_tools(source = os.path.join(path_to_data, file_path), destination=os.path.join(wav_dir, file_name + '.wav'), sample_rate = sample_rate)
 
     logger.ino('Converting mp3 to wav for {}.'.format(csv_file))
     with open(csv_file) as csvfile:
