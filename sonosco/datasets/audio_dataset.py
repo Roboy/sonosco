@@ -5,8 +5,8 @@
 
 import logging
 import torch
-import torchaudio
 import librosa
+import numpy as np
 import sonosco.config.global_settings as global_settings
 import sonosco.common.audio_tools as audio_tools
 
@@ -46,18 +46,15 @@ class DataProcessor:
     def window_size_samples(self):
         return int(self.sample_rate * self.window_stride)
 
-    @staticmethod
-    def retrieve_file(audio_path):
-        sound, sample_rate = torchaudio.load(audio_path)
+    def retrieve_file(self, audio_path):
+        sound, sample_rate = librosa.load(audio_path, sr=self.sample_rate)
         return sound, sample_rate
 
     @staticmethod
     def augment_audio(sound):
-        sound_array = sound.numpy().squeeze()
-        stretched_sound = audio_tools.stretch(sound_array, 0.5)
-        import pdb; pdb.set_trace()
-        stretched_sound = audio_tools.shift(stretched_sound, 4000)
-        return torch.from_numpy(stretched_sound)
+        augmented = audio_tools.stretch(sound, 0.5)
+        augmented = audio_tools.shift(augmented, 4000)
+        return augmented
 
     def parse_audio(self, audio_path):
         sound, sample_rate = self.retrieve_file(audio_path)
@@ -65,22 +62,23 @@ class DataProcessor:
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
 
-        librosa.output.write_wav("/Users/yuriy/Desktop/original.wav", sound.numpy().transpose(), sample_rate)
+        librosa.output.write_wav("/Users/yuriy/Desktop/original.wav", sound, sample_rate)
 
         if self.augment:
             stretched_sound = self.augment_audio(sound)
-            librosa.output.write_wav("/Users/yuriy/Desktop/stretched.wav", stretched_sound.numpy().transpose(), sample_rate)
+            librosa.output.write_wav("/Users/yuriy/Desktop/stretched.wav", stretched_sound, sample_rate)
 
         if global_settings.CUDA_ENABLED:
             sound = sound.cuda()
 
         # TODO: comment why take the last element?
-        spectrogram = torch.stft(torch.from_numpy(sound.numpy().T.squeeze()),
-                                 n_fft=self.window_size_samples,
-                                 hop_length=self.window_stride_samples,
-                                 win_length=self.window_size_samples,
-                                 window=torch.hamming_window(self.window_size_samples),
-                                 normalized=self.normalize)[:, :, -1]
+        D = librosa.stft(sound,
+                         n_fft=self.window_size_samples,
+                         hop_length=self.window_stride_samples,
+                         win_length=self.window_size_samples)
+        spectrogram, phase = librosa.magphase(D)
+        # S = log(S+1)
+        spectrogram = torch.from_numpy(np.log1p(spectrogram))
 
         return spectrogram
 
