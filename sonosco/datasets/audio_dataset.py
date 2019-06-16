@@ -9,11 +9,17 @@ import librosa
 import numpy as np
 import sonosco.config.global_settings as global_settings
 import sonosco.common.audio_tools as audio_tools
+import sonosco.common.utils as utils
 
 from torch.utils.data import Dataset
 
 
 LOGGER = logging.getLogger(__name__)
+MIN_STRETCH = 0.7
+MAX_STRETCH = 1.3
+MIN_PITCH = 0.5
+MAX_PITCH = 2.0
+MAX_SHIFT = 4000
 
 
 class DataProcessor:
@@ -50,10 +56,12 @@ class DataProcessor:
         sound, sample_rate = librosa.load(audio_path, sr=self.sample_rate)
         return sound, sample_rate
 
-    @staticmethod
-    def augment_audio(sound):
-        augmented = audio_tools.stretch(sound, 0.5)
-        augmented = audio_tools.shift(augmented, 4000)
+    def augment_audio(self, sound, stretch=True, shift=False, pitch=True, noise=True):
+        augmented = audio_tools.stretch(sound, utils.random_float(MIN_STRETCH, MAX_STRETCH)) if stretch else sound
+        augmented = audio_tools.shift(augmented, np.random.randint(MAX_SHIFT)) if shift else augmented
+        augmented = audio_tools.pitch_shift(augmented, self.sample_rate,
+                                            n_steps=utils.random_float(MIN_PITCH, MAX_PITCH)) if pitch else augmented
+        augmented = audio_tools.add_noise(augmented) if noise else augmented
         return augmented
 
     def parse_audio(self, audio_path):

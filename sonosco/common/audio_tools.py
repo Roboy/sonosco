@@ -19,7 +19,7 @@ def transcode_recordings_ted3(source, destination, start_time, end_time, sample_
     subprocess.call([f"sox {source}  -r {sample_rate} -b 16 -c 1 {destination} trim {start_time} ={end_time}"],shell=True)
 
 
-def add_noise(audio, std=0.005):
+def add_noise(audio, std=0.002):
     noise = np.random.randn(len(audio))
     data_noise = audio + std * noise
     return data_noise
@@ -31,4 +31,9 @@ def shift(audio, n_samples=1600):
 
 def stretch(audio, rate=1):
     stretched_audio = librosa.effects.time_stretch(audio, rate)
+    return stretched_audio
+
+
+def pitch_shift(audio, sample_rate=16000, n_steps=3.0):
+    stretched_audio = librosa.effects.pitch_shift(audio, sr=sample_rate, n_steps=n_steps)
     return stretched_audio
