@@ -3,17 +3,14 @@
 # https://github.com/SeanNaren/deepspeech.pytorch
 # ----------------------------------------------------------------------------
 
-import warnings
-import os
 import logging
 import torch
 import torchaudio
+import librosa
 import sonosco.config.global_settings as global_settings
+import sonosco.common.audio_tools as audio_tools
 
-from typing import Tuple
 from torch.utils.data import Dataset
-from sonosco.common.utils import setup_logging
-from sonosco.common.constants import *
 
 
 LOGGER = logging.getLogger(__name__)
@@ -55,10 +52,12 @@ class DataProcessor:
         return sound, sample_rate
 
     @staticmethod
-    def augment_audio(sound, tempo_range: Tuple = (0.85, 1.15), gain_range: Tuple = (-6, 8)):
-        """Changes tempo and gain of the wave."""
-        warnings.warn("Augmentation is not implemented")  # TODO: Implement
-        return sound
+    def augment_audio(sound):
+        sound_array = sound.numpy().squeeze()
+        stretched_sound = audio_tools.stretch(sound_array, 0.5)
+        import pdb; pdb.set_trace()
+        stretched_sound = audio_tools.shift(stretched_sound, 4000)
+        return torch.from_numpy(stretched_sound)
 
     def parse_audio(self, audio_path):
         sound, sample_rate = self.retrieve_file(audio_path)
@@ -66,8 +65,11 @@ class DataProcessor:
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
 
+        librosa.output.write_wav("/Users/yuriy/Desktop/original.wav", sound.numpy().transpose(), sample_rate)
+
         if self.augment:
-            sound = self.augment_audio(sound)
+            stretched_sound = self.augment_audio(sound)
+            librosa.output.write_wav("/Users/yuriy/Desktop/stretched.wav", stretched_sound.numpy().transpose(), sample_rate)
 
         if global_settings.CUDA_ENABLED:
             sound = sound.cuda()

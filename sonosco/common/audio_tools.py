@@ -1,4 +1,6 @@
 import subprocess
+import numpy as np
+import librosa
 
 
 def get_duration(file_path):
@@ -8,8 +10,25 @@ def get_duration(file_path):
 def transcode_recording(source, destination, sample_rate):
     subprocess.call([f"sox {source}  -r {sample_rate} -b 16 -c 1 {destination}"], shell=True)
 
+
 def transcode_recordings_an4(raw_path, wav_path, sample_rate):
     subprocess.call([f'sox -t raw -r {sample_rate} -b 16 -e signed-integer -B -c 1 \"{raw_path}\" \"{wav_path}\"'], shell=True)
 
+
 def transcode_recordings_ted3(source, destination, start_time, end_time, sample_rate):
     subprocess.call([f"sox {source}  -r {sample_rate} -b 16 -c 1 {destination} trim {start_time} ={end_time}"],shell=True)
+
+
+def add_noise(audio, std=0.005):
+    noise = np.random.randn(len(audio))
+    data_noise = audio + std * noise
+    return data_noise
+
+
+def shift(audio, n_samples=1600):
+    return np.roll(audio, n_samples)
+
+
+def stretch(audio, rate=1):
+    stretched_audio = librosa.effects.time_stretch(audio, rate)
+    return stretched_audio
