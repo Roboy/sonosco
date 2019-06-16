@@ -43,7 +43,7 @@ def test_librispeech_download(logger):
 def test_librispeech_clean(logger):
     # create data processor
     audio_conf = dict(sample_rate=SAMPLE_RATE, window_size=.02, window_stride=.01,
-                      labels='ABCDEFGHIJKLMNOPQRSTUVWXYZ', normalize=True, augment=True)
+                      labels='ABCDEFGHIJKLMNOPQRSTUVWXYZ', normalize=True, augment=False)
     processor = DataProcessor(**audio_conf)
 
     # get manifest file
