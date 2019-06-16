@@ -17,8 +17,8 @@ from torch.utils.data import Dataset
 LOGGER = logging.getLogger(__name__)
 MIN_STRETCH = 0.7
 MAX_STRETCH = 1.3
-MIN_PITCH = 0.5
-MAX_PITCH = 2.0
+MIN_PITCH = 0.7
+MAX_PITCH = 1.5
 MAX_SHIFT = 4000
 
 
@@ -64,27 +64,29 @@ class DataProcessor:
         augmented = audio_tools.add_noise(augmented) if noise else augmented
         return augmented
 
-    def parse_audio(self, audio_path):
+    def parse_audio(self, audio_path, raw=False):
         sound, sample_rate = self.retrieve_file(audio_path)
 
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
 
-        librosa.output.write_wav("/Users/yuriy/Desktop/original.wav", sound, sample_rate)
-
         if self.augment:
-            stretched_sound = self.augment_audio(sound)
-            librosa.output.write_wav("/Users/yuriy/Desktop/stretched.wav", stretched_sound, sample_rate)
+            sound = self.augment_audio(sound)
+
+        if raw:
+            return sound
+
+        sound_tensor = torch.from_numpy(sound)
 
         if global_settings.CUDA_ENABLED:
-            sound = sound.cuda()
+            sound_tensor = sound_tensor.cuda()
 
         # TODO: comment why take the last element?
-        D = librosa.stft(sound,
-                         n_fft=self.window_size_samples,
-                         hop_length=self.window_stride_samples,
-                         win_length=self.window_size_samples)
-        spectrogram, phase = librosa.magphase(D)
+        complex_spectrogram = librosa.stft(sound_tensor,
+                                           n_fft=self.window_size_samples,
+                                           hop_length=self.window_stride_samples,
+                                           win_length=self.window_size_samples)
+        spectrogram, phase = librosa.magphase(complex_spectrogram)
         # S = log(S+1)
         spectrogram = torch.from_numpy(np.log1p(spectrogram))
 
@@ -118,6 +120,15 @@ class AudioDataset(Dataset):
         self.ids = ids
         self.size = len(ids)
         self.processor = processor
+
+    def get_raw(self, index):
+        sample = self.ids[index]
+        audio_path, transcript_path = sample[0], sample[1]
+
+        sound = self.processor.parse_audio(audio_path, raw=True)
+        transcript = self.processor.parse_transcript(transcript_path)
+
+        return sound, transcript
 
     def __getitem__(self, index):
         sample = self.ids[index]
