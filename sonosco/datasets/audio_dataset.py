@@ -3,20 +3,23 @@
 # https://github.com/SeanNaren/deepspeech.pytorch
 # ----------------------------------------------------------------------------
 
-import warnings
-import os
 import logging
 import torch
-import torchaudio
+import librosa
+import numpy as np
 import sonosco.config.global_settings as global_settings
+import sonosco.common.audio_tools as audio_tools
+import sonosco.common.utils as utils
 
-from typing import Tuple
 from torch.utils.data import Dataset
-from sonosco.common.utils import setup_logging
-from sonosco.common.constants import *
 
 
 LOGGER = logging.getLogger(__name__)
+MIN_STRETCH = 0.7
+MAX_STRETCH = 1.3
+MIN_PITCH = 0.7
+MAX_PITCH = 1.5
+MAX_SHIFT = 4000
 
 
 class DataProcessor:
@@ -49,18 +52,19 @@ class DataProcessor:
     def window_size_samples(self):
         return int(self.sample_rate * self.window_stride)
 
-    @staticmethod
-    def retrieve_file(audio_path):
-        sound, sample_rate = torchaudio.load(audio_path)
+    def retrieve_file(self, audio_path):
+        sound, sample_rate = librosa.load(audio_path, sr=self.sample_rate)
         return sound, sample_rate
 
-    @staticmethod
-    def augment_audio(sound, tempo_range: Tuple = (0.85, 1.15), gain_range: Tuple = (-6, 8)):
-        """Changes tempo and gain of the wave."""
-        warnings.warn("Augmentation is not implemented")  # TODO: Implement
-        return sound
+    def augment_audio(self, sound, stretch=True, shift=False, pitch=True, noise=True):
+        augmented = audio_tools.stretch(sound, utils.random_float(MIN_STRETCH, MAX_STRETCH)) if stretch else sound
+        augmented = audio_tools.shift(augmented, np.random.randint(MAX_SHIFT)) if shift else augmented
+        augmented = audio_tools.pitch_shift(augmented, self.sample_rate,
+                                            n_steps=utils.random_float(MIN_PITCH, MAX_PITCH)) if pitch else augmented
+        augmented = audio_tools.add_noise(augmented) if noise else augmented
+        return augmented
 
-    def parse_audio(self, audio_path):
+    def parse_audio(self, audio_path, raw=False):
         sound, sample_rate = self.retrieve_file(audio_path)
 
         if sample_rate != self.sample_rate:
@@ -69,16 +73,22 @@ class DataProcessor:
         if self.augment:
             sound = self.augment_audio(sound)
 
+        if raw:
+            return sound
+
+        sound_tensor = torch.from_numpy(sound)
+
         if global_settings.CUDA_ENABLED:
-            sound = sound.cuda()
+            sound_tensor = sound_tensor.cuda()
 
         # TODO: comment why take the last element?
-        spectrogram = torch.stft(torch.from_numpy(sound.numpy().T.squeeze()),
-                                 n_fft=self.window_size_samples,
-                                 hop_length=self.window_stride_samples,
-                                 win_length=self.window_size_samples,
-                                 window=torch.hamming_window(self.window_size_samples),
-                                 normalized=self.normalize)[:, :, -1]
+        complex_spectrogram = librosa.stft(sound_tensor,
+                                           n_fft=self.window_size_samples,
+                                           hop_length=self.window_stride_samples,
+                                           win_length=self.window_size_samples)
+        spectrogram, phase = librosa.magphase(complex_spectrogram)
+        # S = log(S+1)
+        spectrogram = torch.from_numpy(np.log1p(spectrogram))
 
         return spectrogram
 
@@ -110,6 +120,15 @@ class AudioDataset(Dataset):
         self.ids = ids
         self.size = len(ids)
         self.processor = processor
+
+    def get_raw(self, index):
+        sample = self.ids[index]
+        audio_path, transcript_path = sample[0], sample[1]
+
+        sound = self.processor.parse_audio(audio_path, raw=True)
+        transcript = self.processor.parse_transcript(transcript_path)
+
+        return sound, transcript
 
     def __getitem__(self, index):
         sample = self.ids[index]

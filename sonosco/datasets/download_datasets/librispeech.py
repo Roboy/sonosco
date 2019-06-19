@@ -122,11 +122,10 @@ def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
               help="Prunes training samples longer than the max duration (given in seconds).")
 def main(**kwargs):
     """Processes and downloads LibriSpeech dataset."""
-    global LOGGER
-    LOGGER = logging.getLogger(SONOSCO)
-    setup_logging(LOGGER)
     try_download_librispeech(**kwargs)
 
 
 if __name__ == "__main__":
+    LOGGER = logging.getLogger(SONOSCO)
+    setup_logging(LOGGER)
     main()
