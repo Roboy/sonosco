@@ -14,10 +14,11 @@ LOGGER = logging.getLogger(SONOSCO)
 
 @click.command()
 @click.option("-e", "--experiment_name", default="default", type=click.STRING, help="Experiment name.")
-@click.option("-c", "--config_path", default="config/train.yaml", type=click.Path, help="Path to train configurations.")
+@click.option("-c", "--config_path", default="config/train.yaml", type=click.STRING,
+              help="Path to train configurations.")
 def main(experiment_name, config_path):
     Experiment.create(experiment_name)
-    config = parse_yaml(config_path)
+    config = parse_yaml(config_path)["train"]
 
     train_loader, val_loader = create_data_loaders(**config)
 

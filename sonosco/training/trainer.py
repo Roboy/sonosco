@@ -96,6 +96,7 @@ class ModelTrainer:
         running_metrics = defaultdict(float)
 
         for step, batch in enumerate(self.train_data_loader):
+            import pdb; pdb.set_trace()
             batch = self._recursive_to_cuda(batch)  # move to GPU
 
             # compute training batch

@@ -1,7 +1,6 @@
 train:
-  train_manifest: 'examples/manifests/train_manifest.csv'
-  val_manifest: 'examples/manifests/val_manifest.csv'
-  labels_path: 'examples/labels.json' # Contains all characters for transcription
+  train_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
+  val_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
   log_dir: 'logs' # Location for log files
   def_dir: 'examples/checkpoints/' # Default location to save/load models
 

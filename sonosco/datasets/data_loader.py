@@ -39,21 +39,21 @@ class AudioDataLoader(DataLoader):
         return inputs, torch.IntTensor(targets), input_percentages, torch.from_numpy(target_sizes)
 
 
-def create_data_loaders(train_manifest, val_manifest, batch_size, num_data_workers, **kwargs):
+def create_data_loaders(**kwargs):
     processor = AudioDataProcessor(**kwargs)
 
     # create train loader
-    train_dataset = AudioDataset(processor, manifest_filepath=train_manifest)
+    train_dataset = AudioDataset(processor, manifest_filepath=kwargs["train_manifest"])
     LOGGER.info(f"Training dataset containing {len(train_dataset)} samples is created")
-    sampler = BucketingSampler(train_dataset, batch_size=batch_size)
-    train_loader = AudioDataLoader(dataset=train_dataset, num_workers=num_data_workers, batch_sampler=sampler)
+    sampler = BucketingSampler(train_dataset, batch_size=kwargs["batch_size"])
+    train_loader = AudioDataLoader(dataset=train_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler)
     LOGGER.info("Training data loader created.")
 
     # create validation loader
-    val_dataset = AudioDataset(processor, manifest_filepath=val_manifest)
+    val_dataset = AudioDataset(processor, manifest_filepath=kwargs["val_manifest"])
     LOGGER.info(f"Validation dataset containing {len(val_dataset)} samples is created")
-    sampler = BucketingSampler(val_dataset, batch_size=batch_size)
-    val_loader = AudioDataLoader(dataset=val_dataset, num_workers=num_data_workers, batch_sampler=sampler)
+    sampler = BucketingSampler(val_dataset, batch_size=kwargs["batch_size"])
+    val_loader = AudioDataLoader(dataset=val_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler)
     LOGGER.info("Validation data loader created.")
 
     return train_loader, val_loader
