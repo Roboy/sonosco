@@ -1,11 +1,14 @@
 import os
 import os.path as path
-import sys
 import datetime
+import logging
 import sonosco.common.path_utils as path_utils
+import sonosco.common.utils as utils
 
 from time import time
-from sonosco.common.utils import copy_code
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class Experiment:
@@ -33,23 +36,23 @@ class Experiment:
         self.name = self._set_experiment_name(experiment_name)
         self.path = path.join(self.experiments_path, self.name)     # path to current experiment
         self.logs = path.join(self.experiments_path, "logs")
+
         self.code = path.join(self.experiments_path, "code")
         self._sub_directories = sub_directories
 
         self._exclude_dirs = exclude_dirs
-        self._exclude_dirs.extend(exclude_dirs)
         self._exclude_files = exclude_files
-        self._exclude_files.extend(exclude_files)
 
         self._init_directories()
         self._copy_sourcecode()
+        self._set_logging()
 
     @staticmethod
     def _set_experiments_dir(experiments_path):
         if experiments_path is not None:
             return experiments_path
 
-        local_path = os.path.dirname(sys.argv[0])
+        local_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
         local_path = local_path if local_path != '' else './'
         return path.join(local_path, "experiments")
 
@@ -57,6 +60,9 @@ class Experiment:
     def _set_experiment_name(experiment_name):
         date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
         return f"{date_time}_{experiment_name}"
+
+    def _set_logging(self):
+        utils.add_log_file(self.logs, LOGGER)
 
     def _init_directories(self):
         """ Create all basic directories. """
@@ -71,11 +77,11 @@ class Experiment:
 
     def _copy_sourcecode(self):
         """ Copy code from execution directory in experiment code directory. """
-        sources_path = os.path.dirname(sys.argv[0])
+        sources_path = os.path.dirname(os.path.dirname(__file__))
         sources_path = sources_path if sources_path != '' else './'
-        copy_code(sources_path, self.code,
-                  exclude_dirs=self._exclude_dirs,
-                  exclude_files=self._exclude_files)
+        utils.copy_code(sources_path, self.code,
+                        exclude_dirs=self._exclude_dirs,
+                        exclude_files=self._exclude_files)
 
     def add_directory(self, dir_name):
         """
@@ -96,3 +102,7 @@ class Experiment:
         """ Adds a file with provided content to folder. Convenience function. """
         with open(path.join(folder_path, filename), 'w') as text_file:
             text_file.write(content)
+
+    @staticmethod
+    def create(name: str):
+        return Experiment(name)

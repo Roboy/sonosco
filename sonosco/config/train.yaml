@@ -16,6 +16,7 @@ train:
   hidden_size: 800 # Hidden size of RNNs
   hidden_layers: 5 # Number of RNN layers
   rnn_type: 'gru' # Type of the RNN unit: gru|lstm are supported
+  labels: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # labels used by the model
 
   max_epochs: 70 # Number of training epochs
   learning_rate: 3e-4 # Initial learning rate
