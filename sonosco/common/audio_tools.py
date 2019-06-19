@@ -19,10 +19,27 @@ def transcode_recordings_ted3(source, destination, start_time, end_time, sample_
     subprocess.call([f"sox {source}  -r {sample_rate} -b 16 -c 1 {destination} trim {start_time} ={end_time}"],shell=True)
 
 
-def add_noise(audio, std=0.002):
-    noise = np.random.randn(len(audio))
-    data_noise = audio + std * noise
-    return data_noise
+class NoiseMaker:
+
+    def __call__(self, audio):
+        """Adds noise to the audio signal."""
+        pass
+
+
+class GaussianNoiseMaker(NoiseMaker):
+
+    def __init__(self, std=0.002):
+        self.std = std
+
+    def __call__(self, audio):
+        noise = np.random.randn(len(audio))
+        return audio + self.std * noise
+
+
+def add_noise(audio, noise_maker: NoiseMaker = None):
+    if noise_maker is None:
+        noise_maker = GaussianNoiseMaker()
+    return noise_maker(audio)
 
 
 def shift(audio, n_samples=1600):
