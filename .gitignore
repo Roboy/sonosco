@@ -2,8 +2,6 @@
 sonosco/pycandle/
 sonosco/pycandle
 sonosco/experiments/
-sonosco/datasets/download_datasets/
-!sonosco/datasets/download_datasets/*.py
 
 **/.DS_Store
 

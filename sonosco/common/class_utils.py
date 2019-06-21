@@ -1,23 +1,23 @@
 import inspect
-from typing import List
+from typing import Set
 
 
-def get_constructor_args(cls: type) -> List[str]:
+def get_constructor_args(cls) -> Set[str]:
     """
     E.g.
 
         class Bar():
                 def __init__(self, arg1, arg2):
 
-        get_constructor_args(BAR)
+        get_constructor_args(Bar)
         # returns ['arg1', 'arg2']
     Args:
-        cls (type):
+        cls (object):
 
-    Returns: list containing names of constructor arguments
+    Returns: set containing names of constructor arguments
 
     """
-    return inspect.getfullargspec(cls.__init__).args[1:]
+    return set(inspect.getfullargspec(cls.__init__).args[1:])
 
 
 def get_class_by_name(name: str) -> type:

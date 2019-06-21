@@ -80,11 +80,20 @@ class Saver:
 
 
         Args:
-            model (nn.Module): model to infre from
+            model (nn.Module): model to infer from
 
         Returns (dict): Mapping from __init__ argument to it's value
 
         """
+        constructor_args = get_constructor_args(model)
+        model_attributes = model.__dict__
+        attributes_names = set(model_attributes.keys())
+
+        ambiguous_arguments = constructor_args - attributes_names
+
+        if ambiguous_arguments:
+            LOGGER.warning(f"Some constructor arguments do not have equivalent fields ")
+
         return {}
 
 
@@ -145,11 +154,12 @@ class Loader:
         package = torch.load(path, map_location=lambda storage, loc: storage)
         if hasattr(cls, deserialize_method_name) and callable(getattr(cls, deserialize_method_name)):
             return getattr(cls, deserialize_method_name)(package)
-        constructor_args = set(get_constructor_args(cls))
+        constructor_args = get_constructor_args(cls)
         stored_keys = set(package.keys())
         stored_keys.remove('state_dict')
 
         args_to_apply = constructor_args & stored_keys
+        # If the lengths are not equal it means that there is some inconsistency between save and load
         if len(args_to_apply) != len(constructor_args):
             not_in_constructor = stored_keys - constructor_args
             if not_in_constructor:
