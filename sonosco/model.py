@@ -1,10 +1,12 @@
 import logging
+
 import torch
 import deprecation
 import inspect
 import torch.nn as nn
 
 from common.class_utils import get_constructor_args, get_class_by_name
+from serialization import is_serializable
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,8 +30,7 @@ class Saver:
         """
         torch.save(model, path)
 
-    def save_model(self, model: nn.Module, path: str, infer_structure: bool = False,
-                   serialize_method_name: str = 'serialize') -> None:
+    def save_model(self, model: nn.Module, path: str) -> None:
         """
         Saves the model using pickle protocol.
 
@@ -51,50 +52,11 @@ class Saver:
         Returns:
 
         """
-        if infer_structure:
-            entity_to_save = self.get_constructor_args_with_values(model)
-            entity_to_save['state_dict'] = model.state_dict()
-        elif hasattr(model, serialize_method_name) and callable(getattr(model, serialize_method_name)):
-            entity_to_save = getattr(model, serialize_method_name)()
+        if is_serializable(model):
+            entity_to_save = model.__serialize__()
+            torch.save(entity_to_save, path)
         else:
-            entity_to_save = {'state_dict': model.state_dict()}
-
-        torch.save(entity_to_save, path)
-
-    @staticmethod
-    def get_constructor_args_with_values(model: nn.Module):
-        """
-        Assigns values to __init__ params names
-
-        For example:
-
-            class Bar():
-                def __init__(self, arg1, arg2):
-                    self.arg1 = arg1
-                    self.some_other_name = args2
-
-
-            bar = Bar("A","B")
-            get_constructor_args_with_values(bar)
-            # returns {arg1: arg1_val, arg2: arg2_val}
-
-
-        Args:
-            model (nn.Module): model to infer from
-
-        Returns (dict): Mapping from __init__ argument to it's value
-
-        """
-        constructor_args = get_constructor_args(model)
-        model_attributes = model.__dict__
-        attributes_names = set(model_attributes.keys())
-
-        ambiguous_arguments = constructor_args - attributes_names
-
-        if ambiguous_arguments:
-            LOGGER.warning(f"Some constructor arguments do not have equivalent fields ")
-
-        return {}
+            raise TypeError("Only @serializable class can be serialized")
 
 
 class Loader:
