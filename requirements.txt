@@ -22,3 +22,4 @@ pyyaml==5.1
 wget==3.2
 pytest==4.6.3
 click==7.0
+deprecation==2.0.6
