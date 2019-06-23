@@ -16,4 +16,4 @@ def try_download(destination: str, url: str):
 
 def parse_yaml(file_path: str):
     with codecs.open(file_path, "r", "utf-8") as file:
-        return yaml.load(file)
+        return yaml.load(file, Loader=yaml.FullLoader)

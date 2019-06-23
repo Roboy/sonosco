@@ -22,12 +22,18 @@ def main(experiment_name, config_path):
 
     train_loader, val_loader = create_data_loaders(**config)
 
-    # TODO: change to load different models dynamically
-    model = DeepSpeech2()
+    def custom_loss(batch, model):
+        batch_x, batch_y, input_lengths, target_lengths = batch
+        model_output, output_lengths = model(batch_x, input_lengths)
+        loss = torch_functional.ctc_loss(model_output.transpose(0, 1), batch_y, output_lengths, target_lengths)
+        return loss, model_output
 
-    trainer = ModelTrainer(model, loss=torch_functional.ctc_loss, epochs=config["max_epochs"],
+    # TODO: change to load different models dynamically
+    model = DeepSpeech2(labels=config["labels"])
+
+    trainer = ModelTrainer(model, loss=custom_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
-                           lr=config["learning_rate"])
+                           lr=config["learning_rate"], custom_model_eval=True)
 
     try:
         trainer.start_training()

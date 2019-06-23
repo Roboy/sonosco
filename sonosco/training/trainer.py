@@ -26,14 +26,11 @@ class ModelTrainer:
         custom_model_eval (boolean, optional): enables training mode where the model is evaluated in the loss function
         gpu (int, optional): if not set training runs on cpu, otherwise an int is expected that determines the training gpu
         clip_grads (float, optional): if set training gradients will be clipped at specified norm
-    Example:
-        >>> model_trainer = ModelTrainer(model, optimizer, F.nll_loss, num_epochs, train_loader, gpu=0)
-        >>> model_trainer.start_training()
     """
 
     def __init__(self,
                  model: torch.nn.Module,
-                 loss: Union[Callable[[torch.Tensor, torch.Tensor], float],
+                 loss: Union[Callable[[Any, Any], Any],
                              Callable[[torch.Tensor, torch.Tensor, torch.nn.Module], float]],
                  epochs: int,
                  train_data_loader: DataLoader,
@@ -95,8 +92,8 @@ class ModelTrainer:
         running_batch_loss = 0
         running_metrics = defaultdict(float)
 
-        for step, batch in enumerate(self.train_data_loader):
-            import pdb; pdb.set_trace()
+        for step, (batch_x, batch_y, input_lengths, target_lengths) in enumerate(self.train_data_loader):
+            batch = (batch_x, batch_y, input_lengths, target_lengths)
             batch = self._recursive_to_cuda(batch)  # move to GPU
 
             # compute training batch
@@ -131,11 +128,11 @@ class ModelTrainer:
     def _train_on_batch(self, batch):
         """ Compute loss depending on settings, compute gradients and apply optimization step. """
         # evaluate loss
-        batch_x, batch_y = batch
+        batch_x, batch_y, input_lengths, target_lengths = batch
         if self._custom_model_eval:
             loss, model_output = self.loss(batch, self.model)
         else:
-            model_output = self.model(batch_x)
+            model_output = self.model(batch_x, input_lengths)
             loss = self.loss(model_output, batch_y)
 
         self.optimizer.zero_grad()  # reset gradients

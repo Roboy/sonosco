@@ -24,7 +24,7 @@ class AudioDataLoader(DataLoader):
         freq_size, max_seqlength = longest_sample.size()
         minibatch_size = len(batch)
         inputs = torch.zeros(minibatch_size, 1, freq_size, max_seqlength)
-        input_percentages = torch.FloatTensor(minibatch_size)
+        input_lengths = torch.IntTensor(minibatch_size)
         target_sizes = np.zeros(minibatch_size, dtype=np.int32)
 
         # TODO: Numpy broadcasting magic
@@ -32,11 +32,11 @@ class AudioDataLoader(DataLoader):
 
         for x in range(minibatch_size):
             inputs[x][0].narrow(1, 0, batch[x][0].size(1)).copy_(batch[x][0])
-            input_percentages[x] = batch[x][0].size(1) / float(max_seqlength)
+            input_lengths[x] = batch[x][0].size(1)
             target_sizes[x] = len(batch[x][1])
             targets.extend(batch[x][1])
 
-        return inputs, torch.IntTensor(targets), input_percentages, torch.from_numpy(target_sizes)
+        return inputs, torch.IntTensor(targets), input_lengths, torch.from_numpy(target_sizes)
 
 
 def create_data_loaders(**kwargs):

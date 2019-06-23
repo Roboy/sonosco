@@ -37,7 +37,7 @@ train:
 
   seed: 123456 # Seed to generators
   cuda: True # Use cuda to train model
-  half_precision: Trues # Uses half precision to train a model
+  half_precision: True # Uses half precision to train a model
   apex: True # Uses mixed precision to train a model
   static_loss_scaling: False # Static loss scale for mixed precision
   dynamic_loss_scaling: True # Use dynamic loss scaling for mixed precision
