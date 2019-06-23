@@ -22,9 +22,9 @@ MAX_PITCH = 1.5
 MAX_SHIFT = 4000
 
 
-class DataProcessor:
+class AudioDataProcessor:
 
-    def __init__(self, window_stride, window_size, sample_rate, labels="abc", normalize=False, augment=False):
+    def __init__(self, window_stride, window_size, sample_rate, labels="abc", normalize=False, augment=False, **kwargs):
         """
         Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
         a comma. Each new line is a different sample. Example below:
@@ -76,13 +76,8 @@ class DataProcessor:
         if raw:
             return sound
 
-        sound_tensor = torch.from_numpy(sound)
-
-        if global_settings.CUDA_ENABLED:
-            sound_tensor = sound_tensor.cuda()
-
         # TODO: comment why take the last element?
-        complex_spectrogram = librosa.stft(sound_tensor,
+        complex_spectrogram = librosa.stft(sound,
                                            n_fft=self.window_size_samples,
                                            hop_length=self.window_stride_samples,
                                            win_length=self.window_size_samples)
@@ -95,16 +90,15 @@ class DataProcessor:
     def parse_transcript(self, transcript_path):
         with open(transcript_path, 'r', encoding='utf8') as transcript_file:
             transcript = transcript_file.read().replace('\n', '')
-            LOGGER.info(f"1: {transcript}")
         # TODO: Is it fast enough?
         transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
-        LOGGER.info(f"transcript_path: {transcript_path} transcript: {transcript}")
+        LOGGER.debug(f"transcript_path: {transcript_path} transcript: {transcript}")
         return transcript
 
 
 class AudioDataset(Dataset):
 
-    def __init__(self, processor: DataProcessor, manifest_filepath):
+    def __init__(self, processor: AudioDataProcessor, manifest_filepath):
         """
         Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
         a comma. Each new line is a different sample. Example below:

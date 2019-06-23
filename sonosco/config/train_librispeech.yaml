@@ -1,7 +1,6 @@
 train:
-  train_manifest: 'examples/manifests/train_manifest.csv'
-  val_manifest: 'examples/manifests/val_manifest.csv'
-  labels_path: 'examples/labels.json' # Contains all characters for transcription
+  train_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
+  val_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
   log_dir: 'logs' # Location for log files
   def_dir: 'examples/checkpoints/' # Default location to save/load models
 
@@ -38,7 +37,7 @@ train:
 
   seed: 123456 # Seed to generators
   cuda: True # Use cuda to train model
-  half_precision: Trues # Uses half precision to train a model
+  half_precision: True # Uses half precision to train a model
   apex: True # Uses mixed precision to train a model
   static_loss_scaling: False # Static loss scale for mixed precision
   dynamic_loss_scaling: True # Use dynamic loss scaling for mixed precision

@@ -7,9 +7,12 @@ import math
 from collections import OrderedDict
 
 import torch
+import logging
 import torch.nn as nn
 import torch.nn.functional as F
 
+
+LOGGER = logging.getLogger(__name__)
 
 supported_rnns = {
     'lstm': nn.LSTM,
@@ -82,13 +85,14 @@ class InferenceBatchSoftmax(nn.Module):
 
 
 class BatchRNN(nn.Module):
-    def __init__(self, input_size, hidden_size, rnn_type=nn.LSTM, batch_norm=True):
+    def __init__(self, input_size, hidden_size, rnn_type=nn.LSTM, batch_norm=True, bidirectional=False):
         super(BatchRNN, self).__init__()
+        self.bidirectional = bidirectional
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.batch_norm = SequenceWise(nn.BatchNorm1d(input_size)) if batch_norm else None
         self.rnn = rnn_type(input_size=input_size, hidden_size=hidden_size,
-                            bidirectional=True, bias=True)
+                            bidirectional=bidirectional, bias=True)
 
     def flatten_parameters(self):
         self.rnn.flatten_parameters()
@@ -134,7 +138,8 @@ class DeepSpeech2(nn.Module):
             nn.Hardtanh(0, 20, inplace=True)
         ))
         # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
-        rnn_in_size = int(math.floor((sample_rate * window_size) / 2) + 1)
+        rnn_in_size = int(math.floor((sample_rate * window_size) / 4) + 1)
+        LOGGER.debug(f"Initial calculated feature size: {rnn_in_size}")
         rnn_in_size = int(math.floor(rnn_in_size + 2 * 20 - 41) / 2 + 1)
         rnn_in_size = int(math.floor(rnn_in_size + 2 * 10 - 21) / 2 + 1)
         rnn_in_size *= 32
@@ -158,6 +163,7 @@ class DeepSpeech2(nn.Module):
     def forward(self, x, lengths):
         # if x.is_cuda and self.mixed_precision:
         #     x = x.half()
+        LOGGER.debug(f"Actual initial size: {x.size()}")
         lengths = lengths.cpu().int()
         output_lengths = self.get_seq_lens(lengths)
         x, _ = self.conv(x, output_lengths)

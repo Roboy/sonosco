@@ -6,9 +6,9 @@ import librosa
 
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
-from sonosco.datasets.audio_dataset import AudioDataset, DataProcessor
-from sonosco.datasets.audio_data_sampler import BucketingSampler
-from sonosco.datasets.audio_data_loader import DataLoader
+from sonosco.datasets.audio_dataset import AudioDataset, AudioDataProcessor
+from sonosco.datasets.data_sampler import BucketingSampler
+from sonosco.datasets.data_loader import DataLoader
 from sonosco.datasets.download_datasets.librispeech import try_download_librispeech
 
 
@@ -44,7 +44,7 @@ def test_librispeech_clean(logger):
     # create data processor
     audio_conf = dict(sample_rate=SAMPLE_RATE, window_size=.02, window_stride=.01,
                       labels='ABCDEFGHIJKLMNOPQRSTUVWXYZ', normalize=True, augment=False)
-    processor = DataProcessor(**audio_conf)
+    processor = AudioDataProcessor(**audio_conf)
 
     # get manifest file
     manifest_directory = os.path.join(os.path.expanduser("~"), LIBRI_SPEECH_DIR)
