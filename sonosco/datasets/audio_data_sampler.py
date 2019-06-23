@@ -6,6 +6,7 @@ from torch.utils.data import Sampler
 from torch.distributed.deprecated import get_rank
 from torch.distributed.deprecated import get_world_size
 
+
 class BucketingSampler(Sampler):
     def __init__(self, data_source, batch_size=1):
         """

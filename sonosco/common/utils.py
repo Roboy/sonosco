@@ -1,5 +1,6 @@
 import logging
 import os
+import numpy as np
 
 
 def setup_logging(logger: logging.Logger, filename=None, verbosity=False):
@@ -19,3 +20,7 @@ def setup_logging(logger: logging.Logger, filename=None, verbosity=False):
     c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     c_handler.setFormatter(c_format)
     logger.addHandler(c_handler)
+
+
+def random_float(low: float, high: float):
+    return np.random.random() * (high - low) + low
