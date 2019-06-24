@@ -2,8 +2,6 @@
 sonosco/pycandle/
 experiments/
 tests/test_wavs/
-sonosco/pycandle
-sonosco/experiments/
 
 **/.DS_Store
 
