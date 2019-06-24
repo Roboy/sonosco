@@ -15,6 +15,7 @@ LOGGER = logging.getLogger(__name__)
 
 AN4_URL = 'http://www.speech.cs.cmu.edu/databases/an4/an4_raw.bigendian.tar.gz'
 
+
 def try_download_an4(target_dir, sample_rate, min_duration, max_duration):
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     if not os.path.exists(path_to_data):
@@ -44,6 +45,7 @@ def try_download_an4(target_dir, sample_rate, min_duration, max_duration):
     create_manifest(path_to_data, os.path.join(path_to_data,'an4_train_manifest.csv'), min_duration, max_duration)
     create_manifest(path_to_data, os.path.join(path_to_data,'an4_val_manifest.csv'), min_duration, max_duration)
 
+
 def create_wav_and_transcripts(path, data_tag, sample_rate, extracted_dir, wav_subfolder_name):
     tag_path = os.path.join(path,data_tag)
     transcript_path_new = os.path.join(tag_path, 'txt')
@@ -58,6 +60,7 @@ def create_wav_and_transcripts(path, data_tag, sample_rate, extracted_dir, wav_s
     path = os.path.join(wav_path_ext, wav_subfolder_name)
     convert_audio_to_wav(path, sample_rate)
     format_files(file_ids, transcript_path_new, wav_path_new, transcripts_ext, wav_path_ext)
+
 
 def convert_audio_to_wav(train_path, sample_rate):
     with os.popen('find %s -type f -name "*.raw"' % train_path) as pipe:
@@ -88,6 +91,7 @@ def _process_transcript(transcripts, x):
     extracted_transcript = transcripts[x].split('(')[0].strip("<s>").split('<')[0].strip().upper()
     return extracted_transcript
 
+
 @click.command()
 @click.option("--target-dir", default="temp/data/an4", type=str, help="Directory to store the dataset.")
 @click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
@@ -95,14 +99,12 @@ def _process_transcript(transcripts, x):
               help="Prunes training samples shorter than the min duration (given in seconds).")
 @click.option("--max-duration", default=15, type=int,
               help="Prunes training samples longer than the max duration (given in seconds).")
-
 def main(**kwargs):
     """Processes and downloads an4 dataset."""
-    global LOGGER
-    logger = logging.getLogger(SONOSCO)
-    setup_logging(logger)
     try_download_an4(**kwargs)
 
 
 if __name__ == '__main__':
+    LOGGER = logging.getLogger(SONOSCO)
+    setup_logging(LOGGER)
     main()

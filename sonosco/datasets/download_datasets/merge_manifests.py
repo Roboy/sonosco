@@ -1,11 +1,10 @@
-from __future__ import print_function
-
 import argparse
 import io
 import os
 
 from tqdm import tqdm
-from utils import order_and_prune_files
+from .data_utils import order_and_prune_files
+
 
 parser = argparse.ArgumentParser(description='Merges all manifest CSV files in specified folder.')
 parser.add_argument('--merge-dir', default='manifests/', help='Path to all manifest files you want to merge')

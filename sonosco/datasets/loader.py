@@ -3,8 +3,8 @@ import logging
 import torch
 
 from torch.utils.data import Dataset, DataLoader, Sampler
-from .audio_dataset import AudioDataProcessor, AudioDataset
-from .data_sampler import BucketingSampler
+from .dataset import AudioDataProcessor, AudioDataset
+from .samplers import BucketingSampler
 
 
 LOGGER = logging.getLogger(__name__)

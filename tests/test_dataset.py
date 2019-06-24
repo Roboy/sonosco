@@ -6,9 +6,9 @@ import librosa
 
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
-from sonosco.datasets.audio_dataset import AudioDataset, AudioDataProcessor
-from sonosco.datasets.data_sampler import BucketingSampler
-from sonosco.datasets.data_loader import DataLoader
+from sonosco.datasets.dataset import AudioDataset, AudioDataProcessor
+from sonosco.datasets.samplers import BucketingSampler
+from sonosco.datasets.loader import DataLoader
 from sonosco.datasets.download_datasets.librispeech import try_download_librispeech
 
 
