@@ -20,12 +20,12 @@ def serializable(_cls=None):
         _set_new_attribute(cls, '__serialize__', __add_serialize(cls))
         return cls
 
-    # See if we're being called as @dataclass or @dataclass().
+    # See if we're being called as @serializable or @serializable().
     if _cls is None:
         # We're called with parens.
         return wrap
 
-    # We're called as @dataclass without parens.
+    # We're called as @serializable without parens.
     return wrap(_cls)
 
 
