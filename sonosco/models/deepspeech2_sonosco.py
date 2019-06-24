@@ -21,6 +21,7 @@ class DeepSpeech2(nn.Module):
     version: str = '0.0.1'
 
     def __post_init__(self):
+        super(DeepSpeech2, self).__init__()
         sample_rate = self.audio_conf.get("sample_rate", 16000)
         window_size = self.audio_conf.get("window_size", 0.02)
         num_classes = len(self.labels)
