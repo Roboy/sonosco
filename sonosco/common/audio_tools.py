@@ -21,12 +21,6 @@ def transcode_recordings_ted3(source, destination, start_time, end_time, sample_
     subprocess.call([f"sox {source}  -r {sample_rate} -b 16 -c 1 {destination} trim {start_time} ={end_time}"],shell=True)
 
 
-def add_noise(audio, noise_maker: NoiseMaker = None):
-    if noise_maker is None:
-        noise_maker = GaussianNoiseMaker()
-    return noise_maker(audio)
-
-
 def shift(audio, n_samples=1600):
     return np.roll(audio, n_samples)
 

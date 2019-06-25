@@ -4,6 +4,7 @@ import librosa
 import numpy as np
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.utils as utils
+import sonosco.common.noise_makers as noise_makers
 
 
 LOGGER = logging.getLogger(__name__)
@@ -53,7 +54,11 @@ class AudioDataProcessor:
         augmented = audio_tools.shift(augmented, np.random.randint(MAX_SHIFT)) if shift else augmented
         augmented = audio_tools.pitch_shift(augmented, self.sample_rate,
                                             n_steps=utils.random_float(MIN_PITCH, MAX_PITCH)) if pitch else augmented
-        augmented = audio_tools.add_noise(augmented) if noise else augmented
+
+        if noise:
+            noise_maker = noise_makers.GaussianNoiseMaker()
+            augmented = noise_maker.add_noise(augmented) if noise else augmented
+
         return augmented
 
     def parse_audio(self, audio_path, raw=False):
