@@ -49,7 +49,7 @@ def __create_serialize_body(cls, fields_to_serialize):
         elif is_dataclass(field.type):
             body_lines.append(__create_dict_entry(field.name, f"self.{field.name}.__serialize__()"))
         elif __is_nn_class(field.type):
-            body_lines.append("'{}': {".format(field.name))
+            body_lines.append(f"'{field.name}': {{")
             __extract_from_nn(cls, body_lines)
             body_lines.append("}")
         else:
@@ -75,7 +75,7 @@ def __throw_unsupported_data_type():
 
 
 def __create_dict_entry(key, value):
-    return f'\'{key}\': {value},'
+    return f"'{key}': {value},"
 
 
 def __is_primitive(obj):
