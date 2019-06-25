@@ -12,7 +12,7 @@ from serialization import serializable
 
 @serializable
 class DeepSpeech2(nn.Module):
-    rnn_type: nn.RNNBase = nn.LSTM
+    rnn_type: type = nn.LSTM
     labels: str = "abc"
     rnn_hid_size: int = 768
     nb_layers: int = 5
