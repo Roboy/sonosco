@@ -17,7 +17,7 @@
 
 import torch
 
-from decoders.decoder import Decoder
+from .decoder import Decoder
 
 
 class GreedyDecoder(Decoder):
