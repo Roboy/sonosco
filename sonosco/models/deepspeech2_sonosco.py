@@ -1,13 +1,10 @@
 import math
+
+from torch import nn
+from .modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax, supported_rnns, supported_rnns_inv
+from .serialization import serializable
 from collections import OrderedDict
 from dataclasses import field
-
-import torch
-from torch import nn
-
-from models.deepspeech2 import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax, supported_rnns, \
-    supported_rnns_inv
-from serialization import serializable
 
 
 @serializable
