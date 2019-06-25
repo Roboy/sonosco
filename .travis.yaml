@@ -1,0 +1,11 @@
+language: python
+
+python:
+  - "3.6"
+
+install:
+  - bash scripts/install_dependencies.sh
+  - pip install -e .
+
+script:
+  - pytest

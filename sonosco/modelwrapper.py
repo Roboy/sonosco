@@ -14,8 +14,13 @@ import time
 
 import torch.distributed as dist
 import torch.utils.data.distributed
-from apex.fp16_utils import FP16_Optimizer
-from apex.parallel import DistributedDataParallel
+
+try:
+    from apex.fp16_utils import FP16_Optimizer
+    from apex.parallel import DistributedDataParallel
+except Exception as e:
+    print(f"Apex import failed: {e}")
+
 from tqdm import tqdm
 from warpctc_pytorch import CTCLoss
 
@@ -320,7 +325,7 @@ class ModelWrapper(object):
                     train_sampler.shuffle(epoch)
 
     def validate(self):
-
+        pass
 
     def test(self):
         torch.set_grad_enabled(False)
@@ -386,8 +391,7 @@ class ModelWrapper(object):
         if save_output:
             np.save(output_path, output_data)
 
-
-def infer(self, sound):
+    def infer(self, sound):
         pass
 
     @staticmethod
@@ -400,7 +404,6 @@ def infer(self, sound):
         latest_subdir = max([os.path.join(def_path, d) for d in os.listdir(def_path)], key=os.path.getmtime)
         default = latest_subdir + "/final.pth"
         return default
-
 
     def print_training_info(self, epoch, loss, cer, wer):
         print(f"\nTraining Information\n " + \
