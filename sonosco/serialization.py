@@ -46,9 +46,10 @@ def __add_serialize(cls):
 def __create_serialize_body(fields_to_serialize):
     body_lines = ["return {"]
     for field in fields_to_serialize:
+        # TODO: Rewrite this ugly if else chain
         if __is_primitive(field.type) or __is_iterable_of_primitives(field):
             body_lines.append(__create_dict_entry(field.name, f"self.{field.name}"))
-        # TODO: add deserialization
+        # TODO: add deserialization of classes
         # elif is_dataclass(field.type):
         #     body_lines.append(__create_dict_entry(field.name, f"self.{field.name}.__serlialize__()"))
         elif __is_type(field.type):

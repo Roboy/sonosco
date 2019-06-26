@@ -2,7 +2,7 @@ import inspect
 from typing import Set
 
 __primitives = {int, float, str, bool}
-
+__collections = [list, set, tuple, dict]
 
 def get_constructor_args(cls) -> Set[str]:
     """
@@ -38,16 +38,16 @@ def get_class_by_name(name: str) -> type:
     return mod
 
 
-def is_collection(field):
-    pass
+def is_serialized_collection(obj):
+    return type(obj) in __collections
 
 
-def is_primitive(obj):
-    return all(el in __primitives for el in obj) if obj is tuple else obj in __primitives
+def is_serialized_primitive(obj):
+    return type(obj) in __primitives
 
 
-def is_type(cls):
-    pass
+def is_serialized_type(obj):
+    return type(obj) is dict and '__class_module' in obj and '__class_name' in obj
 
 def throw_unsupported_data_type():
     raise TypeError("Unsupported data type. Currently only primitives, lists of primitives and types"

@@ -1,11 +1,13 @@
 import logging
+import sys
+from functools import reduce
 
 import torch
 import deprecation
 import inspect
 import torch.nn as nn
 
-from common.class_utils import get_constructor_args, get_class_by_name, is_primitive, is_collection, is_type, \
+from common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, is_serialized_collection, is_serialized_type, \
     throw_unsupported_data_type
 from serialization import is_serializable
 
@@ -139,10 +141,10 @@ class Loader:
 
         for arg in args_to_apply:
             serialized_val = package.get(arg)
-            if is_primitive(serialized_val) or is_collection(serialized_val):
+            if is_serialized_type(serialized_val):
+                kwargs[arg] = reduce(getattr, f"{serialized_val['__class_module']}.{serialized_val['__class_name']}".split("."), sys.modules[__name__])
+            elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):
                 kwargs[arg] = serialized_val
-            elif is_type(serialized_val):
-                pass
             else:
                 throw_unsupported_data_type()
 
