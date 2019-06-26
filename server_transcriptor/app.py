@@ -12,7 +12,7 @@ from sonosco.datasets.processor import AudioDataProcessor
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 socketio = SocketIO(app)
 
-model_path = "../pretrained/librispeech_pretrained.pth"
+model_path = "../pretrained/an4_pretrained.pth"
 audio_path = "audio.wav"
 
 device = torch.device("cpu")

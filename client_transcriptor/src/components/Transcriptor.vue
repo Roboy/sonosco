@@ -1,7 +1,6 @@
 <template>
-  <div class="hello">
+  <div class="Transcriptor">
     <h1>Transcriptor</h1>
-    <h2>{{ transcript }}</h2>
     <p v-if="isConnected">We're connected to the server!</p>
     <p>Transcription: "{{ socketMessage }}"</p>
     <button @click="recordStop()">{{ recordButtonText }}</button>
@@ -39,10 +38,9 @@ let recorder = null
 let audio = null
 
 export default {
-  name: 'HelloWorld',
+  name: 'Transcriptor',
   data () {
     return {
-      transcript: 'BEGIN!',
       isConnected: false,
       socketMessage: '',
       recordButtonText: 'Record'
