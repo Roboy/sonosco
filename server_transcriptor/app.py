@@ -9,7 +9,7 @@ from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
 
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 socketio = SocketIO(app)
 
 model_path = "../pretrained/librispeech_pretrained.pth"
@@ -21,8 +21,9 @@ decoder = GreedyDecoder(model.labels, blank_index=model.labels.index('_'))
 processor = AudioDataProcessor(**model.audio_conf)
 
 
-@app.route('/')
-def index():
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def index(path):
     """Serve the index HTML"""
     return render_template('index.html')
 
