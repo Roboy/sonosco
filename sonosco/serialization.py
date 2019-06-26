@@ -5,14 +5,14 @@ __primitives = {int, float, str, bool}
 __iterables = [list, set, tuple, dict]
 
 
-def serializable(_cls=None):
+def serializable(_cls: type = None):
     """
 
     Returns the same class as was passed in, with init and serialize methods.
 
 
     Args:
-        _cls:
+        _cls: Python Class object
 
     Returns:
 
@@ -48,8 +48,9 @@ def __create_serialize_body(fields_to_serialize):
     for field in fields_to_serialize:
         if __is_primitive(field.type) or __is_iterable_of_primitives(field):
             body_lines.append(__create_dict_entry(field.name, f"self.{field.name}"))
-        elif is_dataclass(field.type):
-            body_lines.append(__create_dict_entry(field.name, f"self.{field.name}.__serlialize__()"))
+        # TODO: add deserialization
+        # elif is_dataclass(field.type):
+        #     body_lines.append(__create_dict_entry(field.name, f"self.{field.name}.__serlialize__()"))
         elif __is_type(field.type):
             body_lines.append(f"'{field.name}': {{")
             body_lines.append(__create_dict_entry("__class_name", f"self.{field.name}.__name__"))
@@ -74,8 +75,8 @@ def __is_iterable_of_primitives(field):
 
 
 def __throw_unsupported_data_type():
-    raise TypeError("Unsupported data type. Only primitives, lists of primitives, types"
-                    "and @serializable objects can be serialized")
+    raise TypeError("Unsupported data type. Currently only primitives, lists of primitives and types"
+                    "objects can be serialized")
 
 
 def __create_dict_entry(key, value):
