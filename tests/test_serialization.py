@@ -54,5 +54,7 @@ def test_model_serialization():
     assert deserialized_model.audio_conf == audio_conf
     assert deserialized_model.bidirectional == bidirectional
     assert deserialized_model.version == version
+    # assert deserialized_model.state_dict() == model.state_dict()
+
 
 test_model_serialization()
