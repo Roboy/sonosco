@@ -2,11 +2,9 @@ import math
 from collections import OrderedDict
 from dataclasses import field
 from typing import Dict
-import torch
 from torch import nn
 
-from models.deepspeech2 import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax, supported_rnns, \
-    supported_rnns_inv
+from models.deepspeech2 import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
 from serialization import serializable
 
 

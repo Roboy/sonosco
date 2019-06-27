@@ -1,4 +1,4 @@
-from dataclasses import _process_class, _create_fn, _set_new_attribute, fields, is_dataclass
+from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
 
 __primitives = {int, float, str, bool}
 # TODO support for dict with Union value type
@@ -46,7 +46,7 @@ def __add_serialize(cls):
 def __create_serialize_body(fields_to_serialize):
     body_lines = ["return {"]
     for field in fields_to_serialize:
-        # TODO: Rewrite this ugly if else chain
+        # TODO: Rewrite this ugly if else chain to something more OO
         if __is_primitive(field.type) or __is_iterable_of_primitives(field):
             body_lines.append(__create_dict_entry(field.name, f"self.{field.name}"))
         # TODO: add deserialization of classes

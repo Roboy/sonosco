@@ -1,14 +1,9 @@
-import logging
 import os
-from dataclasses import field
 
 from torch import nn
 from typing import Dict
 
-from common.utils import setup_logging
 from model import Saver, Loader
-from sonosco.common.constants import SONOSCO
-import pytest
 
 from sonosco.models.deepspeech2_sonosco import DeepSpeech2
 

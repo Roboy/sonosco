@@ -1,8 +1,8 @@
 import inspect
 from typing import Set
 
-__primitives = {int, float, str, bool}
-__collections = [list, set, tuple, dict]
+from common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, PRIMITIVES, COLLECTIONS
+
 
 def get_constructor_args(cls) -> Set[str]:
     """
@@ -38,17 +38,51 @@ def get_class_by_name(name: str) -> type:
     return mod
 
 
-def is_serialized_collection(obj):
-    return type(obj) in __collections
+def is_serialized_collection(obj: object) -> bool:
+    """
+    Checks if object is a collection
+
+    Args:
+        obj: any python object
+
+    Returns: True if object is a collection
+
+    """
+    return type(obj) in COLLECTIONS
 
 
-def is_serialized_primitive(obj):
-    return type(obj) in __primitives
+def is_serialized_primitive(obj: object) -> bool:
+    """
+    Checks if object is a primitive
+
+    Args:
+        obj: any python object
+
+    Returns: True if object is a primitive
+
+    """
+    return type(obj) in PRIMITIVES
 
 
-def is_serialized_type(obj):
-    return type(obj) is dict and '__class_module' in obj and '__class_name' in obj
+def is_serialized_type(obj: object) -> bool:
+    """
+    Checks if object is a type
 
-def throw_unsupported_data_type():
+    Args:
+        obj: any python object
+
+    Returns: True if object is a type
+
+    """
+    return type(obj) is dict and CLASS_MODULE_FIELD in obj and CLASS_NAME_FIELD in obj
+
+
+def raise_unsupported_data_type():
+    """
+    Raises TypeError
+
+    Returns:
+
+    """
     raise TypeError("Unsupported data type. Currently only primitives, lists of primitives and types"
                     "objects can be serialized")

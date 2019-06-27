@@ -4,11 +4,11 @@ from functools import reduce
 
 import torch
 import deprecation
-import inspect
 import torch.nn as nn
+from common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD
 
-from common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, is_serialized_collection, is_serialized_type, \
-    throw_unsupported_data_type
+from common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \
+    is_serialized_collection, is_serialized_type, raise_unsupported_data_type
 from serialization import is_serializable
 
 LOGGER = logging.getLogger(__name__)
@@ -37,21 +37,11 @@ class Saver:
         """
         Saves the model using pickle protocol.
 
-        If the infer_structure is True this method infers all the meta parameters of the model and save them together
-        with learnable parameters.
-
-        If the infer_structure is False and method specified by serialize_method_name exists, the return value of the
-        serialize_method_name method is saved.
-
-        If neither of above only learnable parameters a.k.a. state_dict are saved.
+        It requires the model to have @sonosco.serialization.serializable annotation at the class definition level.
 
         Args:
             model (nn.Module): model to save
             path (str) : path where to save the model
-            infer_structure (bool): indicator whether to infer the model structure
-            serialize_method_name (str): name of the function that this method should call in order to serialize the
-                model. Must return dict.
-
         Returns:
 
         """
@@ -78,43 +68,41 @@ class Loader:
         """
         return torch.load(path)
 
+    def load_model_parameters(self, path: str) -> dict:
+        """
+
+        Args:
+            path:
+
+        Returns (dict): dictionary of saved parameters
+
+        """
+        return torch.load(path, map_location=lambda storage, loc: storage)
+
     def load_model_from_path(self, cls_path: str, path: str) -> nn.Module:
         """
         Loads the model from pickle file.
 
-        If deserialize_method_name exists the deserialized content of pickle file in path is passed to the
-        deserialize_method_name method. In this case,
-        the responsibility of creating cls object stays at the caller side.
+        It requires serialization format by @sonosco.serialization.serializable annotation.
 
         Args:
             cls_path (str): name of the class of the model
             path (str): path to pickle-serialized model or model parameters
-            deserialize_method_name (str): name of the function that this method should call in order to deserialize the
-                model. Must accept single argument of type dict.
-
 
         Returns (nn.Module): Loaded model
 
         """
         return self.load_model(get_class_by_name(cls_path), path)
 
-    def load_model_parameters(self, path: str) -> dict:
-        return torch.load(path, map_location=lambda storage, loc: storage)
-
     def load_model(self, cls: type, path: str) -> nn.Module:
         """
         Loads the model from pickle file.
 
-        If deserialize_method_name exists the deserialized content of pickle file in path is passed to the
-        deserialize_method_name method. In this case,
-        the responsibility of creating cls object stays at the caller side.
+        It requires serialization format by @sonosco.serialization.serializable annotation.
 
         Args:
             cls (type): class object of the model
             path (str): path to pickle-serialized model or model parameters
-            deserialize_method_name (str): name of the function that this method should call in order to deserialize the
-                model. Must accept single argument of type dict.
-
 
         Returns (nn.Module): Loaded model
 
@@ -141,12 +129,15 @@ class Loader:
 
         for arg in args_to_apply:
             serialized_val = package.get(arg)
+            # TODO: Rewrite this ugly if else chain to something more OO
             if is_serialized_type(serialized_val):
-                kwargs[arg] = reduce(getattr, f"{serialized_val['__class_module']}.{serialized_val['__class_name']}".split("."), sys.modules[__name__])
+                kwargs[arg] = reduce(getattr,
+                                     f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}"
+                                     .split("."), sys.modules[__name__])
             elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):
                 kwargs[arg] = serialized_val
             else:
-                throw_unsupported_data_type()
+                raise_unsupported_data_type()
 
         model = cls(**kwargs)
         model.load_state_dict(package['state_dict'])
