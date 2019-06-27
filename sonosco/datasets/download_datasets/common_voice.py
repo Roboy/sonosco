@@ -56,7 +56,6 @@ def try_download_common_voice(target_dir, sample_rate, files_to_use, min_duratio
                         max_duration)
 
 
-
 def convert_to_wav(csv_file, target_dir, sample_rate):
     """ Read *.csv file description, convert mp3 to wav, process text.
         Save results to target_dir.
@@ -76,7 +75,9 @@ def convert_to_wav(csv_file, target_dir, sample_rate):
         text = text.strip().upper()
         with open(os.path.join(txt_dir, file_name + '.txt'), 'w') as f:
             f.write(text)
-        audio_tools(source = os.path.join(path_to_data, file_path), destination=os.path.join(wav_dir, file_name + '.wav'), sample_rate = sample_rate)
+        audio_tools.transcode_recording(source=os.path.join(path_to_data, file_path),
+                                        destination=os.path.join(wav_dir, file_name + '.wav'),
+                                        sample_rate=sample_rate)
 
     LOGGER.info('Converting mp3 to wav for {}.'.format(csv_file))
     with open(csv_file) as csvfile:

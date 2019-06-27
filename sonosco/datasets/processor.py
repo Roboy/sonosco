@@ -1,17 +1,10 @@
-# ----------------------------------------------------------------------------
-# Based on SeanNaren's deepspeech.pytorch:
-# https://github.com/SeanNaren/deepspeech.pytorch
-# ----------------------------------------------------------------------------
-
 import logging
 import torch
 import librosa
 import numpy as np
-import sonosco.config.global_settings as global_settings
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.utils as utils
-
-from torch.utils.data import Dataset
+import sonosco.common.noise_makers as noise_makers
 
 
 LOGGER = logging.getLogger(__name__)
@@ -61,7 +54,11 @@ class AudioDataProcessor:
         augmented = audio_tools.shift(augmented, np.random.randint(MAX_SHIFT)) if shift else augmented
         augmented = audio_tools.pitch_shift(augmented, self.sample_rate,
                                             n_steps=utils.random_float(MIN_PITCH, MAX_PITCH)) if pitch else augmented
-        augmented = audio_tools.add_noise(augmented) if noise else augmented
+
+        if noise:
+            noise_maker = noise_makers.GaussianNoiseMaker()
+            augmented = noise_maker.add_noise(augmented) if noise else augmented
+
         return augmented
 
     def parse_audio(self, audio_path, raw=False):
@@ -94,44 +91,3 @@ class AudioDataProcessor:
         transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
         LOGGER.debug(f"transcript_path: {transcript_path} transcript: {transcript}")
         return transcript
-
-
-class AudioDataset(Dataset):
-
-    def __init__(self, processor: AudioDataProcessor, manifest_filepath):
-        """
-        Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
-        a comma. Each new line is a different sample. Example below:
-        /path/to/audio.wav,/path/to/audio.txt
-        ...
-        :param processor: Data processor object
-        :param manifest_filepath: Path to manifest csv as describe above
-        """
-        super().__init__()
-        with open(manifest_filepath) as f:
-            ids = f.readlines()
-        ids = [x.strip().split(',') for x in ids]
-        self.ids = ids
-        self.size = len(ids)
-        self.processor = processor
-
-    def get_raw(self, index):
-        sample = self.ids[index]
-        audio_path, transcript_path = sample[0], sample[1]
-
-        sound = self.processor.parse_audio(audio_path, raw=True)
-        transcript = self.processor.parse_transcript(transcript_path)
-
-        return sound, transcript
-
-    def __getitem__(self, index):
-        sample = self.ids[index]
-        audio_path, transcript_path = sample[0], sample[1]
-
-        spectrogram = self.processor.parse_audio(audio_path)
-        transcript = self.processor.parse_transcript(transcript_path)
-
-        return spectrogram, transcript
-
-    def __len__(self):
-        return self.size

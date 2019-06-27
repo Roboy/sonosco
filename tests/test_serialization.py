@@ -3,7 +3,8 @@ import os
 from torch import nn
 from typing import Dict
 
-from model import Saver, Loader
+from models.saver import Saver
+from models.loader import Loader
 
 from sonosco.models.deepspeech2_sonosco import DeepSpeech2
 

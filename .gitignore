@@ -1,9 +1,6 @@
 # Created by .ignore support plugin (hsz.mobi)
-sonosco/pycandle/
 experiments/
 tests/test_wavs/
-sonosco/pycandle
-sonosco/experiments/
 
 **/.DS_Store
 

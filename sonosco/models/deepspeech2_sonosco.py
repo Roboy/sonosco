@@ -4,8 +4,8 @@ from dataclasses import field
 from typing import Dict
 from torch import nn
 
-from models.deepspeech2 import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
-from serialization import serializable
+from models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
+from sonosco.models.serialization import serializable
 
 
 @serializable
