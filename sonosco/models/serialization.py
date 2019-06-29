@@ -1,6 +1,6 @@
 from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
 
-from typing import List
+from typing import List, Iterable
 
 from torch import nn
 
@@ -72,11 +72,11 @@ def __add_serialize(cls: type) -> object:
     return _create_fn('__serialize__', [sonosco_self], serialize_body, return_type=dict)
 
 
-def __create_serialize_body(fields_to_serialize: list) -> List[str]:
+def __create_serialize_body(fields_to_serialize: Iterable) -> List[str]:
     """
     Creates body of __serialize__ method as list of strings
     Args:
-        fields_to_serialize: list of fields to serialize
+        fields_to_serialize (Iterable): iterable of fields to serialize
 
     Returns (list): __serialize__ method body as list of strings
 
@@ -118,9 +118,9 @@ def __extract_from_nn(name: str, cls: nn.Module, body_lines: List[str]):
         body_lines.append(__create_dict_entry(constant, f"self.{name}.{constant}"))
 
 
-def __is_iterable_of_primitives(field: type) -> bool:
-    return hasattr(field, '__origin__') and field.__origin__ in __iterables and __is_primitive(
-        field.__args__[0])
+def __is_iterable_of_primitives(field) -> bool:
+    return hasattr(field, '__origin__') and field.__origin__ in __iterables and \
+           hasattr(field, '__args__') and __is_primitive(field.__args__[0])
 
 
 def __throw_unsupported_data_type():
