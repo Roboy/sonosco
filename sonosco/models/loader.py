@@ -16,31 +16,32 @@ LOGGER = logging.getLogger(__name__)
 class Loader:
 
     @deprecation.deprecated(
-        details="This type of loading may cause problems when path of model class changes. "
-                "Pleas use only when saved with save_model_simple method")
-    def load_model_simple(self, path: str):
+        details="Use only when model was serialized with serialize_mode_simple")
+    def deserialize_model_simple(self, path: str) -> object:
         """
+        Loads the model object from the pickle file located at @path.
 
         Args:
-            path:
+            path (str): path to pickle file containing the model
 
-        Returns:
+        Returns (object): deserialized model
 
         """
         return torch.load(path)
 
-    def load_model_parameters(self, path: str) -> dict:
+    def deserialize_model_parameters(self, path: str) -> dict:
         """
+        Loads the (meta)parameters of the model from the pickle file located at @path
 
         Args:
-            path:
+            path (str): path to pickle file containing the parameters
 
         Returns (dict): dictionary of saved parameters
 
         """
         return torch.load(path, map_location=lambda storage, loc: storage)
 
-    def load_model_from_path(self, cls_path: str, path: str) -> nn.Module:
+    def deserialize_model_from_path(self, cls_path: str, path: str) -> nn.Module:
         """
         Loads the model from pickle file.
 
@@ -53,9 +54,9 @@ class Loader:
         Returns (nn.Module): Loaded model
 
         """
-        return self.load_model(get_class_by_name(cls_path), path)
+        return self.deserialize_model(get_class_by_name(cls_path), path)
 
-    def load_model(self, cls: type, path: str) -> nn.Module:
+    def deserialize_model(self, cls: type, path: str) -> nn.Module:
         """
         Loads the model from pickle file.
 
@@ -68,7 +69,7 @@ class Loader:
         Returns (nn.Module): Loaded model
 
         """
-        package = self.load_model_parameters(path)
+        package = self.deserialize_model_parameters(path)
         constructor_args_names = get_constructor_args(cls)
         serialized_args_names = set(package.keys())
         serialized_args_names.discard('state_dict')

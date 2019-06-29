@@ -9,13 +9,6 @@ from models.loader import Loader
 from sonosco.models.deepspeech2_sonosco import DeepSpeech2
 
 
-# @pytest.fixture
-# # def logger():
-# #     logger = logging.getLogger(SONOSCO)
-# #     setup_logging(logger)
-# #     return logger
-
-
 def test_model_serialization():
     # prepare
     rnn_type: type = nn.GRU
@@ -39,10 +32,10 @@ def test_model_serialization():
                         version=version)
 
     # serialize
-    saver.save_model(model, model_path)
+    saver.serialize_model(model, model_path)
 
     # deserialize
-    deserialized_model = loader.load_model(DeepSpeech2, model_path)
+    deserialized_model = loader.deserialize_model(DeepSpeech2, model_path)
 
     os.remove(model_path)
 
@@ -55,7 +48,4 @@ def test_model_serialization():
     assert deserialized_model.audio_conf == audio_conf
     assert deserialized_model.bidirectional == bidirectional
     assert deserialized_model.version == version
-    # assert deserialized_model.state_dict() == model.state_dict()
 
-
-test_model_serialization()
