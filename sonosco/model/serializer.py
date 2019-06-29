@@ -3,12 +3,12 @@ import torch
 import deprecation
 import torch.nn as nn
 
-from sonosco.models.serialization import is_serializable
+from sonosco.model.serialization import is_serializable
 
 LOGGER = logging.getLogger(__name__)
 
 
-class Saver:
+class ModelSerializer:
 
     def __init__(self) -> None:
         super().__init__()

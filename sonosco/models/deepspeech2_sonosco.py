@@ -5,7 +5,7 @@ from typing import Dict
 from torch import nn
 
 from models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
-from sonosco.models.serialization import serializable
+from sonosco.model.serialization import serializable
 
 
 @serializable

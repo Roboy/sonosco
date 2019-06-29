@@ -3,8 +3,8 @@ import os
 from torch import nn
 from typing import Dict
 
-from models.saver import Saver
-from models.loader import Loader
+from model.serializer import ModelSerializer
+from model.deserializer import ModelDeserializer
 
 from sonosco.models.deepspeech2_sonosco import DeepSpeech2
 
@@ -21,8 +21,8 @@ def test_model_serialization():
 
     model_path = "model"
 
-    saver = Saver()
-    loader = Loader()
+    saver = ModelSerializer()
+    loader = ModelDeserializer()
 
     model = DeepSpeech2(rnn_type=rnn_type,
                         labels=labels, rnn_hid_size=rnn_hid_size,

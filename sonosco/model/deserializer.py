@@ -13,7 +13,7 @@ from common.serialization_utils import get_constructor_args, get_class_by_name, 
 LOGGER = logging.getLogger(__name__)
 
 
-class Loader:
+class ModelDeserializer:
 
     @deprecation.deprecated(
         details="Use only when model was serialized with serialize_mode_simple")
