@@ -85,7 +85,7 @@ class BatchRNN(nn.Module):
         self.hidden_size = hidden_size
         self.batch_norm = SequenceWise(nn.BatchNorm1d(input_size)) if batch_norm else None
         self.rnn = rnn_type(input_size=input_size, hidden_size=hidden_size,
-                            bidirectional=bidirectional, bias=True)
+                            bidirectional=bidirectional, bias=False)
 
     def flatten_parameters(self):
         self.rnn.flatten_parameters()
