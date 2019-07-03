@@ -12,13 +12,13 @@ from sonosco.datasets.processor import AudioDataProcessor
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 socketio = SocketIO(app)
 
-model_path = "../pretrained/an4_pretrained.pth"
+model_path = "../pretrained/deepspeech_final.pth"
 audio_path = "audio.wav"
 
 device = torch.device("cpu")
 model = DeepSpeech2.load_model(model_path)
 decoder = GreedyDecoder(model.labels, blank_index=model.labels.index('_'))
-processor = AudioDataProcessor(**model.audio_conf)
+processor = AudioDataProcessor(**model.audio_conf, normalize=True)
 
 
 @app.route('/', defaults={'path': ''})
@@ -42,4 +42,4 @@ def on_create(wav_bytes):
 
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', debug=True)
+    socketio.run(app, host='0.0.0.0', debug=False)

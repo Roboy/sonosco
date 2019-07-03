@@ -3,6 +3,7 @@ import torch
 import librosa
 import numpy as np
 import scipy.signal
+import torchaudio
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.utils as utils
 import sonosco.common.noise_makers as noise_makers
@@ -47,10 +48,17 @@ class AudioDataProcessor:
 
     @property
     def window_size_samples(self):
-        return int(self.sample_rate * self.window_stride)
+        return int(self.sample_rate * self.window_size)
 
     def retrieve_file(self, audio_path):
         sound, sample_rate = librosa.load(audio_path, sr=self.sample_rate)
+        # LOGGER.info(f"Sample rate: {sample_rate}")
+        # sound = sound.numpy().T
+        # if len(sound.shape) > 1:
+        #     if sound.shape[1] == 1:
+        #         sound = sound.squeeze()
+        #     else:
+        #         sound = sound.mean(axis=1)
         return sound, sample_rate
 
     def augment_audio(self, sound, stretch=True, shift=False, pitch=True, noise=True):
@@ -89,8 +97,10 @@ class AudioDataProcessor:
         spectrogram = torch.FloatTensor(spectrogram)
 
         if self.normalize:
-            spectrogram.add_(-spectrogram.mean())
-            spectrogram.div_(spectrogram.std())
+            mean = spectrogram.mean()
+            std = spectrogram.std()
+            spectrogram.add_(mean)
+            spectrogram.div_(std)
 
         return spectrogram
 
