@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 @click.option("--merge-dir", default="temp/data", type=str, help="Directory to the folders, all the manifest are stored in.")
 @click.option("--min-duration", default=1, type=int, help="Prunes any samples shorter than the min duration.")
 @click.option("--max-duration", default=15, type=int, help="Prunes any samples longer than the max duration")
-@click.option("--output-path", default="temp/data/manifests.csv", type=str, help="Output path to merged manifest")
+@click.option("--output-path", default="temp/data/manifests/train_combined_manifest.csv", type=str, help="Output path to merged manifest")
 
 def main(merge_dir, min_duration, max_duration, output_path):
     global LOGGER
@@ -25,25 +25,26 @@ def main(merge_dir, min_duration, max_duration, output_path):
 
     merge_dir = os.path.join(os.path.expanduser("~"), merge_dir)
     output_path = os.path.join(os.path.expanduser("~"), output_path)
+    output_directory = output_path[:-len(output_path.split("/")[-1])][:-1]
+    path_utils.try_create_directory(output_directory)
     file_paths = []
     for dir_path, sub_dir, files in os.walk(merge_dir):
         for file in files:
             if file.endswith(".csv"):
+                if dir_path == output_directory:
+                    continue
                 LOGGER.info(f"Found manifest: {file}")
                 dir_path = os.path.join(merge_dir, dir_path)
                 with open(os.path.join(dir_path, file), 'r') as fh:
                     file_paths += fh.readlines()
     file_paths = [file_path.split(',')[0] for file_path in file_paths]
     file_paths = order_and_prune_files(file_paths, min_duration, max_duration)
-
     LOGGER.info("Creating final manifest")
     with io.FileIO(output_path, "w") as file:
-        LOGGER.info("Test")
         for wav_path in tqdm(file_paths, total=len(file_paths)):
             transcript_path = wav_path.replace('/wav/', '/txt/').replace('.wav', '.txt')
             sample = os.path.abspath(wav_path) + ',' + os.path.abspath(transcript_path) + '\n'
-            LOGGER.info(f"Sample: {sample}")
-        file.write(sample.encode('utf-8'))
+            file.write(sample.encode('utf-8'))
     LOGGER.info("Final manifest was created!")
 
 if __name__=="__main__":
