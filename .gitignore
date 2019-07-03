@@ -1,7 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
 experiments/
 tests/test_wavs/
-
+**/package-lock.json
 **/.DS_Store
 
 .idea/
@@ -124,6 +124,7 @@ venv.bak/
 [Ll]ib64
 [Ll]ocal
 [Ss]cripts
+!scripts
 pyvenv.cfg
 .venv
 pip-selfcheck.json
