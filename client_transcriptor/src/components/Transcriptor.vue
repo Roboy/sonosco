@@ -1,15 +1,23 @@
 <template>
   <div class="Transcriptor">
-    <h1>Transcriptor</h1>
-    <p v-if="isConnected">We're connected to the server!</p>
-    <p>Transcription: "{{ socketMessage }}"</p>
-    <button @click="recordStop()">{{ recordButtonText }}</button>
-    <button @click="playAudio()">Play</button>
-    <button @click="transcribe()">Transcribe</button>
+    <h3 v-if="isConnected">We're connected to the server!</h3>
+
+    <div class="model-container">
+      <model v-for="model in this.$store.state.models" v-bind:key="model.id" v-bind:name="model.name"></model>
+    </div>
+
+    <div class="controls">
+      <md-button class="md-raised" @click="recordStop()">{{ recordButtonText }}</md-button>
+      <md-button class="md-raised" @click="playAudio()">Play</md-button>
+      <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
+    </div>
+
   </div>
 </template>
 
 <script>
+import Model from './Model'
+
 let audioChunks = null
 let audioBlob = null
 const recordAudio = () =>
@@ -39,6 +47,11 @@ let audio = null
 
 export default {
   name: 'Transcriptor',
+
+  components: {
+    'model': Model
+  },
+
   data () {
     return {
       isConnected: false,
@@ -107,4 +120,19 @@ li {
 a {
   color: #42b983;
 }
+
+  .Transcriptor {
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .model-container {
+    display: grid;
+    grid-template-columns: auto auto;
+    width: 90%;
+  }
+
+  .controls {
+    margin: 20px 10px;
+  }
 </style>

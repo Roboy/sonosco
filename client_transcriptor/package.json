@@ -14,11 +14,14 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "material-components-vue": "^1.1.0",
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",
     "uws": "^100.0.1",
     "vue": "^2.5.2",
-    "vue-router": "^3.0.1"
+    "vue-material": "^1.0.0-beta-11",
+    "vue-router": "^3.0.1",
+    "vuex": "^3.1.1"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
@@ -64,6 +67,7 @@
     "postcss-loader": "^2.0.8",
     "postcss-url": "^7.2.1",
     "rimraf": "^2.6.0",
+    "sass-loader": "^7.1.0",
     "selenium-server": "^3.0.1",
     "semver": "^5.3.0",
     "shelljs": "^0.7.6",
