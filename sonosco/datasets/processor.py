@@ -3,7 +3,6 @@ import torch
 import librosa
 import numpy as np
 import scipy.signal
-import torchaudio
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.utils as utils
 import sonosco.common.noise_makers as noise_makers
