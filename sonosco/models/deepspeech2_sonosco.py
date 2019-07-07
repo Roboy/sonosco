@@ -1,23 +1,25 @@
 import math
-
-from torch import nn
-from .modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax, supported_rnns, supported_rnns_inv
-from .serialization import serializable
 from collections import OrderedDict
 from dataclasses import field
+from typing import Dict
+from torch import nn
+
+from models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
+from sonosco.model.serialization import serializable
 
 
 @serializable
 class DeepSpeech2(nn.Module):
-    rnn_type: nn.RNNBase = nn.LSTM
+    rnn_type: type = nn.LSTM
     labels: str = "abc"
     rnn_hid_size: int = 768
     nb_layers: int = 5
-    audio_conf: dict = field(default_factory={})
+    audio_conf: Dict[str, str] = field(default_factory=dict)
     bidirectional: bool = True
     version: str = '0.0.1'
 
-    def __post__init__(self):
+    def __post_init__(self):
+        super(DeepSpeech2, self).__init__()
         sample_rate = self.audio_conf.get("sample_rate", 16000)
         window_size = self.audio_conf.get("window_size", 0.02)
         num_classes = len(self.labels)

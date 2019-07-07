@@ -129,3 +129,5 @@ pyvenv.cfg
 .venv
 pip-selfcheck.json
 
+pretrained
+**/node_modules
