@@ -7,7 +7,6 @@ Vue.use(Vuex)
 
 const state = {
   models: [
-    { 'id': 1, 'name': 'Deepspeech' }
   ]
 }
 
@@ -17,7 +16,7 @@ export default new Vuex.Store({
   actions: actions,
   mutations: {
     addModel (state, model) {
-      state.models.push(model)
+      state.models.push({name: model})
     }
   }
 })

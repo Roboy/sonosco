@@ -14,11 +14,13 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "axios": "^0.19.0",
     "material-components-vue": "^1.1.0",
     "socket.io": "^2.2.0",
     "socket.io-client": "^2.2.0",
     "uws": "^100.0.1",
     "vue": "^2.5.2",
+    "vue-axios": "^2.1.4",
     "vue-material": "^1.0.0-beta-11",
     "vue-router": "^3.0.1",
     "vue-socket.io": "^3.0.7",

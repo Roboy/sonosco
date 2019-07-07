@@ -2,16 +2,21 @@ import logging
 import os
 import torch
 # import eventlet
+import json
+from flask_cors import CORS
 
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 from sonosco.models import DeepSpeech2
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
-
+from utils import get_config
 
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
+CORS(app)
 socketio = SocketIO(app)
+
+config = get_config('../server_transcriptor/config.yaml')
 
 model_path = "../pretrained/librispeech_pretrained.pth"
 audio_path = "audio.wav"
@@ -40,6 +45,15 @@ def on_create(wav_bytes):
     out, output_sizes = model(spect, input_sizes)
     decoded_output, decoded_offsets = decoder.decode(out, output_sizes)
     emit("transcription", decoded_output[0])
+
+
+@app.route('/get_models')
+def get_models():
+    models = config['models']
+    # model_list = [{key: val for key, val in entry.items() if key in ['id', 'name']} for entry in models]
+    model_dict = {model['id']: model['name'] for model in models}
+    # return json.dumps(model_list)
+    return json.dumps(model_dict)
 
 
 if __name__ == '__main__':
