@@ -64,7 +64,7 @@
         methods: {
             add(modelId) {
                 console.log("MS ADD", this.models)
-                this.$store.commit('addModel', this.models[modelId])
+                this.$store.commit('addModel', {id: modelId, name: this.models[modelId]})
                 this.$router.push('/')
             },
 

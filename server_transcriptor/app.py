@@ -35,7 +35,7 @@ def index(path):
 
 
 @socketio.on('record')
-def on_create(wav_bytes):
+def on_create(wav_bytes, models):
     with open("audio.wav", "wb") as file:
         file.write(wav_bytes)
     spect = processor.parse_audio(audio_path)

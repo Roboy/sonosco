@@ -12,11 +12,15 @@ const state = {
 
 export default new Vuex.Store({
   state: state,
-  getters: getters,
+  getters: {
+    getPickedModels: state => {
+      return state.models
+    }
+  },
   actions: actions,
   mutations: {
     addModel (state, model) {
-      state.models.push({name: model})
+      state.models.push(model)
     }
   }
 })
