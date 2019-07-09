@@ -19,16 +19,12 @@ socketio = SocketIO(app)
 
 config = get_config('../server_transcriptor/config.yaml')
 
-# model_path = "../pretrained/librispeech_pretrained.pth"
 audio_path = "audio.wav"
 
 device = torch.device("cpu")
-# model = DeepSpeech2.load_model(model_path)
 loaded_models = load_models(config['models'])
 
 
-# decoder = GreedyDecoder(model.labels, blank_index=model.labels.index('_'))
-# processor = AudioDataProcessor(**model.audio_conf, normalize=True)
 
 
 @app.route('/', defaults={'path': ''})

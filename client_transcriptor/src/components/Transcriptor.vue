@@ -97,7 +97,6 @@ export default {
     },
     async transcribe () {
       if (audio && typeof audio.play === 'function') {
-        // console.log("M: ", this.$store.getters.getPickedModels.map(el => el['id']))
         this.$socket.emit('record', audioBlob, this.$store.getters.getPickedModels.map(el => el['id']))
       }
     }
