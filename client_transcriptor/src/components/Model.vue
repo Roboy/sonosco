@@ -8,7 +8,7 @@
 <script>
 export default {
   name: 'Model',
-  props: ['name'],
+  props: ['name', 'model_id'],
   data () {
     return {
       isConnected: false,
@@ -29,7 +29,7 @@ export default {
 
     // Fired when the server sends something on the "transcription" channel.
     transcription (data) {
-      this.socketMessage = data[0]
+      this.socketMessage = data[this.model_id]
     }
   },
 

@@ -39,20 +39,35 @@ class DeepSpeech2(nn.Module):
         window_size = self.audio_conf.get("window_size", 0.02)
         num_classes = len(self.labels)
 
+
         self.conv = MaskConv(nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(20, 5)),
+            nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(0, 10)),
             nn.BatchNorm2d(32),
             nn.Hardtanh(0, 20, inplace=True),
-            nn.Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1), padding=(10, 5)),
+            nn.Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1), ),
             nn.BatchNorm2d(32),
             nn.Hardtanh(0, 20, inplace=True)
         ))
         # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
         rnn_in_size = int(math.floor((sample_rate * window_size) / 2) + 1)
-        LOGGER.debug(f"Initial calculated feature size: {rnn_in_size}")
-        rnn_in_size = int(math.floor(rnn_in_size + 2 * 20 - 41) / 2 + 1)
-        rnn_in_size = int(math.floor(rnn_in_size + 2 * 10 - 21) / 2 + 1)
+        rnn_in_size = int(math.floor(rnn_in_size - 41) / 2 + 1)
+        rnn_in_size = int(math.floor(rnn_in_size - 21) / 2 + 1)
         rnn_in_size *= 32
+
+        # self.conv = MaskConv(nn.Sequential(
+        #     nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(20, 5)),
+        #     nn.BatchNorm2d(32),
+        #     nn.Hardtanh(0, 20, inplace=True),
+        #     nn.Conv2d(32, 32, kernel_size=(21, 11), stride=(2, 1), padding=(10, 5)),
+        #     nn.BatchNorm2d(32),
+        #     nn.Hardtanh(0, 20, inplace=True)
+        # ))
+        # # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
+        # rnn_in_size = int(math.floor((sample_rate * window_size) / 2) + 1)
+        # LOGGER.debug(f"Initial calculated feature size: {rnn_in_size}")
+        # rnn_in_size = int(math.floor(rnn_in_size + 2 * 20 - 41) / 2 + 1)
+        # rnn_in_size = int(math.floor(rnn_in_size + 2 * 10 - 21) / 2 + 1)
+        # rnn_in_size *= 32
 
         rnns = [('0', BatchRNN(
             input_size=rnn_in_size,

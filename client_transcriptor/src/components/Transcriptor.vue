@@ -3,7 +3,7 @@
     <h3 v-if="isConnected">We're connected to the server!</h3>
 
     <div class="model-container">
-      <model v-for="model in this.$store.state.models" v-bind:key="model.id" v-bind:name="model.name"></model>
+      <model v-for="model in this.$store.state.models" v-bind:key="model.id"  v-bind:model_id="model.id" v-bind:name="model.name"></model>
     </div>
 
     <div class="controls">
@@ -97,7 +97,7 @@ export default {
     },
     async transcribe () {
       if (audio && typeof audio.play === 'function') {
-        this.$socket.emit('record', audioBlob)
+        this.$socket.emit('record', audioBlob, this.$store.getters.getPickedModels.map(el => el['id']))
       }
     }
   }

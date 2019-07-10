@@ -7,13 +7,16 @@ Vue.use(Vuex)
 
 const state = {
   models: [
-    { 'id': 1, 'name': 'Deepspeech' }
   ]
 }
 
 export default new Vuex.Store({
   state: state,
-  getters: getters,
+  getters: {
+    getPickedModels: state => {
+      return state.models
+    }
+  },
   actions: actions,
   mutations: {
     addModel (state, model) {
