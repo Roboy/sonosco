@@ -1,7 +1,7 @@
 models:
   - id: 'deepspeech2'
-    path: '../pretrained/librispeech_pretrained.pth'
+    path: '../pretrained/deepspeech_final.pth'
     name: 'Deep Speech2'
   - id: 'also_deepspeech2'
-    path: '../pretrained/librispeech_pretrained.pth'
+    path: '../pretrained/deepspeech_final.pth'
     name: 'Other Model'
