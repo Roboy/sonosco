@@ -10,7 +10,7 @@ from flask_socketio import SocketIO, emit
 from utils import get_config
 from model_loader import load_models
 
-app = Flask(__name__, static_folder="./dist", template_folder="./dist")
+app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 CORS(app)
 socketio = SocketIO(app)
 
