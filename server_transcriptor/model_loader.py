@@ -2,6 +2,7 @@ from sonosco.models import DeepSpeech2
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
 
+
 # TODO: lazy loading
 def load_models(config):
     models = {}

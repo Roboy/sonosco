@@ -24,3 +24,6 @@ pytest==4.6.3
 click==7.0
 deprecation==2.0.6
 dataclasses==0.6
+Flask
+Flask-Cors
+Flask-SocketIO

@@ -7,13 +7,10 @@ from flask_cors import CORS
 
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
-from sonosco.models import DeepSpeech2
-from sonosco.decoders import GreedyDecoder
-from sonosco.datasets.processor import AudioDataProcessor
 from utils import get_config
 from model_loader import load_models
 
-app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
+app = Flask(__name__, static_folder="./dist", template_folder="./dist")
 CORS(app)
 socketio = SocketIO(app)
 
@@ -23,8 +20,6 @@ audio_path = "audio.wav"
 
 device = torch.device("cpu")
 loaded_models = load_models(config['models'])
-
-
 
 
 @app.route('/', defaults={'path': ''})
