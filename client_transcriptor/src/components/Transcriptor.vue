@@ -10,6 +10,25 @@
       <md-button class="md-raised" @click="recordStop()">{{ recordButtonText }}</md-button>
       <md-button class="md-raised" @click="playAudio()">Play</md-button>
       <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
+      <md-dialog-prompt
+        :md-active.sync="activeName"
+        v-model="name"
+        md-title="What is your name?"
+        md-input-maxlength="30"
+        md-input-placeholder="Type your name..."
+        md-confirm-text="Save"
+        @md-confirm="onSavePressed()""
+        @md-cancel="onNameRequestCanceled()"
+        />
+      <md-dialog-prompt
+        :md-active.sync="activeTrans"
+        v-model="writtenTranscript"
+        md-title="What did you say?"
+        md-input-maxlength="30"
+        md-input-placeholder="Type what you said..."
+        md-confirm-text="Done"
+        @md-cancel="onPromptCanceled()"
+        />
     </div>
 
   </div>
@@ -54,6 +73,12 @@ export default {
 
   data () {
     return {
+      activeName: false,
+      activeTrans: false,
+      nameSaved: false,
+      transPromptDone: false,
+      writtenTranscript: null,
+      name: null,
       isConnected: false,
       socketMessage: '',
       recordButtonText: 'Record'
@@ -77,14 +102,37 @@ export default {
   },
 
   methods: {
+    onNameRequestCanceled (){
+      this.name = null
+    },
+    onSavePressed (){
+      this.nameSaved = true
+      this.activeTrans = true
+    },
+    onPromptCanceled() {
+      console.log("writtenTranscript at canceled: ",this.writtenTranscript)
+      console.log("Prompt canceled")
+      this.writtenTranscript = null
+      this.promptDone = false
+
+    },
     async recordStop () {
       if (recorder) {
         audio = await recorder.stop()
         recorder = null
         this.socketMessage = ''
+        if (this.nameSaved == false){
+          this.activeName = true
+        } else {
+          this.activeTrans = true
+        }
+        console.log("writtenTranscript at stop: ",this.writtenTranscript)
         this.recordButtonText = 'Record'
+        this.transPromptDone = true
         // document.querySelector('#play-audio-button').removeAttribute('disabled')
       } else {
+        console.log("writtenTranscript at start: ",this.writtenTranscript)
+        this.writtenTranscript = null
         recorder = await recordAudio()
         recorder.start()
         this.recordButtonText = 'Stop'
@@ -98,6 +146,9 @@ export default {
     async transcribe () {
       if (audio && typeof audio.play === 'function') {
         this.$socket.emit('record', audioBlob, this.$store.getters.getPickedModels.map(el => el['id']))
+        if (this.transPromptDone == true){
+          console.log("transPromp done, writtenTranscript: ", this.writtenTranscript, " from: ", this.name)
+        }
       }
     }
   }
