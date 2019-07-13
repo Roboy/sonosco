@@ -7,11 +7,11 @@ from sonosco.ros2.server import SonoscoROS2
 from sonosco.models.deepspeech2 import DeepSpeech2
 from sonosco.models.deepspeech2_inference import DeepSpeech2Inference
 
-from sonosco.common.constants import SONOSCO
+
 from sonosco.common.utils import setup_logging
 from utils import get_config
 
-LOGGER = logging.getLogger(SONOSCO)
+LOGGER = logging.getLogger("ros2")
 
 model_path = "../pretrained/deepspeech_final.pth"
 

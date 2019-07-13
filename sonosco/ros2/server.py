@@ -4,7 +4,7 @@ import logging
 
 from roboy_cognition_msgs.msg import RecognizedSpeech
 from roboy_cognition_msgs.srv import RecognizeSpeech
-
+from sonosco.common.constants import SONOSCO
 from rclpy.node import Node
 
 LOGGER = logging.getLogger(SONOSCO)
