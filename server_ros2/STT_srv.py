@@ -13,7 +13,7 @@ from utils import get_config
 
 LOGGER = logging.getLogger("ros2")
 
-model_path = "../pretrained/deepspeech_final.pth"
+model_path = "pretrained/deepspeech_final.pth"
 
 
 def main(args=None):
