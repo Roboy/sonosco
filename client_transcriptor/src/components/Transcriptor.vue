@@ -11,18 +11,24 @@
       <md-button class="md-raised" @click="playAudio()">Play</md-button>
       <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
     </div>
-    <div id="popup" v-if="seen" class="popup">
-
-      <h3>Help us improve our model!</h3>
-      <p>Correct the transcription and save it.</p>
-      <p>DISCLAIMER: When you press the button, we use cookies to match your transcriptions.</p>
-
-      <md-field>
-      <md-textarea v-model="editableTranscript"></md-textarea>
-      <span class="md-error">There is an error</span>
-      </md-field>
-      <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
-      <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+    <div id="popup" v-if="popupVisible" class="popup">
+      <md-card>
+        <md-card-header>
+          <div class="md-title">Help us improve our model!</div>
+        </md-card-header>
+        <md-card-content>
+          Correct the transcription and save it.<br/>
+          DISCLAIMER: When you press the button, we use cookies to match your transcriptions.
+        </md-card-content>
+        <md-card-content>
+          <md-field>
+          <md-textarea v-model="editableTranscript"></md-textarea>
+            <span class="md-error">There is an error</span>
+          </md-field>
+        </md-card-content>
+        <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
+        <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+      </md-card>
     </div>
 
   </div>
@@ -67,7 +73,8 @@ export default {
 
   data () {
     return {
-      seen: false,
+      userId: '',
+      popupVisible: false,
       isConnected: false,
       editableTranscript: '',
       socketMessage: '',
@@ -89,21 +96,26 @@ export default {
     transcription (data) {
       this.socketMessage = data
       this.editableTranscript = data
+      this.popupVisible = true
     }
   },
 
   methods: {
     cancel () {
-      this.seen = false
+      this.popupVisible = false
+      this.editableTranscript = ''
     },
-    saveTranscript () {
-      this.seen = false
+    async saveTranscript () {
+      //this.$socket.emit('saveSample', audioBlob, this.editableTranscript, this.userId)
+      console.log("Transcript to be saved: ", this.editableTranscript)
+      this.popupVisible = false
     },
     async recordStop () {
       if (recorder) {
         audio = await recorder.stop()
         recorder = null
         this.socketMessage = ''
+        this.editableTranscript = ''
         this.recordButtonText = 'Record'
         // document.querySelector('#play-audio-button').removeAttribute('disabled')
       } else {
@@ -120,7 +132,6 @@ export default {
     async transcribe () {
       if (audio && typeof audio.play === 'function') {
         this.$socket.emit('record', audioBlob, this.$store.getters.getPickedModels.map(el => el['id']))
-        this.seen = true
       }
     }
   }
