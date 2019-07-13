@@ -10,25 +10,19 @@
       <md-button class="md-raised" @click="recordStop()">{{ recordButtonText }}</md-button>
       <md-button class="md-raised" @click="playAudio()">Play</md-button>
       <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
-      <md-dialog-prompt
-        :md-active.sync="activeName"
-        v-model="name"
-        md-title="What is your name?"
-        md-input-maxlength="30"
-        md-input-placeholder="Type your name..."
-        md-confirm-text="Save"
-        @md-confirm="onSavePressed()""
-        @md-cancel="onNameRequestCanceled()"
-        />
-      <md-dialog-prompt
-        :md-active.sync="activeTrans"
-        v-model="writtenTranscript"
-        md-title="What did you say?"
-        md-input-maxlength="30"
-        md-input-placeholder="Type what you said..."
-        md-confirm-text="Done"
-        @md-cancel="onPromptCanceled()"
-        />
+    </div>
+    <div id="popup" v-if="seen" class="popup">
+
+      <h3>Help us improve our model!</h3>
+      <p>Correct the transcription and save it.</p>
+      <p>DISCLAIMER: When you press the button, we use cookies to match your transcriptions.</p>
+
+      <md-field>
+      <md-textarea v-model="editableTranscript"></md-textarea>
+      <span class="md-error">There is an error</span>
+      </md-field>
+      <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
+      <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
     </div>
 
   </div>
@@ -73,13 +67,9 @@ export default {
 
   data () {
     return {
-      activeName: false,
-      activeTrans: false,
-      nameSaved: false,
-      transPromptDone: false,
-      writtenTranscript: null,
-      name: null,
+      seen: false,
       isConnected: false,
+      editableTranscript: '',
       socketMessage: '',
       recordButtonText: 'Record'
     }
@@ -98,41 +88,25 @@ export default {
     // Fired when the server sends something on the "transcription" channel.
     transcription (data) {
       this.socketMessage = data
+      this.editableTranscript = data
     }
   },
 
   methods: {
-    onNameRequestCanceled (){
-      this.name = null
+    cancel () {
+      this.seen = false
     },
-    onSavePressed (){
-      this.nameSaved = true
-      this.activeTrans = true
-    },
-    onPromptCanceled() {
-      console.log("writtenTranscript at canceled: ",this.writtenTranscript)
-      console.log("Prompt canceled")
-      this.writtenTranscript = null
-      this.promptDone = false
-
+    saveTranscript () {
+      this.seen = false
     },
     async recordStop () {
       if (recorder) {
         audio = await recorder.stop()
         recorder = null
         this.socketMessage = ''
-        if (this.nameSaved == false){
-          this.activeName = true
-        } else {
-          this.activeTrans = true
-        }
-        console.log("writtenTranscript at stop: ",this.writtenTranscript)
         this.recordButtonText = 'Record'
-        this.transPromptDone = true
         // document.querySelector('#play-audio-button').removeAttribute('disabled')
       } else {
-        console.log("writtenTranscript at start: ",this.writtenTranscript)
-        this.writtenTranscript = null
         recorder = await recordAudio()
         recorder.start()
         this.recordButtonText = 'Stop'
@@ -146,9 +120,7 @@ export default {
     async transcribe () {
       if (audio && typeof audio.play === 'function') {
         this.$socket.emit('record', audioBlob, this.$store.getters.getPickedModels.map(el => el['id']))
-        if (this.transPromptDone == true){
-          console.log("transPromp done, writtenTranscript: ", this.writtenTranscript, " from: ", this.name)
-        }
+        this.seen = true
       }
     }
   }
@@ -185,5 +157,9 @@ a {
 
   .controls {
     margin: 20px 10px;
+  }
+
+  .popup {
+    margin: 20px 10px
   }
 </style>
