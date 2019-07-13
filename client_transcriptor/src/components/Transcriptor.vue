@@ -18,7 +18,7 @@
         </md-card-header>
         <md-card-content>
           Correct the transcription and save it.<br/>
-          DISCLAIMER: When you press the button, we use cookies to match your transcriptions.
+          DISCLAIMER: When you press "Improve!", we use cookies to match your transcriptions.
         </md-card-content>
         <md-card-content>
           <md-field>
@@ -95,7 +95,7 @@ export default {
     // Fired when the server sends something on the "transcription" channel.
     transcription (data) {
       this.socketMessage = data
-      this.editableTranscript = data[this.$store.getters.getPickedModels.map(el => el['id'])]
+      this.editableTranscript = data[this.$store.getters.getPickedModels.map(el => el['id'])[0]]
       this.popupVisible = true
     }
   },
