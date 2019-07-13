@@ -1,9 +1,9 @@
 FROM missxa/melodic-crystal-roboy
 
 WORKDIR /ros2
-
-RUN apt-get install build-essential libssl1.0.0 libasound2
-
+COPY . .
+RUN apt-get install build-essential libssl1.0.0 libasound2 -y
+RUN apt-get install portaudio19-dev python-pyaudio python3-pyaudio -y
 RUN pip3 install certifi==2019.3.9 \
                  chardet==3.0.4 \
                  idna==2.8 \
@@ -15,8 +15,8 @@ RUN pip3 install certifi==2019.3.9 \
                  opencv-python \
                  click
 
-# install roboy-intelligence-team
-RUN pip3 install -r requirements.txt \
-  & pip3 install -e .
-
-ENTRYPOINT [ "scripts/entrypoint.sh" ]
+RUN pip3 install -r requirements.txt
+RUN git clone https://github.com/Roboy/sonosco.git
+RUN cd sonosco; git checkout SWA-74-ros2-integration; pip install .
+RUN source /opt/ros/melodic/setup.bash
+#ENTRYPOINT [ "python3", "STT_srv.py" ]
