@@ -73,7 +73,7 @@ export default {
 
   data () {
     return {
-      userId: '',
+      userId: 'test',
       popupVisible: false,
       isConnected: false,
       editableTranscript: '',
@@ -95,7 +95,7 @@ export default {
     // Fired when the server sends something on the "transcription" channel.
     transcription (data) {
       this.socketMessage = data
-      this.editableTranscript = data
+      this.editableTranscript = data[this.$store.getters.getPickedModels.map(el => el['id'])]
       this.popupVisible = true
     }
   },
@@ -106,7 +106,7 @@ export default {
       this.editableTranscript = ''
     },
     async saveTranscript () {
-      //this.$socket.emit('saveSample', audioBlob, this.editableTranscript, this.userId)
+      this.$socket.emit('saveSample', audioBlob, this.editableTranscript, this.userId)
       console.log("Transcript to be saved: ", this.editableTranscript)
       this.popupVisible = false
     },
