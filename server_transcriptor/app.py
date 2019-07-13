@@ -12,7 +12,7 @@ from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
 from utils import get_config
 from model_loader import load_models
-
+from sonosco.common.path_utils import try_create_directory
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 CORS(app)
 socketio = SocketIO(app)
@@ -50,6 +50,26 @@ def on_create(wav_bytes, model_ids):
         decoded_output, decoded_offsets = model_config['decoder'].decode(out, output_sizes)
         output[model_id] = decoded_output[0]
     emit("transcription", output)
+
+@socketio.on('saveSample')
+def on_saveSample(wav_bytes, transcript, userID):
+    path_to_userdata = os.path.join(os.path.expanduser("~"),
+                                    "data/temp/" + userID)
+    try_create_directory(path_to_userdata)
+    counter = len([x[0] for x in os.walk(path_to_userdata) if os.path.isdir(x[0])])-1
+
+    path_to_sample = os.path.join(path_to_userdata, str(counter))
+    try_create_directory(path_to_sample)
+
+    path_to_wav = os.path.join(path_to_sample, "audio.wav")
+    path_to_txt = os.path.join(path_to_sample, "transcript.txt")
+    with open(path_to_wav, "wb") as wav_file:
+        wav_file.write(wav_bytes)
+    with open(path_to_txt, "w") as txt_file:
+        txt_file.write(str(transcript))
+
+
+
 
 
 @app.route('/get_models')
