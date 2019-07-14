@@ -16,4 +16,4 @@ def transcribe(model_config: Dict[str, Any], audio_path: str, device: device) ->
     input_sizes = torch.IntTensor([spect.size(3)]).int()
     out, output_sizes = model_config['model'](spect, input_sizes)
     transcription, offsets = model_config['decoder'].decode(out, output_sizes)
-    return transcription[0]
+    return transcription[0][0]
