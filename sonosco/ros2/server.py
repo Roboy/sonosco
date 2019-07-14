@@ -19,7 +19,7 @@ class SonoscoROS2(Node):
         self.asr_interface = asr_interface
         self.topics = config['topics']
         self.publishers = set(self.create_publisher(RecognizedSpeech, name) for name in self.topics)
-        self.subscribers = set(self.create_service(RecognizeSpeech, name, self.asr_callback)
+        self.subscribers = set(self.create_service(RecognizedSpeech, name, self.asr_callback)
                                for name in self.topics)
         LOGGER.info(f"Topics {self.topics}")
         LOGGER.info("Sonosco ROS2 server is ready!")
