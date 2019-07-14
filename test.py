@@ -9,16 +9,16 @@ from sonosco.common.path_utils import parse_yaml
 from sonosco.training import Experiment, ModelTrainer
 from sonosco.datasets import create_data_loaders
 from sonosco.models import DeepSpeech2
-from sonosco.decoders import GreedyDecoder
+from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 from sonosco.datasets.processor import AudioDataProcessor
 
 LOGGER = logging.getLogger(SONOSCO)
 
 
 @click.command()
-@click.option("-m", "--model_path", default="pretrained/librispeech_pretrained.pth", type=click.STRING,
+@click.option("-m", "--model_path", default="pretrained/deepspeech_final.pth", type=click.STRING,
               help="Path to a pretrained model.")
-@click.option("-a", "--decoder", default="greedy", type=click.STRING, help="Type of decoder.")
+@click.option("-d", "--decoder", default="greedy", type=click.STRING, help="Type of decoder.")
 @click.option("-a", "--audio_path", default="audio.wav", type=click.STRING, help="Path to an audio file.")
 @click.option("--cuda", is_flag=True, help="Should cuda be used.")
 @click.option('--top-paths', default=1, type=click.INT, help='number of beams to return')
@@ -36,7 +36,8 @@ LOGGER = logging.getLogger(SONOSCO)
 def main(model_path, cuda, audio_path, **kwargs):
     device = torch.device("cuda" if cuda else "cpu")
     model = DeepSpeech2.load_model(model_path)
-    decoder = GreedyDecoder(model.labels, blank_index=model.labels.index('_'))
+    model.eval()
+    decoder = BeamCTCDecoder(model.labels, blank_index=model.labels.index('_'))
     processor = AudioDataProcessor(**model.audio_conf)
 
     spect = processor.parse_audio(audio_path)

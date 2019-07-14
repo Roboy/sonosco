@@ -14,6 +14,7 @@ def load_models(config):
             model_dict = dict()
             models[model_config["id"]] = model_dict
             model = DeepSpeech2.load_model(model_config["path"])
+            model.eval()
             model_dict["model"] = model
 
             if model_config["decoder"] == "greedy":
