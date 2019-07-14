@@ -69,7 +69,6 @@ class BeamCTCDecoder(Decoder):
         """
         probs = probs.cpu()
         out, scores, offsets, seq_lens = self._decoder.decode(probs, sizes)
-        import pdb; pdb.set_trace()
 
         strings = self.convert_to_strings(out, seq_lens)
         offsets = self.convert_tensor(offsets, seq_lens)
