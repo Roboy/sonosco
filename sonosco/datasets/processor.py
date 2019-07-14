@@ -51,13 +51,6 @@ class AudioDataProcessor:
 
     def retrieve_file(self, audio_path):
         sound, sample_rate = librosa.load(audio_path, sr=self.sample_rate)
-        # LOGGER.info(f"Sample rate: {sample_rate}")
-        # sound = sound.numpy().T
-        # if len(sound.shape) > 1:
-        #     if sound.shape[1] == 1:
-        #         sound = sound.squeeze()
-        #     else:
-        #         sound = sound.mean(axis=1)
         return sound, sample_rate
 
     def augment_audio(self, sound, stretch=True, shift=False, pitch=True, noise=True):

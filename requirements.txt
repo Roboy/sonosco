@@ -27,3 +27,4 @@ dataclasses==0.6
 Flask
 Flask-Cors
 Flask-SocketIO
+azure-cognitiveservices-speech==1.5.0

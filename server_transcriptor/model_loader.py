@@ -7,10 +7,10 @@ from sonosco.datasets.processor import AudioDataProcessor
 def load_models(config):
     models = {}
     for model_config in config:
-        if model_config.get('script'):
+        if model_config.get('external'):
             pass  # TODO add possibility to add custom load script, not necessaryly in this way
         else:
-            model_dict = {}
+            model_dict = dict()
             models[model_config['id']] = model_dict
             model = DeepSpeech2.load_model(model_config['path'])
             model_dict['model'] = model
