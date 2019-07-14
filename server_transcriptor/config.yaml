@@ -6,7 +6,7 @@ models:
   - id: 'deepspeech2_lm'
     path: '../pretrained/deepspeech_final.pth'
     decoder: 'beam'
-    language: '../pretrained/language_n6.bin'
+    language: '../pretrained/kenlm_bnc_6gram.bin'
     name: 'Deep Speech2 (Beam decoder)'
   - id: 'microsoft'
     external: True
