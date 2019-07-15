@@ -3,6 +3,9 @@ import os
 
 import logging
 import rospy
+
+from inference.dummp_asr import DummyASR
+from inputs.dummy_input import DummyInput
 from sonosco.common.constants import SONOSCO
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -10,7 +13,7 @@ LOGGER = logging.getLogger(SONOSCO)
 # TODO: Add possibility to specify asr interface per topi
 # TODO: Create new service type with audio input, or handle the audio input (mic, odas) here (decouple with interfaces)
 class SonoscoROS1:
-    def __init__(self, config, default_asr_interface, default_audio_interface):
+    def __init__(self, config, default_asr_interface=DummyASR(), default_audio_interface=DummyInput()):
         super().__init__('stt')
         LOGGER.info(f"Sonosco ROS2 server running running with PID: {os.getpid()}")
         self.pool = multiprocessing.Pool(processes=config.get('processes', 2))
