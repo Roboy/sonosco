@@ -12,7 +12,7 @@ import 'vue-material/dist/vue-material.min.css'
 import 'vue-material/dist/theme/default.css'
 
 Vue.config.productionTip = false
-export const ServerAddress =  window.location.protocol + '//' + window.location.hostname + ':5000'
+export const ServerAddress = window.location.protocol + '//' + window.location.hostname + ':5000'
 export const SocketInstance = io(ServerAddress, { secure: true })
 // export const SocketInstance = io()
 
@@ -28,6 +28,5 @@ new Vue({
   router,
   store,
   render: h => h(App),
-  components: { App },
-  template: '<App/>'
+  components: { App }
 }).$mount('#app')
