@@ -38,7 +38,7 @@ class SonoscoROS1:
 
     def __default_callback(self, request, publishers):
         LOGGER.info('Incoming Audio')
-        audio = self.default_asr_interface.request_audio()
+        audio = self.default_audio_interface.request_audio()
         return self.default_asr_interface.infer(audio)
 
     def __callback_async_wrapper(self, callback):
