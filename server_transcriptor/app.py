@@ -1,18 +1,17 @@
-import logging
-import os
 import torch
-# import eventlet
 import json
+import os
 from flask_cors import CORS
 
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
-from sonosco.models import DeepSpeech2
-from sonosco.decoders import GreedyDecoder
-from sonosco.datasets.processor import AudioDataProcessor
-from utils import get_config
+from utils import get_config, transcribe
 from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
+from external.model_factory import create_external_model
+
+EXTERNAL_MODELS = {"microsoft": None}
+
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 CORS(app)
 socketio = SocketIO(app)
@@ -25,8 +24,6 @@ device = torch.device("cpu")
 loaded_models = load_models(config['models'])
 
 
-
-
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def index(path):
@@ -34,25 +31,35 @@ def index(path):
     return render_template('index.html')
 
 
-@socketio.on('record')
-def on_create(wav_bytes, model_ids):
-    with open("audio.wav", "wb") as file:
+@socketio.on('transcribe')
+def on_transcribe(wav_bytes, model_ids):
+    with open(audio_path, "wb") as file:
         file.write(wav_bytes)
-        output = {}
+
+    output = dict()
+
     for model_id in model_ids:
-        # TODO: move to load script
-        model_config = loaded_models[model_id]
-        spect = model_config['processor'].parse_audio(audio_path)
-        spect = spect.view(1, 1, spect.size(0), spect.size(1))
-        spect = spect.to(device)
-        input_sizes = torch.IntTensor([spect.size(3)]).int()
-        out, output_sizes = model_config['model'](spect, input_sizes)
-        decoded_output, decoded_offsets = model_config['decoder'].decode(out, output_sizes)
-        output[model_id] = decoded_output[0]
+
+        if model_id in EXTERNAL_MODELS:
+            if EXTERNAL_MODELS[model_id] is None:
+                external_model = create_external_model(model_id)
+                EXTERNAL_MODELS[model_id] = external_model
+            else:
+                external_model = create_external_model(model_id)
+
+            transcription = external_model.recognize(audio_path)
+
+        else:
+            model_config = loaded_models[model_id]
+            transcription = transcribe(model_config, audio_path, device)
+
+        output[model_id] = transcription
+
     emit("transcription", output)
 
+
 @socketio.on('saveSample')
-def on_saveSample(wav_bytes, transcript, userID):
+def on_save_sample(wav_bytes, transcript, userID):
     path_to_userdata = os.path.join(os.path.expanduser("~"),
                                     "data/temp/" + userID)
     try_create_directory(path_to_userdata)
@@ -69,15 +76,10 @@ def on_saveSample(wav_bytes, transcript, userID):
         txt_file.write(str(transcript))
 
 
-
-
-
 @app.route('/get_models')
 def get_models():
     models = config['models']
-    # model_list = [{key: val for key, val in entry.items() if key in ['id', 'name']} for entry in models]
     model_dict = {model['id']: model['name'] for model in models}
-    # return json.dumps(model_list)
     return json.dumps(model_dict)
 
 

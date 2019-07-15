@@ -1,7 +1,13 @@
 models:
   - id: 'deepspeech2'
     path: '../pretrained/deepspeech_final.pth'
-    name: 'Deep Speech2'
-  - id: 'also_deepspeech2'
+    decoder: 'greedy'
+    name: 'Deep Speech2 (Greedy decoder)'
+  - id: 'deepspeech2_lm'
     path: '../pretrained/deepspeech_final.pth'
-    name: 'Other Model'
+    decoder: 'beam'
+    language: '../pretrained/kenlm_bnc_6gram.bin'
+    name: 'Deep Speech2 (Beam decoder)'
+  - id: 'microsoft'
+    external: True
+    name: 'Microsoft'
