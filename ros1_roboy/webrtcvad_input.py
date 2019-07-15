@@ -9,6 +9,7 @@ import sys
 
 class VadInput(SonoscoAudioInput):
     def request_audio(self, *args, **kwargs):
+        # TODO: extract beginning to the constructor
         FORMAT = pyaudio.paInt16
         CHANNELS = 1
         RATE = 16000
