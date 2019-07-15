@@ -8,7 +8,8 @@ import store from './store'
 import io from 'socket.io-client'
 import VueSocketIO from 'vue-socket.io'
 import VueMaterial from 'vue-material'
-import VueCookies from 'vue-cookies'
+import VueCookies from 'vue-cookies';
+
 import 'vue-material/dist/vue-material.min.css'
 import 'vue-material/dist/theme/default.css'
 
@@ -19,7 +20,7 @@ export const SocketInstance = io(ServerAddress, { secure: true })
 
 Vue.use(VueMaterial)
 
-Vue.use(VueCookies)
+Vue.use(VueCookies);
 
 Vue.use(new VueSocketIO({
   debug: true,
@@ -34,10 +35,3 @@ new Vue({
   components: { App },
   template: '<App/>'
 }).$mount('#app')
-
-// set default config
-VueCookies.config('7d')
-
-// set global cookie
-VueCookies.set('theme','default');
-VueCookies.set('hover-time','1s');

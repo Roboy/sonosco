@@ -73,7 +73,7 @@ export default {
 
   data () {
     return {
-      userId: 'test',
+      userId: '',
       popupVisible: false,
       isConnected: false,
       editableTranscript: '',
@@ -101,11 +101,21 @@ export default {
   },
 
   methods: {
+    checkCookies () {
+      if (window.$cookies.isKey('userID')) {
+        this.userId = window.$cookies.get('userID');
+      } else {
+        uuid = uniqueId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        window.$cookies.set('userID', String(uuid), 1000);
+        this.userId = window.$cookies.get('userID');
+      }
+    },
     cancel () {
       this.popupVisible = false
       this.editableTranscript = ''
     },
     async saveTranscript () {
+      this.checkCookies()
       this.$socket.emit('saveSample', audioBlob, this.editableTranscript, this.userId)
       console.log("Transcript to be saved: ", this.editableTranscript)
       this.popupVisible = false
