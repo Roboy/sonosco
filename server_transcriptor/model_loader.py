@@ -20,12 +20,8 @@ def load_models(config):
             if model_config["decoder"] == "greedy":
                 model_dict["decoder"] = GreedyDecoder(model.labels, blank_index=model.labels.index('_'))
             elif model_config["decoder"] == "beam":
-                if model_config.get("language"):
-                    lm_path = model_config["language"]
-                else:
-                    lm_path = None
-
-                model_dict["decoder"] = BeamCTCDecoder(model.labels, lm_path=lm_path, blank_index=model.labels.index('_'))
+                model_dict["decoder"] = BeamCTCDecoder(model.labels, lm_path=model_config.get("language"),
+                                                       blank_index=model.labels.index('_'))
             else:
                 raise NotImplemented(f"Decoder {model_config['decoder']} not implemented.")
 
