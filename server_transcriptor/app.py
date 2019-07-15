@@ -1,11 +1,14 @@
 import torch
 import json
+import os
 from flask_cors import CORS
 
-from flask import Flask, render_template
+from flask import Flask, render_template, make_response, request
 from flask_socketio import SocketIO, emit
+from uuid import uuid1
 from utils import get_config, transcribe
 from model_loader import load_models
+from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
 
 EXTERNAL_MODELS = {"microsoft": None}
@@ -15,8 +18,9 @@ CORS(app)
 socketio = SocketIO(app)
 
 config = get_config('../server_transcriptor/config.yaml')
-
-audio_path = "audio.wav"
+tmp_dir = os.path.join(os.path.expanduser("~"), ".sonosco")
+session_dir = os.path.join(tmp_dir, "session")
+try_create_directory(session_dir)
 
 device = torch.device("cpu")
 loaded_models = load_models(config['models'])
@@ -26,11 +30,16 @@ loaded_models = load_models(config['models'])
 @app.route('/<path:path>')
 def index(path):
     """Serve the index HTML"""
-    return render_template('index.html')
+    response = make_response(render_template('index.html'))
+    response.set_cookie("session_id", str(uuid1()))
+    return response
 
 
 @socketio.on('transcribe')
 def on_transcribe(wav_bytes, model_ids):
+    session_id = request.cookies.get("session_id")
+    audio_path = os.path.join(session_dir, f"{session_id}.wav")
+
     with open(audio_path, "wb") as file:
         file.write(wav_bytes)
 
@@ -54,6 +63,23 @@ def on_transcribe(wav_bytes, model_ids):
         output[model_id] = transcription
 
     emit("transcription", output)
+
+
+@socketio.on('saveSample')
+def on_save_sample(wav_bytes, transcript, userID):
+    path_to_userdata = os.path.join(os.path.expanduser("~"), "data/temp/" + userID)
+    try_create_directory(path_to_userdata)
+    counter = len([x[0] for x in os.walk(path_to_userdata) if os.path.isdir(x[0])])-1
+
+    path_to_sample = os.path.join(path_to_userdata, str(counter))
+    try_create_directory(path_to_sample)
+
+    path_to_wav = os.path.join(path_to_sample, "audio.wav")
+    path_to_txt = os.path.join(path_to_sample, "transcript.txt")
+    with open(path_to_wav, "wb") as wav_file:
+        wav_file.write(wav_bytes)
+    with open(path_to_txt, "w") as txt_file:
+        txt_file.write(str(transcript))
 
 
 @app.route('/get_models')

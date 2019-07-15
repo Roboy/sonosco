@@ -11,6 +11,25 @@
       <md-button class="md-raised" @click="playAudio()">Play</md-button>
       <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
     </div>
+    <div id="popup" v-if="popupVisible" class="popup">
+      <md-card>
+        <md-card-header>
+          <div class="md-title">Help us improve our model!</div>
+        </md-card-header>
+        <md-card-content>
+          Correct the transcription and save it.<br/>
+          DISCLAIMER: When you press "Improve!", we use cookies to match your transcriptions.
+        </md-card-content>
+        <md-card-content>
+          <md-field>
+          <md-textarea v-model="editableTranscript"></md-textarea>
+            <span class="md-error">There is an error</span>
+          </md-field>
+        </md-card-content>
+        <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
+        <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+      </md-card>
+    </div>
 
   </div>
 </template>
@@ -54,7 +73,10 @@ export default {
 
   data () {
     return {
+      userId: '',
+      popupVisible: false,
       isConnected: false,
+      editableTranscript: '',
       socketMessage: '',
       recordButtonText: 'Record'
     }
@@ -73,15 +95,37 @@ export default {
     // Fired when the server sends something on the "transcription" channel.
     transcription (data) {
       this.socketMessage = data
+      this.editableTranscript = data[this.$store.getters.getPickedModels.map(el => el['id'])[0]]
+      this.popupVisible = true
     }
   },
 
   methods: {
+    checkCookies () {
+      if (window.$cookies.isKey('userID')) {
+        this.userId = window.$cookies.get('userID');
+      } else {
+        uuid = uniqueId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        window.$cookies.set('userID', String(uuid), 1000);
+        this.userId = window.$cookies.get('userID');
+      }
+    },
+    cancel () {
+      this.popupVisible = false
+      this.editableTranscript = ''
+    },
+    async saveTranscript () {
+      this.checkCookies()
+      this.$socket.emit('saveSample', audioBlob, this.editableTranscript, this.userId)
+      console.log("Transcript to be saved: ", this.editableTranscript)
+      this.popupVisible = false
+    },
     async recordStop () {
       if (recorder) {
         audio = await recorder.stop()
         recorder = null
         this.socketMessage = ''
+        this.editableTranscript = ''
         this.recordButtonText = 'Record'
         // document.querySelector('#play-audio-button').removeAttribute('disabled')
       } else {
@@ -134,5 +178,9 @@ a {
 
   .controls {
     margin: 20px 10px;
+  }
+
+  .popup {
+    margin: 20px 10px
   }
 </style>
