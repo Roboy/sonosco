@@ -40,13 +40,3 @@ class MicrosoftSTT:
             return self.speech_recognize_once_from_file(TMP_WAV)
         except KeyboardInterrupt:
             pass
-
-
-def main(config):
-    speech_to_text = MicrosoftSTT(config["key"], config["region"])
-    speech_to_text.recognize("../audio.wav")
-
-
-if __name__ == "__main__":
-    config_file = "secret.yaml"
-    main(parse_yaml(config_file))
