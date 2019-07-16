@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import logging
 import signal
 
@@ -29,7 +30,6 @@ def vad_callback(request, publishers):
             got_a_sentence = True
 
         signal.signal(signal.SIGINT, handle_int)
-        # TODO: fix
         while not leave:
             audio = audio_input.request_audio()
             transcription = asr.infer(audio)
