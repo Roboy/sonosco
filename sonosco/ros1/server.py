@@ -4,8 +4,8 @@ import os
 import logging
 import rospy
 
-from inference.dummp_asr import DummyASR
-from inputs.dummy_input import DummyInput
+from sonosco.inference.dummp_asr import DummyASR
+from sonosco.inputs.dummy_input import DummyInput
 from sonosco.common.constants import SONOSCO
 LOGGER = logging.getLogger(SONOSCO)
 
