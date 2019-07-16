@@ -18,7 +18,6 @@
         </md-card-header>
         <md-card-content>
           Correct the transcription and save it.<br/>
-          DISCLAIMER: When you press "Improve!", we use cookies to match your transcriptions.
         </md-card-content>
         <md-card-content>
           <md-field>
@@ -102,17 +101,11 @@ export default {
 
   methods: {
     checkCookies () {
-      console.log("I am here")
       if (this.$cookies.isKey('userID')) {
-        console.log("I am here2")
         this.userId = window.$cookies.get('userID');
-        console.log("cookie found: ", this.userId)
       } else {
-        console.log("I am here3")
         this.userId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-        console.log("I am here4", this.userId)
         this.$cookies.set('userID', String(this.userId), 1000);
-        console.log("I am here5", this.userId)
       }
     },
     cancel () {

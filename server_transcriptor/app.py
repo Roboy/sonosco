@@ -59,9 +59,9 @@ def on_transcribe(wav_bytes, model_ids):
 
 
 @socketio.on('saveSample')
-def on_save_sample(wav_bytes, transcript, userID):
+def on_save_sample(wav_bytes, transcript, user_id):
     path_to_userdata = os.path.join(os.path.expanduser("~"),
-                                    "data/temp/" + userID)
+                                    "data/temp/" + user_id)
     try_create_directory(path_to_userdata)
     counter = len([x[0] for x in os.walk(path_to_userdata) if os.path.isdir(x[0])])-1
 
