@@ -1,4 +1,4 @@
-from sonosco.inputs.audio_interface import SonoscoAudioInput
+from sonosco.inputs.audio import SonoscoAudioInput
 import webrtcvad
 import collections
 import os
