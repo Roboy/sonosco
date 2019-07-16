@@ -1,6 +1,7 @@
 import torch
 import json
 import os
+import time
 from flask_cors import CORS
 
 from flask import Flask, render_template, make_response, request
@@ -10,6 +11,7 @@ from utils import get_config, transcribe
 from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
+from concurrent.futures import ThreadPoolExecutor
 
 EXTERNAL_MODELS = {"microsoft": None}
 
@@ -45,22 +47,27 @@ def on_transcribe(wav_bytes, model_ids):
 
     output = dict()
 
-    for model_id in model_ids:
+    with ThreadPoolExecutor(max_workers=len(model_ids)) as pool:
 
-        if model_id in EXTERNAL_MODELS:
-            if EXTERNAL_MODELS[model_id] is None:
-                external_model = create_external_model(model_id)
-                EXTERNAL_MODELS[model_id] = external_model
+        for model_id in model_ids:
+
+            if model_id in EXTERNAL_MODELS:
+                if EXTERNAL_MODELS[model_id] is None:
+                    external_model = create_external_model(model_id)
+                    EXTERNAL_MODELS[model_id] = external_model
+                else:
+                    external_model = create_external_model(model_id)
+
+                future = pool.submit(external_model.recognize, audio_path)
+
             else:
-                external_model = create_external_model(model_id)
+                model_config = loaded_models[model_id]
+                future = pool.submit(transcribe, model_config, audio_path, device)
 
-            transcription = external_model.recognize(audio_path)
+            output[model_id] = future
 
-        else:
-            model_config = loaded_models[model_id]
-            transcription = transcribe(model_config, audio_path, device)
-
-        output[model_id] = transcription
+    for model_id in output.keys():
+        output[model_id] = output[model_id].result()
 
     emit("transcription", output)
 

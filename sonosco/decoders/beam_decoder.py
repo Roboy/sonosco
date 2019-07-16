@@ -71,6 +71,5 @@ class BeamCTCDecoder(Decoder):
         out, scores, offsets, seq_lens = self._decoder.decode(probs, sizes)
 
         strings = self.convert_to_strings(out, seq_lens)
-        print(strings)
         offsets = self.convert_tensor(offsets, seq_lens)
         return strings, offsets
