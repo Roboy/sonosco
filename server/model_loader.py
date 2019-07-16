@@ -7,14 +7,15 @@ from sonosco.datasets.processor import AudioDataProcessor
 def load_models(config):
     models = {}
 
+    model = DeepSpeech2.load_model(config[0]["path"])
+    model.eval()
+
     for model_config in config:
         if model_config.get('external'):
             pass
         else:
             model_dict = dict()
             models[model_config["id"]] = model_dict
-            model = DeepSpeech2.load_model(model_config["path"])
-            model.eval()
             model_dict["model"] = model
 
             if model_config["decoder"] == "greedy":

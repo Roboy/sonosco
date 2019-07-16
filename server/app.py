@@ -17,7 +17,7 @@ EXTERNAL_MODELS = {"microsoft": None}
 
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 CORS(app)
-socketio = SocketIO(app)
+socketio = SocketIO(app, ping_timeout=120, ping_interval=60)
 
 config = get_config('config.yaml')
 tmp_dir = os.path.join(os.path.expanduser("~"), ".sonosco")
@@ -66,6 +66,8 @@ def on_transcribe(wav_bytes, model_ids):
 
             output[model_id] = future
 
+        socketio.sleep(0)
+
     for model_id in output.keys():
         output[model_id] = output[model_id].result()
 
@@ -100,4 +102,4 @@ if __name__ == '__main__':
     # eventlet.wsgi.server(eventlet.wrap_ssl(eventlet.listen(("0.0.0.0", 5000)), certfile='cert.pem',
     #                                        keyfile='key.pem', server_side=True), app)
     # socketio.run(app, host='0.0.0.0', certfile='cert.pem', keyfile='key.pem', debug=True)
-    socketio.run(app, host='0.0.0.0', debug=True)
+    socketio.run(app, host='0.0.0.0', debug=False)
