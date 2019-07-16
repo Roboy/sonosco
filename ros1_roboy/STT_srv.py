@@ -12,7 +12,6 @@ from std_msgs.msg import Empty
 
 model_path = "pretrained/deepspeech_final.pth"
 
-audio_input = VadInput()
 asr = DeepSpeech2Inference(DeepSpeech2.load_model(model_path))
 
 
@@ -21,21 +20,23 @@ def vad_callback(request, publishers):
     msg.mode = 2
     msg.duration = 0
     publishers['ledmode'].publish(msg)
+    transcription = ""
+    with VadInput() as audio_input:
+        def handle_int(sig, chunk):
+            global leave, got_a_sentence
 
-    def handle_int(sig, chunk):
-        global leave, got_a_sentence
+            leave = True
+            got_a_sentence = True
 
-        leave = True
-        got_a_sentence = True
+        signal.signal(signal.SIGINT, handle_int)
+        # TODO: fix
+        while not leave:
+            audio = audio_input.request_audio()
+            transcription = asr.infer(audio)
+            msg = Empty()
+            publishers['ledfreeze'].publish(msg)
 
-    signal.signal(signal.SIGINT, handle_int)
-    # TODO: fix
-    while not leave:
-        audio = audio_input.request_audio()
-        transcription = asr.infer(audio)
-        msg = Empty()
-        publishers['ledfreeze'].publish(msg)
-        return transcription
+    return transcription
 
 
 CONFIG = {

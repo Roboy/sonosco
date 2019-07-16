@@ -14,7 +14,6 @@ LOGGER = logging.getLogger(SONOSCO)
 # TODO: Create new service type with audio input, or handle the audio input (mic, odas) here (decouple with interfaces)
 class SonoscoROS1:
     def __init__(self, config, default_asr_interface=DummyASR(), default_audio_interface=DummyInput()):
-        super().__init__('stt')
         LOGGER.info(f"Sonosco ROS2 server running running with PID: {os.getpid()}")
         self.pool = multiprocessing.Pool(processes=config.get('processes', 2))
         self.default_audio_interface = default_audio_interface
