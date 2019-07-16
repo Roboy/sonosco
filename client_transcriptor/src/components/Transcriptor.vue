@@ -102,12 +102,17 @@ export default {
 
   methods: {
     checkCookies () {
-      if (window.$cookies.isKey('userID')) {
+      console.log("I am here")
+      if (this.$cookies.isKey('userID')) {
+        console.log("I am here2")
         this.userId = window.$cookies.get('userID');
+        console.log("cookie found: ", this.userId)
       } else {
-        uuid = uniqueId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-        window.$cookies.set('userID', String(uuid), 1000);
-        this.userId = window.$cookies.get('userID');
+        console.log("I am here3")
+        this.userId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        console.log("I am here4", this.userId)
+        this.$cookies.set('userID', String(this.userId), 1000);
+        console.log("I am here5", this.userId)
       }
     },
     cancel () {
