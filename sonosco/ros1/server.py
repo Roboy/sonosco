@@ -19,6 +19,13 @@ class SonoscoROS1:
         self.pool = multiprocessing.Pool(processes=config.get('processes', 2))
         self.default_audio_interface = default_audio_interface
         self.default_asr_interface = default_asr_interface
+
+        self.publishers = {entry['name']:
+                               rospy.Publisher(entry['topic'],
+                                               entry['message'],
+                                               **entry.get('kwargs', {}))
+                           for entry in config['publishers']}
+
         self.subscribers = {entry['name']:
                                 rospy.Service(entry['topic'],
                                               entry['service'],
@@ -27,11 +34,6 @@ class SonoscoROS1:
                                               **entry.get('kwargs', {}))
                             for entry in config['subscribers']}
 
-        self.publishers = {entry['name']:
-                               rospy.Publisher(entry['topic'],
-                                               entry['message'],
-                                               **entry.get('kwargs', {}))
-                           for entry in config['publishers']}
         self.node_name = config['node_name']
         LOGGER.info("Sonosco ROS2 server is ready!")
 
