@@ -11,7 +11,7 @@
       <md-button class="md-raised" @click="playAudio()">Play</md-button>
       <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
     </div>
-    <div id="popup" v-if="popupVisible" class="popup" align="center">
+    <div id="popup" v-if="popupVisible" class="popup">
       <md-card>
         <md-card-header>
           <div class="md-title">Help us improve our model!</div>
@@ -25,8 +25,10 @@
             <span class="md-error">There is an error</span>
           </md-field>
         </md-card-content>
-        <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
-        <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+        <div align="center" style="margin-bottom: 2px">
+          <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
+          <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+        </div>
       </md-card>
     </div>
 
@@ -176,7 +178,9 @@ export default {
   }
 
   .popup {
-    margin: 20px 10px
+    margin: 10px;
+    padding-bottom: 10px;
+    min-width: 50%;
   }
 
   .md-layout {

@@ -75,6 +75,9 @@ def on_transcribe(wav_bytes, model_ids):
 
 @socketio.on('saveSample')
 def on_save_sample(wav_bytes, transcript, user_id):
+    if wav_bytes is None:
+        return
+
     path_to_user_data = os.path.join(tmp_dir, f"custom_data/{user_id}")
     try_create_directory(path_to_user_data)
     code = uuid1()
