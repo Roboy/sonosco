@@ -2,8 +2,8 @@
   <div class="Transcriptor">
     <h3 v-if="isConnected">We're connected to the server!</h3>
 
-    <div class="model-container">
-      <model v-for="model in this.$store.state.models" v-bind:key="model.id"  v-bind:model_id="model.id" v-bind:name="model.name"></model>
+    <div class="md-layout">
+      <model class="md-layout-item" v-for="model in this.$store.state.models" v-bind:key="model.id"  v-bind:model_id="model.id" v-bind:name="model.name"></model>
     </div>
 
     <div class="controls">
@@ -150,30 +150,27 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-h1, h2 {
-  font-weight: normal;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
-}
+  h1, h2 {
+    font-weight: normal;
+  }
+
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  li {
+    display: inline-block;
+    margin: 0 10px;
+  }
+
+  a {
+    color: #42b983;
+  }
 
   .Transcriptor {
     flex: 1;
     flex-direction: column;
-  }
-
-  .model-container {
-    display: grid;
-    grid-template-columns: 50% 50%;
-    width: 90%;
   }
 
   .controls {
@@ -182,5 +179,14 @@ a {
 
   .popup {
     margin: 20px 10px
+  }
+
+  .md-layout {
+    width: 90%;
+  }
+
+  .md-layout-item {
+    margin: 5px;
+    min-width: 48%;
   }
 </style>
