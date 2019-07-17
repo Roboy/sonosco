@@ -2,7 +2,7 @@ FROM ros1_sonosco_base
 
 SHELL ["/bin/bash", "-c"]
 
-WORKDIR /ros2
+WORKDIR /ros1
 COPY . .
 
 RUN git clone https://github.com/Roboy/sonosco.git
