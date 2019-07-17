@@ -18,7 +18,6 @@
         </md-card-header>
         <md-card-content>
           Correct the transcription and save it.<br/>
-          DISCLAIMER: When you press "Improve!", we use cookies to match your transcriptions.
         </md-card-content>
         <md-card-content>
           <md-field>
@@ -26,8 +25,10 @@
             <span class="md-error">There is an error</span>
           </md-field>
         </md-card-content>
-        <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
-        <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+        <div align="center" style="margin-bottom: 2px">
+          <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
+          <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+        </div>
       </md-card>
     </div>
 
@@ -102,12 +103,11 @@ export default {
 
   methods: {
     checkCookies () {
-      if (window.$cookies.isKey('userID')) {
+      if (this.$cookies.isKey('userID')) {
         this.userId = window.$cookies.get('userID');
       } else {
-        uuid = uniqueId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-        window.$cookies.set('userID', String(uuid), 1000);
-        this.userId = window.$cookies.get('userID');
+        this.userId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        this.$cookies.set('userID', String(this.userId), 1000);
       }
     },
     cancel () {
@@ -178,7 +178,9 @@ export default {
   }
 
   .popup {
-    margin: 20px 10px
+    margin: 10px;
+    padding-bottom: 10px;
+    min-width: 50%;
   }
 
   .md-layout {
