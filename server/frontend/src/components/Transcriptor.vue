@@ -1,34 +1,38 @@
 <template>
   <div class="Transcriptor">
-    <h3 v-if="isConnected">We're connected to the server!</h3>
+    <h3 v-if="isConnected">Ready to transcribe!</h3>
 
     <div class="md-layout">
-      <model class="md-layout-item" v-for="model in this.$store.state.models" v-bind:key="model.id"  v-bind:model_id="model.id" v-bind:name="model.name"></model>
+
+      <div class="md-layout">
+        <model class="md-layout-item" v-for="model in this.$store.state.models" v-bind:key="model.id"  v-bind:model_id="model.id" v-bind:name="model.name"></model>
+      </div>
+
+      <div id="popup" v-if="popupVisible" class="popup">
+        <md-card>
+          <md-card-header>
+            <div class="md-title">Help us improve our model!</div>
+          </md-card-header>
+          <md-card-content>
+            Please enter the correct transcription.<br/>
+          </md-card-content>
+          <md-card-content>
+            <md-field>
+              <md-textarea v-model="editableTranscript"></md-textarea>
+              <span class="md-error">There is an error</span>
+            </md-field>
+          </md-card-content>
+          <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
+          <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+        </md-card>
+      </div>
+
     </div>
 
     <div class="controls">
       <md-button class="md-raised" @click="recordStop()">{{ recordButtonText }}</md-button>
       <md-button class="md-raised" @click="playAudio()">Play</md-button>
       <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
-    </div>
-    <div id="popup" v-if="popupVisible" class="popup">
-      <md-card>
-        <md-card-header>
-          <div class="md-title">Help us improve our model!</div>
-        </md-card-header>
-        <md-card-content>
-          Correct the transcription and save it.<br/>
-          DISCLAIMER: When you press "Improve!", we use cookies to match your transcriptions.
-        </md-card-content>
-        <md-card-content>
-          <md-field>
-          <md-textarea v-model="editableTranscript"></md-textarea>
-            <span class="md-error">There is an error</span>
-          </md-field>
-        </md-card-content>
-        <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
-        <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
-      </md-card>
     </div>
 
   </div>
@@ -178,7 +182,9 @@ export default {
   }
 
   .popup {
-    margin: 20px 10px
+    margin: 20px 10px;
+    max-width: 30%;
+    min-width: 28%;
   }
 
   .md-layout {
