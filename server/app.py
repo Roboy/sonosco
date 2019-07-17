@@ -12,7 +12,6 @@ from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
 from concurrent.futures import ThreadPoolExecutor
 
-
 EXTERNAL_MODELS = {"microsoft": None}
 
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
@@ -24,8 +23,9 @@ config = get_config('config.yaml')
 device = torch.device("cpu")
 loaded_models = load_models(config['models'])
 
-db_path = create_pseudo_db(config['data_base_path'])
+db_path = create_pseudo_db(config['audio_database_path'])
 session_dir = create_session_dir(config['sonosco_home'])
+
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -81,10 +81,12 @@ def on_save_sample(wav_bytes, transcript, user_id):
     path_to_user_data = os.path.join(db_path, "web_collected", user_id)
     try_create_directory(path_to_user_data)
     code = uuid1()
+    sample_path = os.path.join(path_to_user_data, str(code))
 
-    path_to_wav = os.path.join(path_to_user_data, str(code), f"audio.wav")
-    path_to_txt = os.path.join(path_to_user_data, str(code), f"transcript.txt")
-
+    try_create_directory(sample_path)
+    path_to_wav = os.path.join(sample_path, f"audio.wav")
+    path_to_txt = os.path.join(sample_path, f"transcript.txt")
+   
     with open(path_to_wav, "wb") as wav_file:
         wav_file.write(wav_bytes)
     with open(path_to_txt, "w") as txt_file:

@@ -18,4 +18,4 @@ models:
 
 
 sonosco_home: '~/.sonosco'
-audio_database: '~/.sonosco/audio_data'
+audio_database_path: '~/.sonosco/audio_data'
