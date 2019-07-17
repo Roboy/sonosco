@@ -11,7 +11,7 @@
       <md-button class="md-raised" @click="playAudio()">Play</md-button>
       <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
     </div>
-    <div id="popup" v-if="popupVisible" class="popup">
+    <div id="popup" v-if="popupVisible" class="popup" align="center">
       <md-card>
         <md-card-header>
           <div class="md-title">Help us improve our model!</div>
