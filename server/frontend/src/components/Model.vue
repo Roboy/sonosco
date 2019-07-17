@@ -5,7 +5,7 @@
         {{ name }}
       </div>
     </md-card-header>
-    <md-card-content>{{ socketMessage }}</md-card-content>
+    <md-card-content v-html="socketMessage"></md-card-content>
   </md-card>
 </template>
 
@@ -33,7 +33,27 @@ export default {
 
     // Fired when the server sends something on the "transcription" channel.
     transcription (data) {
-      this.socketMessage = data[this.model_id]
+      let transcriptions = data[this.model_id]
+
+      if (Array.isArray(transcriptions)) {
+        if (transcriptions.length == 1) {
+          this.socketMessage = transcriptions[0]
+          return
+        }
+
+        var output = '<ol>'
+
+        for (var i = 0; i < transcriptions.length; i++) {
+          output += '<li>' + transcriptions[i] + '</li>'
+        }
+
+        output += '</ol>'
+
+        this.socketMessage = output
+      }
+      else {
+        this.socketMessage = transcriptions
+      }
     }
   },
 
