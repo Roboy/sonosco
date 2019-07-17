@@ -19,8 +19,24 @@ export default new Vuex.Store({
   },
   actions: actions,
   mutations: {
+
     addModel (state, model) {
       state.models.push(model)
+    },
+
+    removeModel (state, model_id) {
+      var i = 0
+
+      for (; i < state.models.length; i++) {
+        if (this.state.models[i].id === model_id) {
+          break
+        }
+      }
+
+      if (i !== state.models.length) {
+        state.models.splice(i, 1)
+      }
     }
+
   }
 })

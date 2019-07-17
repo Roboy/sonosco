@@ -1,11 +1,14 @@
 <template>
-  <md-card>
+  <md-card md-with-hover>
     <md-card-header>
       <div class="md-title">
         {{ name }}
       </div>
     </md-card-header>
     <md-card-content v-html="socketMessage"></md-card-content>
+    <md-card-actions>
+        <md-button @click="removeMyself()">Close</md-button>
+    </md-card-actions>
   </md-card>
 </template>
 
@@ -36,7 +39,7 @@ export default {
       let transcriptions = data[this.model_id]
 
       if (Array.isArray(transcriptions)) {
-        if (transcriptions.length == 1) {
+        if (transcriptions.length === 1) {
           this.socketMessage = transcriptions[0]
           return
         }
@@ -58,6 +61,11 @@ export default {
   },
 
   methods: {
+
+    removeMyself () {
+      this.$store.commit('removeModel', this.model_id)
+    }
+
   }
 }
 </script>
