@@ -1,14 +1,13 @@
 <template>
     <div class="ModelSelector">
-        <div>
-            <md-field class="select">
-                <label for="model">ModelSelector</label>
-                <md-select id="model" v-model="chosenModel">
-                    <md-option v-for="(item, key, index) in models" v-bind:value="key" v-bind:key="key">{{ item }}
-                    </md-option>
-                </md-select>
-            </md-field>
-        </div>
+        <md-field class="select">
+            <label for="model">ModelSelector</label>
+            <md-select id="model" v-model="chosenModel">
+                <md-option v-for="(item, key, index) in models" v-bind:value="key" v-bind:key="key">
+                  {{ item }}
+                </md-option>
+            </md-select>
+        </md-field>
         <div class="controls">
             <md-button class="md-raised md-primary" @click="add(chosenModel)">Add</md-button>
             <md-button class="md-raised md-accent" @click="cancel">Cancel</md-button>
@@ -75,21 +74,22 @@
 </script>
 
 <style scoped>
-    .ModelSelector {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
+  .ModelSelector {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+  }
 
-    .controls {
-        margin: 20px 10px;
-    }
+  .controls {
+      margin: 20px 10px;
+  }
 
-    .select {
-        margin: 0 6px;
-        display: inline-flex;
-        width: auto;
-    }
+  .select {
+      margin: 0 6px;
+      display: inline-flex;
+      width: 50%;
+  }
+
 </style>

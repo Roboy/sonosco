@@ -2,8 +2,8 @@
   <div class="Transcriptor">
     <h3 v-if="isConnected">We're connected to the server!</h3>
 
-    <div class="model-container">
-      <model v-for="model in this.$store.state.models" v-bind:key="model.id"  v-bind:model_id="model.id" v-bind:name="model.name"></model>
+    <div class="md-layout">
+      <model class="md-layout-item" v-for="model in this.$store.state.models" v-bind:key="model.id"  v-bind:model_id="model.id" v-bind:name="model.name"></model>
     </div>
 
     <div class="controls">
@@ -153,14 +153,17 @@ export default {
   h1, h2 {
     font-weight: normal;
   }
+
   ul {
     list-style-type: none;
     padding: 0;
   }
+
   li {
     display: inline-block;
     margin: 0 10px;
   }
+
   a {
     color: #42b983;
   }
@@ -170,18 +173,20 @@ export default {
     flex-direction: column;
   }
 
-  .model-container {
-    display: grid;
-    /*grid-template-columns: 50% 50%;*/
-    grid-template-columns: repeat(auto-fit, minmax(50%, 1fr) );
-    width: 90%;
-  }
-
   .controls {
     margin: 20px 10px;
   }
 
   .popup {
     margin: 20px 10px
+  }
+
+  .md-layout {
+    width: 90%;
+  }
+
+  .md-layout-item {
+    margin: 5px;
+    min-width: 48%;
   }
 </style>
