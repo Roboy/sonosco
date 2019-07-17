@@ -1,7 +1,6 @@
 import torch
 import json
 import os
-import time
 from flask_cors import CORS
 
 from flask import Flask, render_template, make_response, request
@@ -75,16 +74,17 @@ def on_transcribe(wav_bytes, model_ids):
 
 
 @socketio.on('saveSample')
-def on_save_sample(wav_bytes, transcript, userID):
-    path_to_userdata = os.path.join(os.path.expanduser("~"), "data/temp/" + userID)
-    try_create_directory(path_to_userdata)
-    counter = len([x[0] for x in os.walk(path_to_userdata) if os.path.isdir(x[0])])-1
+def on_save_sample(wav_bytes, transcript, user_id):
+    if wav_bytes is None:
+        return
 
-    path_to_sample = os.path.join(path_to_userdata, str(counter))
-    try_create_directory(path_to_sample)
+    path_to_user_data = os.path.join(tmp_dir, f"custom_data/{user_id}")
+    try_create_directory(path_to_user_data)
+    code = uuid1()
 
-    path_to_wav = os.path.join(path_to_sample, "audio.wav")
-    path_to_txt = os.path.join(path_to_sample, "transcript.txt")
+    path_to_wav = os.path.join(path_to_user_data, f"audio_{code}.wav")
+    path_to_txt = os.path.join(path_to_user_data, f"transcript_{code}.txt")
+
     with open(path_to_wav, "wb") as wav_file:
         wav_file.write(wav_bytes)
     with open(path_to_txt, "w") as txt_file:

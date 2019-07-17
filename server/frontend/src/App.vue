@@ -4,7 +4,11 @@
       <h1>SONOSCO</h1>
       <img src="./assets/roboy.jpg" width="100" style="margin: 10px" align="right">
     </div>
-
+    <cookie-law>
+      <div slot="message">
+        This site uses cookies to match your transcripts.
+      </div>
+    </cookie-law>
     <router-view class="main"/>
 
     <md-speed-dial :class="bottomPosition">
@@ -17,6 +21,8 @@
 </template>
 
 <script>
+  import CookieLaw from 'vue-cookie-law'
+
 export default {
   name: 'App',
   data: () => ({
@@ -28,7 +34,9 @@ export default {
       console.log('Add model')
       this.$router.push('/add')
     }
-  }
+  },
+
+  components: { CookieLaw }
 }
 </script>
 

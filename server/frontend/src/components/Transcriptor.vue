@@ -5,7 +5,7 @@
     <div class="md-layout">
 
       <div class="md-layout">
-        <model class="md-layout-item" v-for="model in this.$store.state.models" v-bind:key="model.id"  v-bind:model_id="model.id" v-bind:name="model.name"></model>
+        <model class="md-layout-item" v-for="model in this.$store.state.models" v-bind:key="model.id" v-bind:model_id="model.id" v-bind:name="model.name"></model>
       </div>
 
       <div id="popup" v-if="popupVisible" class="popup">
@@ -22,8 +22,10 @@
               <span class="md-error">There is an error</span>
             </md-field>
           </md-card-content>
-          <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
-          <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+          <div align="center" style="margin-bottom: 2px">
+            <md-button class="md-raised md-primary" @click="saveTranscript()">Improve!</md-button>
+            <md-button class="md-raised md-accent" @click="cancel()">I don't want to help</md-button>
+          </div>
         </md-card>
       </div>
 
@@ -99,19 +101,26 @@ export default {
     // Fired when the server sends something on the "transcription" channel.
     transcription (data) {
       this.socketMessage = data
-      this.editableTranscript = data[this.$store.getters.getPickedModels.map(el => el['id'])[0]]
       this.popupVisible = true
+
+      let transcriptions = data[this.$store.getters.getPickedModels.map(el => el['id'])[0]]
+
+      if (Array.isArray(transcriptions)) {
+        this.editableTranscript = transcriptions[0]
+      }
+      else {
+        this.editableTranscript = transcriptions
+      }
     }
   },
 
   methods: {
     checkCookies () {
-      if (window.$cookies.isKey('userID')) {
+      if (this.$cookies.isKey('userID')) {
         this.userId = window.$cookies.get('userID');
       } else {
-        uuid = uniqueId = Math.random().toString(36).substring(2) + Date.now().toString(36);
-        window.$cookies.set('userID', String(uuid), 1000);
-        this.userId = window.$cookies.get('userID');
+        this.userId = Math.random().toString(36).substring(2) + Date.now().toString(36);
+        this.$cookies.set('userID', String(this.userId), 1000);
       }
     },
     cancel () {
