@@ -1,6 +1,10 @@
+import librosa
 import torch
 import json
 import os
+
+import numpy as np
+
 from flask_cors import CORS
 
 from flask import Flask, render_template, make_response, request
@@ -11,6 +15,7 @@ from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
 from concurrent.futures import ThreadPoolExecutor
+
 
 EXTERNAL_MODELS = {"microsoft": None}
 
@@ -86,9 +91,10 @@ def on_save_sample(wav_bytes, transcript, user_id):
     try_create_directory(sample_path)
     path_to_wav = os.path.join(sample_path, f"audio.wav")
     path_to_txt = os.path.join(sample_path, f"transcript.txt")
-   
-    with open(path_to_wav, "wb") as wav_file:
-        wav_file.write(wav_bytes)
+
+    # with open(path_to_wav, "wb") as wav_file:
+        # wav_file.write(wav_bytes)
+    librosa.output.write_wav(path_to_wav, np.frombuffer(wav_bytes, ), 44100)
     with open(path_to_txt, "w") as txt_file:
         txt_file.write(str(transcript))
 
