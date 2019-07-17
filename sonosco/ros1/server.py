@@ -45,8 +45,10 @@ class SonoscoROS1:
         return self.default_asr_interface.infer(audio)
 
     def __callback_async_wrapper(self, callback):
+        publishers = self.publishers
+
         def wrapper(request):
-            return self.pool.apply(callback, (request, self.publishers))
+            return self.pool.apply(callback, (request, publishers))
 
         return wrapper
 
