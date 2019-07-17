@@ -15,3 +15,5 @@ models:
   - id: 'microsoft'
     external: True
     name: 'Microsoft'
+
+data_base_path: '.audio_database'

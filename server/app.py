@@ -6,7 +6,7 @@ from flask_cors import CORS
 from flask import Flask, render_template, make_response, request
 from flask_socketio import SocketIO, emit
 from uuid import uuid1
-from utils import get_config, transcribe
+from utils import get_config, transcribe, create_pseudo_db
 from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
@@ -100,4 +100,5 @@ def get_models():
 
 if __name__ == '__main__':
     # socketio.run(app, host='0.0.0.0', certfile='cert.pem', keyfile='key.pem', debug=False)
+    create_pseudo_db()
     socketio.run(app, host='0.0.0.0', debug=False)
