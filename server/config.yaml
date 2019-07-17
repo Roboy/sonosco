@@ -16,4 +16,6 @@ models:
     external: True
     name: 'Microsoft'
 
-data_base_path: '.audio_database'
+
+sonosco_home: '~/.sonosco'
+audio_database: '~/.sonosco/audio_data'

@@ -6,11 +6,12 @@ from flask_cors import CORS
 from flask import Flask, render_template, make_response, request
 from flask_socketio import SocketIO, emit
 from uuid import uuid1
-from utils import get_config, transcribe, create_pseudo_db
+from utils import get_config, transcribe, create_pseudo_db, create_session_dir
 from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
 from concurrent.futures import ThreadPoolExecutor
+
 
 EXTERNAL_MODELS = {"microsoft": None}
 
@@ -19,13 +20,12 @@ CORS(app)
 socketio = SocketIO(app, ping_timeout=120, ping_interval=60)
 
 config = get_config('config.yaml')
-tmp_dir = os.path.join(os.path.expanduser("~"), ".sonosco")
-session_dir = os.path.join(tmp_dir, "session")
-try_create_directory(session_dir)
 
 device = torch.device("cpu")
 loaded_models = load_models(config['models'])
 
+db_path = create_pseudo_db(config['data_base_path'])
+session_dir = create_session_dir(config['sonosco_home'])
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -78,7 +78,7 @@ def on_save_sample(wav_bytes, transcript, user_id):
     if wav_bytes is None:
         return
 
-    path_to_user_data = os.path.join(tmp_dir, f"custom_data/{user_id}")
+    path_to_user_data = os.path.join(db_path, "users", user_id)
     try_create_directory(path_to_user_data)
     code = uuid1()
 
@@ -100,5 +100,5 @@ def get_models():
 
 if __name__ == '__main__':
     # socketio.run(app, host='0.0.0.0', certfile='cert.pem', keyfile='key.pem', debug=False)
-    create_pseudo_db()
+
     socketio.run(app, host='0.0.0.0', debug=False)
