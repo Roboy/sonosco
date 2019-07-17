@@ -12,12 +12,16 @@ LOGGER = logging.getLogger(SONOSCO)
 from multiprocessing import Process, Manager
 from multiprocessing.managers import BaseManager
 
+
 # TODO: Add possibility to specify asr interface per topi
 # TODO: Create new service type with audio input, or handle the audio input (mic, odas) here (decouple with interfaces)
 class SonoscoROS1:
     def __init__(self, config, default_asr_interface=DummyASR(), default_audio_interface=DummyInput()):
         LOGGER.info(f"Sonosco ROS2 server running running with PID: {os.getpid()}")
-        self.pool = multiprocessing.Pool(processes=config.get('processes', 2))
+        self.node_name = config['node_name']
+
+        self.pool = multiprocessing.Pool(initializer=lambda: rospy.init_node(self.node_name),
+                                         processes=config.get('processes', 2))
 
         self.default_audio_interface = default_audio_interface
         self.default_asr_interface = default_asr_interface
@@ -28,8 +32,8 @@ class SonoscoROS1:
 
         self.publishers = {entry['name']:
                                manager.Publisher(entry['topic'],
-                                               entry['message'],
-                                               **entry.get('kwargs', {}))
+                                                 entry['message'],
+                                                 **entry.get('kwargs', {}))
                            for entry in config['publishers']}
 
         self.subscribers = {entry['name']:
@@ -40,7 +44,6 @@ class SonoscoROS1:
                                               **entry.get('kwargs', {}))
                             for entry in config['subscribers']}
 
-        self.node_name = config['node_name']
 
         LOGGER.info("Sonosco ROS2 server is ready!")
 

@@ -41,7 +41,7 @@ def vad_callback(request, publishers):
 
 CONFIG = {
     'node_name': 'roboy_speech_recognition',
-    'processes': 3,
+    'processes': 1,
     'subscribers': [
         {
             'name': 'recognition',
