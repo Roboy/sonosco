@@ -60,16 +60,17 @@ def on_transcribe(wav_bytes, model_ids):
 
 @socketio.on('saveSample')
 def on_save_sample(wav_bytes, transcript, user_id):
-    path_to_userdata = os.path.join(os.path.expanduser("~"),
-                                    "data/temp/" + user_id)
-    try_create_directory(path_to_userdata)
-    counter = len([x[0] for x in os.walk(path_to_userdata) if os.path.isdir(x[0])])-1
+    path_to_user_data = os.path.join(os.path.expanduser("~"),
+                                    ".sonosco/custom_data/" + user_id)
+    try_create_directory(path_to_user_data)
+    counter = len([x[0] for x in os.walk(path_to_user_data) if os.path.isdir(x[0])])-1
 
-    path_to_sample = os.path.join(path_to_userdata, str(counter))
+    path_to_sample = os.path.join(path_to_user_data, str(counter))
     try_create_directory(path_to_sample)
 
     path_to_wav = os.path.join(path_to_sample, "audio.wav")
     path_to_txt = os.path.join(path_to_sample, "transcript.txt")
+
     with open(path_to_wav, "wb") as wav_file:
         wav_file.write(wav_bytes)
     with open(path_to_txt, "w") as txt_file:
