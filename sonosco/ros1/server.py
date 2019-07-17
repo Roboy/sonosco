@@ -24,13 +24,13 @@ class SonoscoROS1:
                                               entry['service'],
                                               self.__callback_async_wrapper(
                                                   entry.get('callback', self.__default_callback)),
-                                              **entry.get(['kwargs', {}]))
+                                              **entry.get('kwargs', {}))
                             for entry in config['subscribers']}
 
         self.publishers = {entry['name']:
                                rospy.Publisher(entry['topic'],
                                                entry['message'],
-                                               **entry.get(['kwargs', {}]))
+                                               **entry.get('kwargs', {}))
                            for entry in config['publishers']}
         self.node_name = config['node_name']
         LOGGER.info("Sonosco ROS2 server is ready!")
