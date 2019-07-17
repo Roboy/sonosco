@@ -1,8 +1,12 @@
 <template>
-  <div class="Model">
-    <h1>{{ name }}</h1>
-    <p>{{ socketMessage }}</p>
-  </div>
+  <md-card>
+    <md-card-header>
+      <div class="md-title">
+        {{ name }}
+      </div>
+    </md-card-header>
+    <md-card-content>{{ socketMessage }}</md-card-content>
+  </md-card>
 </template>
 
 <script>
