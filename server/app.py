@@ -78,12 +78,12 @@ def on_save_sample(wav_bytes, transcript, user_id):
     if wav_bytes is None:
         return
 
-    path_to_user_data = os.path.join(db_path, "users", user_id)
+    path_to_user_data = os.path.join(db_path, "web_collected", user_id)
     try_create_directory(path_to_user_data)
     code = uuid1()
 
-    path_to_wav = os.path.join(path_to_user_data, f"audio_{code}.wav")
-    path_to_txt = os.path.join(path_to_user_data, f"transcript_{code}.txt")
+    path_to_wav = os.path.join(path_to_user_data, str(code), f"audio.wav")
+    path_to_txt = os.path.join(path_to_user_data, str(code), f"transcript.txt")
 
     with open(path_to_wav, "wb") as wav_file:
         wav_file.write(wav_bytes)
