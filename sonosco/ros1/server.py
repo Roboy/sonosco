@@ -52,7 +52,7 @@ class SonoscoROS1:
         publishers = self.publishers
 
         def wrapper(request):
-            return self.executor.submit(callback, (request, publishers)).result()
+            return self.executor.submit(callback, request, publishers).result()
 
         return wrapper
 
@@ -61,8 +61,6 @@ class SonoscoROS1:
 
     def __exit__(self, exc_type, exc_value, traceback):
         try:
-            self.pool.close()
+            self.executor.shutdown()
         except Exception as e:
-            LOGGER.error(f"Exception while closing process pool {e}")
-            self.pool.terminate()
-        rospy.core.signal_shutdown("Closing ROS1 Sonosco server")
+            LOGGER.error(f"Exception while closing thread pool {e}")
