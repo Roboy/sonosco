@@ -4,6 +4,7 @@ import os
 import logging
 import rospy
 
+from ros1.callback import CallbackWrapper
 from sonosco.inference.dummp_asr import DummyASR
 from sonosco.inputs.dummy_input import DummyInput
 from sonosco.common.constants import SONOSCO
@@ -13,25 +14,24 @@ from multiprocessing import Process, Manager
 from multiprocessing.managers import BaseManager
 
 
-# TODO: Add possibility to specify asr interface per topi
-# TODO: Create new service type with audio input, or handle the audio input (mic, odas) here (decouple with interfaces)
 class SonoscoROS1:
     def __init__(self, config, default_asr_interface=DummyASR(), default_audio_interface=DummyInput()):
         LOGGER.info(f"Sonosco ROS2 server running running with PID: {os.getpid()}")
-        self.node_name = config['node_name']
 
+        self.config = config
+        self.node_name = config['node_name']
         self.pool = multiprocessing.Pool(initializer=lambda: rospy.init_node(self.node_name),
                                          processes=config.get('processes', 2))
 
         self.default_audio_interface = default_audio_interface
         self.default_asr_interface = default_asr_interface
-
-        BaseManager.register('Publisher', rospy.Publisher)
-        manager = BaseManager()
-        manager.start()
+        #
+        # BaseManager.register('Publisher', rospy.Publisher)
+        # manager = BaseManager()
+        # manager.start()
 
         self.publishers = {entry['name']:
-                               manager.Publisher(entry['topic'],
+                               rospy.Publisher(entry['topic'],
                                                  entry['message'],
                                                  **entry.get('kwargs', {}))
                            for entry in config['publishers']}
@@ -40,7 +40,7 @@ class SonoscoROS1:
                                 rospy.Service(entry['topic'],
                                               entry['service'],
                                               self.__callback_async_wrapper(
-                                                  entry.get('callback', self.__default_callback)),
+                                                  self.__callback_factory(entry.get('callback', self.__default_callback))),
                                               **entry.get('kwargs', {}))
                             for entry in config['subscribers']}
 
@@ -51,6 +51,13 @@ class SonoscoROS1:
         rospy.init_node(self.node_name)
         rospy.spin()
 
+
+    def __callback_factory(self, callback):
+        callback_wrapper = CallbackWrapper(self.config['publishers'])
+        callback_wrapper.register_callback(callback)
+        return callback_wrapper.service_callback
+
+
     def __default_callback(self, request, publishers):
         LOGGER.info('Incoming Audio')
         audio = self.default_audio_interface.request_audio()
@@ -60,7 +67,7 @@ class SonoscoROS1:
         publishers = self.publishers
 
         def wrapper(request):
-            return self.pool.apply(callback, (request, publishers))
+            return self.pool.apply_async(callback, (request, publishers))
 
         return wrapper
 
