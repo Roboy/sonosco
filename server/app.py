@@ -45,40 +45,41 @@ def index(path):
 
 @socketio.on('transcribe')
 def on_transcribe(wav_bytes, model_ids):
-    session_id = request.cookies.get("session_id")
-    audio_path = os.path.join(session_dir, f"{session_id}.wav")
+    # session_id = request.cookies.get("session_id")
+    # audio_path = os.path.join(session_dir, f"{session_id}.wav")
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
+            temp_audio_file.write(wav_bytes)
 
-    with open(audio_path, "wb") as file:
-        file.write(wav_bytes)
+        output = dict()
 
-    output = dict()
+        with ThreadPoolExecutor(max_workers=len(model_ids)) as pool:
 
-    with ThreadPoolExecutor(max_workers=len(model_ids)) as pool:
+            for model_id in model_ids:
 
-        for model_id in model_ids:
+                if model_id in EXTERNAL_MODELS:
+                    if EXTERNAL_MODELS[model_id] is None:
+                        external_model = create_external_model(model_id)
+                        EXTERNAL_MODELS[model_id] = external_model
+                    else:
+                        external_model = create_external_model(model_id)
 
-            if model_id in EXTERNAL_MODELS:
-                if EXTERNAL_MODELS[model_id] is None:
-                    external_model = create_external_model(model_id)
-                    EXTERNAL_MODELS[model_id] = external_model
+                    future = pool.submit(external_model.recognize, temp_audio_file.name)
+
                 else:
-                    external_model = create_external_model(model_id)
+                    model_config = loaded_models[model_id]
+                    future = pool.submit(transcribe, model_config, temp_audio_file.name, device)
 
-                future = pool.submit(external_model.recognize, audio_path)
+                output[model_id] = future
 
-            else:
-                model_config = loaded_models[model_id]
-                future = pool.submit(transcribe, model_config, audio_path, device)
+            socketio.sleep(0)
 
-            output[model_id] = future
+        for model_id in output.keys():
+            output[model_id] = output[model_id].result()
 
-        socketio.sleep(0)
-
-    for model_id in output.keys():
-        output[model_id] = output[model_id].result()
-
-    emit("transcription", output)
-
+        emit("transcription", output)
+    finally:
+        os.unlink(temp_audio_file.name)
 
 @socketio.on('saveSample')
 def on_save_sample(wav_bytes, transcript, user_id):
@@ -93,21 +94,17 @@ def on_save_sample(wav_bytes, transcript, user_id):
     try_create_directory(sample_path)
     path_to_wav = os.path.join(sample_path, f"audio.wav")
     path_to_txt = os.path.join(sample_path, f"transcript.txt")
+    try:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
+            temp_audio_file.write(wav_bytes)
+        loaded, sr = librosa.load(temp_audio_file.name, sr=16000)
+        librosa.output.write_wav(path_to_wav, loaded, 16000)
+    finally:
+        os.unlink(temp_audio_file.name)
 
-    # with open(path_to_wav, "wb") as wav_file:
-    #     wav_file.write(wav_bytes)
-    with tempfile.NamedTemporaryFile(delete=False) as temp:
-        temp.write(wav_bytes)
-    loaded, sr = librosa.load(temp.name, sr=16000)
-    # print(f"2Loaded: {len(loaded)}, bytes: {len(list(wav_bytes))}")
-    # audio_ints = np.frombuffer(wav_bytes[0:len(wav_bytes) - len(wav_bytes) % 32], dtype=np.int32)
-    # normalized = audio_ints / np.max(np.abs(audio_ints))
-    # data, samplerate=  sf.read(io.BytesIO(wav_bytes), channels=1, samplerate=16000,
-    #                        subtype='FLOAT',format='RAW',dtype='float32')
-    librosa.output.write_wav(path_to_wav, loaded, 16000)
-    os.unlink(temp.name)
     with open(path_to_txt, "w") as txt_file:
-        txt_file.write(str(transcript))
+            txt_file.write(str(transcript))
+
 
 
 @app.route('/get_models')
