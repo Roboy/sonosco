@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(SONOSCO)
 
 class SonoscoROS1:
     def __init__(self, config, default_asr_interface=DummyASR(), default_audio_interface=DummyInput()):
-        LOGGER.info(f"Sonosco ROS2 server running running with PID: {os.getpid()}")
+        LOGGER.info(f"Sonosco ROS1 server running running with PID: {os.getpid()}")
         self.node_name = config['node_name']
 
         self.executor = ThreadPoolExecutor(max_workers=config.get('workers', 2))
@@ -37,7 +37,7 @@ class SonoscoROS1:
                             for entry in config['subscribers']}
 
 
-        LOGGER.info("Sonosco ROS2 server is ready!")
+        LOGGER.info("Sonosco ROS1 server is ready!")
 
     def run(self):
         rospy.init_node(self.node_name)

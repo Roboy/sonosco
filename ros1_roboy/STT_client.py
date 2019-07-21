@@ -12,9 +12,9 @@ from roboy_cognition_msgs.srv import RecognizeSpeech
 
 
 def stt_client():
-    rospy.wait_for_service("RecognizeSpeech")
+    rospy.wait_for_service("/roboy/cognition/speech/recognition")
     try:
-        stt = rospy.ServiceProxy('RecognizeSpeech', RecognizeSpeech)
+        stt = rospy.ServiceProxy("/roboy/cognition/speech/recognition", RecognizeSpeech)
         resp = stt()
         logging.info(f"response from stt: {resp.text}")
         return resp.text
