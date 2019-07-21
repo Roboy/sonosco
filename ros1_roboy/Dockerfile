@@ -5,6 +5,9 @@ SHELL ["/bin/bash", "-c"]
 WORKDIR /ros1
 COPY . .
 
+RUN apt update
+RUN apt installffmpeg
+
 RUN git clone https://github.com/Roboy/sonosco.git
 RUN cd sonosco; git checkout SWA-84-ros1-integration; pip3 install .
 RUN chmod +x STT_server.py

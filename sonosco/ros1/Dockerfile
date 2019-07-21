@@ -2,6 +2,7 @@ FROM missxa/melodic-dashing-roboy
 
 SHELL ["/bin/bash", "-c"]
 
+RUN apt-get update
 RUN apt-get install build-essential libssl1.0.0 libasound2 -y
 RUN apt-get install python3-pip python3-yaml libsndfile1 portaudio19-dev python3-pyaudio -y
 #
