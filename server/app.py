@@ -1,7 +1,10 @@
+import io
+
 import librosa
 import torch
 import json
 import os
+import soundfile as sf
 
 import numpy as np
 
@@ -15,7 +18,6 @@ from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
 from concurrent.futures import ThreadPoolExecutor
-
 
 EXTERNAL_MODELS = {"microsoft": None}
 
@@ -89,12 +91,18 @@ def on_save_sample(wav_bytes, transcript, user_id):
     sample_path = os.path.join(path_to_user_data, str(code))
 
     try_create_directory(sample_path)
-    path_to_wav = os.path.join(sample_path, f"audio.wav")
+    path_to_wav = os.path.join(sample_path, f"audio.webm")
     path_to_txt = os.path.join(sample_path, f"transcript.txt")
 
-    # with open(path_to_wav, "wb") as wav_file:
-        # wav_file.write(wav_bytes)
-    librosa.output.write_wav(path_to_wav, np.frombuffer(wav_bytes, ), 44100)
+    with open(path_to_wav, "wb") as wav_file:
+        wav_file.write(wav_bytes)
+    # loaded, sr = librosa.load(path_to_wav, sr=16000)
+    # print(f"2Loaded: {len(loaded)}, bytes: {len(list(wav_bytes))}")
+    # audio_ints = np.frombuffer(wav_bytes[0:len(wav_bytes) - len(wav_bytes) % 32], dtype=np.int32)
+    # normalized = audio_ints / np.max(np.abs(audio_ints))
+    # data, samplerate=  sf.read(io.BytesIO(wav_bytes), channels=1, samplerate=16000,
+    #                        subtype='FLOAT',format='RAW',dtype='float32')
+    # librosa.output.write_wav(path_to_wav, loaded, 16000)
     with open(path_to_txt, "w") as txt_file:
         txt_file.write(str(transcript))
 
@@ -109,4 +117,4 @@ def get_models():
 if __name__ == '__main__':
     # socketio.run(app, host='0.0.0.0', certfile='cert.pem', keyfile='key.pem', debug=False)
 
-    socketio.run(app, host='0.0.0.0', debug=False)
+    socketio.run(app, host='0.0.0.0', debug=True)

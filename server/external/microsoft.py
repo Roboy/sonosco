@@ -30,6 +30,7 @@ class MicrosoftSTT:
         try:
             sound, sample_rate = librosa.load(audio_path, sr=RATE)
             librosa.output.write_wav(audio_path, sound, sample_rate)
+            print(f"SR: {sample_rate}")
             return self.speech_recognize_once_from_file(audio_path)
         except KeyboardInterrupt:
             pass
