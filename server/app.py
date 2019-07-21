@@ -59,10 +59,10 @@ def on_transcribe(wav_bytes, model_ids):
 
                 if model_id in EXTERNAL_MODELS:
                     if EXTERNAL_MODELS[model_id] is None:
-                        external_model = create_external_model(model_id)
+                        external_model = create_external_model(model_id, config['sample_rate'])
                         EXTERNAL_MODELS[model_id] = external_model
                     else:
-                        external_model = create_external_model(model_id)
+                        external_model = create_external_model(model_id, config['sample_rate'])
 
                     future = pool.submit(external_model.recognize, temp_audio_file.name)
 
@@ -97,8 +97,8 @@ def on_save_sample(wav_bytes, transcript, user_id):
     try:
         with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
             temp_audio_file.write(wav_bytes)
-        loaded, sr = librosa.load(temp_audio_file.name, sr=16000)
-        librosa.output.write_wav(path_to_wav, loaded, 16000)
+        loaded, sr = librosa.load(temp_audio_file.name, sr=config['sample_rate'])
+        librosa.output.write_wav(path_to_wav, loaded, config['sample_rate'])
     finally:
         os.unlink(temp_audio_file.name)
 
