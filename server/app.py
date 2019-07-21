@@ -7,7 +7,7 @@ import os
 import soundfile as sf
 
 import numpy as np
-
+import tempfile
 from flask_cors import CORS
 
 from flask import Flask, render_template, make_response, request
@@ -91,18 +91,21 @@ def on_save_sample(wav_bytes, transcript, user_id):
     sample_path = os.path.join(path_to_user_data, str(code))
 
     try_create_directory(sample_path)
-    path_to_wav = os.path.join(sample_path, f"audio.webm")
+    path_to_wav = os.path.join(sample_path, f"audio.wav")
     path_to_txt = os.path.join(sample_path, f"transcript.txt")
 
-    with open(path_to_wav, "wb") as wav_file:
-        wav_file.write(wav_bytes)
-    # loaded, sr = librosa.load(path_to_wav, sr=16000)
+    # with open(path_to_wav, "wb") as wav_file:
+    #     wav_file.write(wav_bytes)
+    with tempfile.NamedTemporaryFile(delete=False) as temp:
+        temp.write(wav_bytes)
+    loaded, sr = librosa.load(temp.name, sr=16000)
     # print(f"2Loaded: {len(loaded)}, bytes: {len(list(wav_bytes))}")
     # audio_ints = np.frombuffer(wav_bytes[0:len(wav_bytes) - len(wav_bytes) % 32], dtype=np.int32)
     # normalized = audio_ints / np.max(np.abs(audio_ints))
     # data, samplerate=  sf.read(io.BytesIO(wav_bytes), channels=1, samplerate=16000,
     #                        subtype='FLOAT',format='RAW',dtype='float32')
-    # librosa.output.write_wav(path_to_wav, loaded, 16000)
+    librosa.output.write_wav(path_to_wav, loaded, 16000)
+    os.unlink(temp.name)
     with open(path_to_txt, "w") as txt_file:
         txt_file.write(str(transcript))
 

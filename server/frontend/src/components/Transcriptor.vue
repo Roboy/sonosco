@@ -43,7 +43,7 @@ let audioBlob = null
 const recordAudio = () =>
   new Promise(async resolve => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/wav; codecs=opus' })
+    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm; codecs=opus' })
     audioChunks = []
     mediaRecorder.addEventListener('dataavailable', event => {
       audioChunks.push(event.data)
