@@ -26,7 +26,7 @@ test_input = TestAudioInput()
 
 def test_callback(request, publishers):
     audio = test_input.request_audio()
-    publishers['test'].publish('test message')
+    publishers['test'].publish(1, 2)
     return asr.infer(audio)
 
 
