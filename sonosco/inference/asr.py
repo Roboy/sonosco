@@ -1,12 +1,17 @@
 from abc import ABC, abstractmethod
 
-from dataclasses import dataclass
 import torch.nn as nn
+from sonosco.datasets import AudioDataProcessor
+
+from sonosco.decoders import GreedyDecoder
 
 
-@dataclass
 class SonoscoASR(ABC):
-    model: nn.Module
+
+    # TODO: add processor
+    def __init__(self, model: nn.Module) -> None:
+        super().__init__()
+        self.model = model
 
     @abstractmethod
     def infer(self, sound_bytes): pass

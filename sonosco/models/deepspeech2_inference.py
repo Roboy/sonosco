@@ -6,10 +6,11 @@ import torch
 
 class DeepSpeech2Inference(SonoscoASR):
 
-    def __init__(self, model):
+    def __init__(self, model, cuda=False):
         super().__init__(model)
         self.processor = AudioDataProcessor(**model.audio_conf, normalize=True)
         self.decoder = GreedyDecoder(model.labels, blank_index=model.labels.index('_'))
+        self.cuda = cuda
 
     def infer(self, audio):
         with open("audio.wav", "wb") as file:
