@@ -51,3 +51,38 @@ class AudioDataset(Dataset):
 
     def __len__(self):
         return self.size
+
+
+class AudioDatasetWavOnly(Dataset):
+
+    def __init__(self, processor: AudioDataProcessor, manifest_filepath):
+        """
+        Dataset that loads tensors via a csv containing file paths to audio files and transcripts separated by
+        a comma. Each new line is a different sample. Example below:
+        /path/to/audio.wav
+        ...
+        :param processor: Data processor object
+        :param manifest_filepath: Path to manifest csv as describe above
+        """
+        super().__init__()
+        with open(manifest_filepath) as f:
+            ids = f.readlines()
+        ids = [x.strip() for x in ids]
+        self.ids = ids
+        self.size = len(ids)
+        self.processor = processor
+
+    def get_raw(self, index):
+        sample = self.ids[index]
+        audio_path = sample
+        sound = self.processor.parse_audio(audio_path, raw=True)
+        return sound, index
+
+    def __getitem__(self, index):
+        sample = self.ids[index]
+        audio_path = sample
+        spectrogram = self.processor.parse_audio(audio_path)
+        return spectrogram, audio_path
+
+    def __len__(self):
+        return self.size

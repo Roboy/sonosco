@@ -1,3 +1,3 @@
-from .dataset import AudioDataProcessor, AudioDataset
+from .dataset import AudioDataProcessor, AudioDataset, AudioDatasetWavOnly
 from .samplers import BucketingSampler
-from .loader import AudioDataLoader, create_data_loaders
+from .loader import AudioDataLoader, AudioDataLoaderWavOnly, create_data_loaders

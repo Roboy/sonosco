@@ -23,7 +23,7 @@ def setup_logging(logger: logging.Logger, filename=None, verbosity=False):
 
 def add_log_file(filename: str, logger: logging.Logger):
     log_directory = os.path.dirname(filename)
-    if not os.path.exists(log_directory):
+    if log_directory and not os.path.exists(log_directory):
         os.makedirs(log_directory)
     filename = os.path.join(log_directory, f"{filename}.log")
     f_handler = logging.FileHandler(filename=filename, mode="w")

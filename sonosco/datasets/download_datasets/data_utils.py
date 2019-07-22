@@ -24,6 +24,19 @@ def create_manifest(data_path, output_path, min_duration=None, max_duration=None
             file.write(sample.encode('utf-8'))
 
 
+def create_manifest_wav_only(data_path, output_path, min_duration=None, max_duration=None):
+    LOGGER.info(f"Creating a manifest (wav only) for path: {data_path}")
+    file_paths = [os.path.join(dirpath, f)
+                  for dirpath, dirnames, files in os.walk(data_path)
+                  for f in fnmatch.filter(files, '*.wav')]
+    LOGGER.info(f"Found {len(file_paths)} .wav files")
+    file_paths = order_and_prune_files(file_paths, min_duration, max_duration)
+    with io.FileIO(output_path, "w") as file:
+        for wav_path in tqdm(file_paths, total=len(file_paths)):
+            sample = f"{os.path.abspath(wav_path)}\n"
+            file.write(sample.encode('utf-8'))
+
+
 def order_and_prune_files(file_paths, min_duration, max_duration):
     LOGGER.info("Sorting manifests...")
     path_and_duration = [(path, audio_tools.get_duration(path)) for path in file_paths]
