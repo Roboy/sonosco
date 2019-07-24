@@ -95,9 +95,9 @@ def prepare_sample(recording_name, url, target_folder, sample_rate):
 @click.option("--target-dir", default="temp/data/voxforge", type=str, help="Directory to store the dataset.")
 @click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
 
-@click.option("--min-duration", default=1, type=int,
+@click.option("--min-duration", default=None, type=int,
               help="Prunes training samples shorter than the min duration (given in seconds).")
-@click.option("--max-duration", default=15, type=int,
+@click.option("--max-duration", default=None, type=int,
               help="Prunes training samples longer than the max duration (given in seconds).")
 
 

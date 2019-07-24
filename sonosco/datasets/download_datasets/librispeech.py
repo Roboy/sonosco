@@ -116,9 +116,9 @@ def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
               default=["train-clean-100.tar.gz", "train-clean-360.tar.gz", "train-other-500.tar.gz",
                        "dev-clean.tar.gz", "dev-other.tar.gz", "test-clean.tar.gz", "test-other.tar.gz"],
               type=str, help="List of file names to download.")
-@click.option("--min-duration", default=1, type=int,
+@click.option("--min-duration", default=None, type=int,
               help="Prunes training samples shorter than the min duration (given in seconds).")
-@click.option("--max-duration", default=15, type=int,
+@click.option("--max-duration", default=None, type=int,
               help="Prunes training samples longer than the max duration (given in seconds).")
 def main(**kwargs):
     """Processes and downloads LibriSpeech dataset."""

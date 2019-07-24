@@ -7,7 +7,7 @@ import logging
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.path_utils as path_utils
 
-from sonosco.datasets.download_datasets.data_utils import create_manifest
+from sonosco.datasets.download_datasets.data_utils import create_manifest, create_manifest_unpruned
 from sonosco.common.utils import setup_logging
 from sonosco.common.constants import *
 
@@ -42,8 +42,8 @@ def try_download_an4(target_dir, sample_rate, min_duration, max_duration):
     create_wav_and_transcripts(path_to_data, 'train', sample_rate, extracted_dir, 'an4_clstk')
     create_wav_and_transcripts(path_to_data, 'test', sample_rate, extracted_dir, 'an4test_clstk')
 
-    create_manifest(path_to_data, os.path.join(path_to_data,'an4_train_manifest.csv'), min_duration, max_duration)
-    create_manifest(path_to_data, os.path.join(path_to_data,'an4_val_manifest.csv'), min_duration, max_duration)
+    create_manifest_unpruned(path_to_data, os.path.join(path_to_data,'an4_train_manifest.csv'), min_duration, max_duration)
+    create_manifest_unpruned(path_to_data, os.path.join(path_to_data,'an4_val_manifest.csv'), min_duration, max_duration)
 
 
 def create_wav_and_transcripts(path, data_tag, sample_rate, extracted_dir, wav_subfolder_name):
@@ -95,9 +95,9 @@ def _process_transcript(transcripts, x):
 @click.command()
 @click.option("--target-dir", default="temp/data/an4", type=str, help="Directory to store the dataset.")
 @click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
-@click.option("--min-duration", default=1, type=int,
+@click.option("--min-duration", default=None, type=int,
               help="Prunes training samples shorter than the min duration (given in seconds).")
-@click.option("--max-duration", default=15, type=int,
+@click.option("--max-duration", default=None, type=int,
               help="Prunes training samples longer than the max duration (given in seconds).")
 def main(**kwargs):
     """Processes and downloads an4 dataset."""

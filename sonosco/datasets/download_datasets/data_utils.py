@@ -9,7 +9,6 @@ from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
 
-
 def create_manifest(data_path, output_path, min_duration=None, max_duration=None):
     LOGGER.info(f"Creating a manifest for path: {data_path}")
     file_paths = [os.path.join(dirpath, f)
@@ -20,7 +19,8 @@ def create_manifest(data_path, output_path, min_duration=None, max_duration=None
     with io.FileIO(output_path, "w") as file:
         for wav_path in tqdm(file_paths, total=len(file_paths)):
             transcript_path = wav_path.replace('/wav/', '/txt/').replace('.wav', '.txt')
-            sample = f"{os.path.abspath(wav_path)},{os.path.abspath(transcript_path)}\n"
+            duration = audio_tools.get_duration(wav_path)
+            sample = f"{os.path.abspath(wav_path)},{os.path.abspath(transcript_path)},{duration}\n"
             file.write(sample.encode('utf-8'))
 
 
