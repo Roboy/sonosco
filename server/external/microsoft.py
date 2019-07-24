@@ -1,14 +1,15 @@
 import azure.cognitiveservices.speech as speechsdk
 import librosa
 
-RATE = 16000
+
 
 
 class MicrosoftSTT:
 
-    def __init__(self, key, region):
+    def __init__(self, key, region, sample_rate):
         self.key = key
         self.region = region
+        self.sample_rate = sample_rate
 
     def speech_recognize_once_from_file(self, audio_path):
         speech_config = speechsdk.SpeechConfig(subscription=self.key, region=self.region)
@@ -28,7 +29,7 @@ class MicrosoftSTT:
 
     def recognize(self, audio_path):
         try:
-            sound, sample_rate = librosa.load(audio_path, sr=RATE)
+            sound, sample_rate = librosa.load(audio_path, sr=self.sample_rate)
             librosa.output.write_wav(audio_path, sound, sample_rate)
             return self.speech_recognize_once_from_file(audio_path)
         except KeyboardInterrupt:

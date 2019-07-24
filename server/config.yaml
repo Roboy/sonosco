@@ -15,3 +15,7 @@ models:
   - id: 'microsoft'
     external: True
     name: 'Microsoft'
+
+sample_rate: 16000
+sonosco_home: '~/.sonosco'
+audio_database_path: '~/.sonosco/audio_data'
