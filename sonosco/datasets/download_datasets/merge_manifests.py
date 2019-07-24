@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 @click.option("--merge-dir", default="temp/data", type=str, help="Directory to the folders, all the manifest are stored in.")
 @click.option("--min-duration", default=1, type=int, help="Prunes any samples shorter than the min duration.")
 @click.option("--max-duration", default=15, type=int, help="Prunes any samples longer than the max duration")
-@click.option("--output-path", default="temp/data/manifests/train_combined_manifest.csv", type=str, help="Output path to merged manifest")
+@click.option("--output-path", default="temp/data/manifests/combined_manifest.csv", type=str, help="Output path to merged manifest")
 
 def main(merge_dir, min_duration, max_duration, output_path):
     global LOGGER
