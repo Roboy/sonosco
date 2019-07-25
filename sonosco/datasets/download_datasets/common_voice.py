@@ -38,7 +38,7 @@ def try_download_common_voice(target_dir, sample_rate, files_to_use, min_duratio
     tar = tarfile.open(target_filename)
     tar.extractall(extracted_dir)
     tar.close()
-    os.remove(target_unpacked_dir)
+    shutil.rmtree(target_unpacked_dir)
     assert os.path.exists(extracted_dir), f"Archive {file_name} was not properly uncompressed"
     LOGGER.info("Converting files to wav and extracting transcripts...")
     for csv_file in files_to_use.split(','):
