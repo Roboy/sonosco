@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import Callable, Union, Tuple, List, Any
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
+from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 
 
 LOGGER = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class ModelTrainer:
                  epochs: int,
                  train_data_loader: DataLoader,
                  val_data_loader: DataLoader = None,
+                 decoder = None,
                  optimizer=torch.optim.Adam,
                  lr: float = 1e-4,
                  custom_model_eval: bool = False,
@@ -54,6 +56,7 @@ class ModelTrainer:
         self._gpu = gpu
         self._custom_model_eval = custom_model_eval
         self._clip_grads = clip_grads
+        self.decoder = decoder
         self._stop_training = False  # used stop training externally
 
     def set_metrics(self, metrics):
@@ -101,6 +104,7 @@ class ModelTrainer:
             running_batch_loss += loss.item()
 
             # compute metrics
+            LOGGER.info("Compute Metrics")
             self._compute_running_metrics(model_output, batch, running_metrics)
             running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
@@ -186,6 +190,9 @@ class ModelTrainer:
         """
         for metric in self._metrics:
             if self._custom_model_eval:
+                LOGGER.info(f"Compute metric: {metric.__name__}")
+                if metric.__name__ == 'WER' or metric.__name__ == 'CER':
+                    metric_result = metric(y_pred, batch, self.decoder)
                 metric_result = metric(y_pred, batch)
             else:
                 batch_y = batch[1]
