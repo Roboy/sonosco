@@ -20,12 +20,13 @@ def WER(model_out, batch, decoder):
 
     decoded_output, _ = decoder.decode(out, output_sizes)
     target_strings = decoder.convert_to_strings(split_targets)
+    LOGGER.info(f"target strings: {target_strings}")
     wer = 0
     for x in range(len(target_strings)):
         transcript, reference = decoded_output[x][0], target_strings[x][0]
         wer += decoder.wer(transcript, reference) / float(len(reference.split()))
     del out
 
-    wer *= 100
+    wer *= 100/len(target_strings)
 
     return wer
