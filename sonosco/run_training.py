@@ -1,6 +1,7 @@
 import logging
 import click
 import torch.nn.functional as torch_functional
+import json
 
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
@@ -21,8 +22,10 @@ LOGGER = logging.getLogger(SONOSCO)
 def main(experiment_name, config_path):
     Experiment.create(experiment_name)
     config = parse_yaml(config_path)["train"]
+    with open(config["labels_path"]) as label_file:
+        labels = str(''.join(json.load(label_file)))
 
-    train_loader, val_loader = create_data_loaders(**config)
+    train_loader, val_loader = create_data_loaders(**config, labels=labels)
 
     def custom_loss(batch, model):
         batch_x, batch_y, input_lengths, target_lengths = batch
@@ -31,11 +34,12 @@ def main(experiment_name, config_path):
         return loss, (model_output, output_lengths)
 
     # TODO: change to load different models dynamically
-    model = DeepSpeech2(labels=config["labels"])
+    model = DeepSpeech2(labels=labels)
+
     if config["decoder"] == GreedyDecoder.__name__:
-        decoder = GreedyDecoder(labels=config["labels"])
+        decoder = GreedyDecoder(labels=labels)
     elif config["decoder"]==BeamCTCDecoder.__name__:
-        decoder = BeamCTCDecoder(labels=config["labels"])
+        decoder = BeamCTCDecoder(labels=labels)
     trainer = ModelTrainer(model, loss=custom_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
