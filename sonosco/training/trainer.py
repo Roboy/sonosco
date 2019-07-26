@@ -193,7 +193,8 @@ class ModelTrainer:
                 LOGGER.info(f"Compute metric: {metric.__name__}")
                 if metric.__name__ == 'WER' or metric.__name__ == 'CER':
                     metric_result = metric(y_pred, batch, self.decoder)
-                metric_result = metric(y_pred, batch)
+                else:
+                    metric_result = metric(y_pred, batch)
             else:
                 batch_y = batch[1]
                 metric_result = metric(y_pred, batch_y)
