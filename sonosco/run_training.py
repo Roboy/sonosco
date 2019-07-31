@@ -31,10 +31,6 @@ def main(experiment_name, config_path):
     def custom_loss(batch, model):
         batch_x, batch_y, input_lengths, target_lengths = batch
         model_output, output_lengths = model(batch_x, input_lengths)
-        LOGGER.info(f"model output: {model_output}")
-        LOGGER.info(f"output_lengths: {output_lengths}")
-        LOGGER.info(f"batch_y: {batch_y}")
-        LOGGER.info(f"taget lengths: {target_lengths}")
         loss = torch_functional.ctc_loss(model_output.transpose(0, 1), batch_y, output_lengths, target_lengths)
         return loss, (model_output, output_lengths)
 

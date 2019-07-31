@@ -1,7 +1,4 @@
 import logging
-import sys
-import numpy as np
-import torch
 LOGGER = logging.getLogger(__name__)
 
 
@@ -20,7 +17,6 @@ def WER(model_out, batch, decoder):
 
     decoded_output, _ = decoder.decode(out, output_sizes)
     target_strings = decoder.convert_to_strings(split_targets)
-    LOGGER.info(f"target strings: {target_strings}")
     wer = 0
     for x in range(len(target_strings)):
         transcript, reference = decoded_output[x][0], target_strings[x][0]
