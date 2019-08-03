@@ -9,9 +9,10 @@ from sonosco.common.path_utils import parse_yaml
 from sonosco.training import Experiment, ModelTrainer
 from sonosco.datasets import create_data_loaders
 from sonosco.models import DeepSpeech2
+from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 from sonosco.training.word_error_rate import WER
 from sonosco.training.character_error_rate import CER
-from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
+from sonosco.training.tensorboard_callback import TensorBoardCallback
 
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -20,7 +21,9 @@ LOGGER = logging.getLogger(SONOSCO)
 @click.option("-e", "--experiment_name", default="default", type=click.STRING, help="Experiment name.")
 @click.option("-c", "--config_path", default="config/train.yaml", type=click.STRING,
               help="Path to train configurations.")
-def main(experiment_name, config_path):
+@click.option("-l", "--log_dir", default="log/", type=click.STRING, help="Log directory for tensorboard.")
+
+def main(experiment_name, config_path, log_dir):
     Experiment.create(experiment_name)
     config = parse_yaml(config_path)["train"]
     with open(config["labels_path"]) as label_file:
@@ -44,7 +47,7 @@ def main(experiment_name, config_path):
     trainer = ModelTrainer(model, loss=custom_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
-                           decoder= decoder, metrics=[WER, CER])
+                           decoder= decoder, metrics=[WER, CER], callbacks=[TensorBoardCallback(log_dir)])
 
     try:
         trainer.start_training()
