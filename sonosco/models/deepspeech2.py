@@ -14,7 +14,12 @@ LOGGER = logging.getLogger(__name__)
 
 
 class DeepSpeech2(nn.Module):
-    def __init__(self, rnn_type=nn.LSTM, labels="abc", rnn_hid_size=768, nb_layers=5, audio_conf=None,
+    def __init__(self,
+                 rnn_type=nn.LSTM,
+                 labels="abc",
+                 rnn_hidden_size=768,
+                 hidden_layers=5,
+                 audio_conf=None,
                  bidirectional=True):
         super(DeepSpeech2, self).__init__()
 
@@ -22,8 +27,8 @@ class DeepSpeech2(nn.Module):
         if audio_conf is None:
             audio_conf = {}
         self.version = '0.0.1'
-        self.hidden_size = rnn_hid_size
-        self.hidden_layers = nb_layers
+        self.hidden_size = rnn_hidden_size
+        self.hidden_layers = hidden_layers
         self.rnn_type = rnn_type
         self.audio_conf = audio_conf or {}
         self.labels = labels
@@ -34,6 +39,8 @@ class DeepSpeech2(nn.Module):
         window_size = self.audio_conf.get("window_size", 0.02)
         num_classes = len(self.labels)
 
+
+
         self.conv = MaskConv(nn.Sequential(
             nn.Conv2d(1, 32, kernel_size=(41, 11), stride=(2, 2), padding=(20, 5)),
             nn.BatchNorm2d(32),
@@ -43,20 +50,29 @@ class DeepSpeech2(nn.Module):
             nn.Hardtanh(0, 20, inplace=True)
         ))
         # Based on above convolutions and spectrogram size using conv formula (W - F + 2P)/ S+1
-        rnn_in_size = int(math.floor((sample_rate * window_size) / 4) + 1)
+        rnn_in_size = int(math.floor((sample_rate * window_size) / 2) + 1)
         LOGGER.debug(f"Initial calculated feature size: {rnn_in_size}")
         rnn_in_size = int(math.floor(rnn_in_size + 2 * 20 - 41) / 2 + 1)
         rnn_in_size = int(math.floor(rnn_in_size + 2 * 10 - 21) / 2 + 1)
         rnn_in_size *= 32
 
-        rnns = [('0', BatchRNN(input_size=rnn_in_size, hidden_size=rnn_hid_size, rnn_type=rnn_type, batch_norm=False))]
-        rnns.extend([(f"{x + 1}", BatchRNN(input_size=rnn_hid_size, hidden_size=rnn_hid_size, rnn_type=rnn_type))
-                     for x in range(nb_layers - 1)])
+        rnns = [('0', BatchRNN(
+            input_size=rnn_in_size,
+            hidden_size=rnn_hidden_size,
+            rnn_type=rnn_type,
+            batch_norm=False,
+            bidirectional=bidirectional))]
+
+        rnns.extend([
+            (f"{x + 1}", BatchRNN(input_size=rnn_hidden_size, hidden_size=rnn_hidden_size,
+                                  rnn_type=rnn_type, bidirectional=bidirectional)) for x in range(hidden_layers - 1)
+        ])
+
         self.rnns = nn.Sequential(OrderedDict(rnns))
 
         fully_connected = nn.Sequential(
-            nn.BatchNorm1d(rnn_hid_size),
-            nn.Linear(rnn_hid_size, num_classes, bias=False)
+            nn.BatchNorm1d(rnn_hidden_size),
+            nn.Linear(rnn_hidden_size, num_classes, bias=False)
         )
 
         self.fc = nn.Sequential(
@@ -105,10 +121,11 @@ class DeepSpeech2(nn.Module):
     @classmethod
     def load_model(cls, path):
         package = torch.load(path, map_location=lambda storage, loc: storage)
-        model = cls(rnn_hidden_size=package['hidden_size'], nb_layers=package['hidden_layers'],
+        model = cls(rnn_hidden_size=package['hidden_size'], hidden_layers=package['hidden_layers'],
                     labels=package['labels'], audio_conf=package['audio_conf'],
                     rnn_type=supported_rnns[package['rnn_type']], bidirectional=package.get('bidirectional', True))
-        model.load_state_dict(package['state_dict'])
+
+        model.load_state_dict(package['state_dict'], strict=False)
         for x in model.rnns:
             x.flatten_parameters()
 
@@ -116,7 +133,7 @@ class DeepSpeech2(nn.Module):
 
     @classmethod
     def load_model_package(cls, package):
-        model = cls(rnn_hidden_size=package['hidden_size'], nb_layers=package['hidden_layers'],
+        model = cls(rnn_hidden_size=package['hidden_size'], hidden_layers=package['hidden_layers'],
                     labels=package['labels'], audio_conf=package['audio_conf'],
                     rnn_type=supported_rnns[package['rnn_type']], bidirectional=package.get('bidirectional', True))
         model.load_state_dict(package['state_dict'])

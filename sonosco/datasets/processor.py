@@ -2,10 +2,13 @@ import logging
 import torch
 import librosa
 import numpy as np
+import scipy.signal
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.utils as utils
 import sonosco.common.noise_makers as noise_makers
 
+windows = {'hamming': scipy.signal.hamming, 'hann': scipy.signal.hann, 'blackman': scipy.signal.blackman,
+           'bartlett': scipy.signal.bartlett}
 
 LOGGER = logging.getLogger(__name__)
 MIN_STRETCH = 0.7
@@ -32,6 +35,7 @@ class AudioDataProcessor:
         """
         self.window_stride = window_stride
         self.window_size = window_size
+        self.window = windows.get(kwargs['window'], windows['hamming'])
         self.sample_rate = sample_rate
         self.labels_map = dict([(labels[i], i) for i in range(len(labels))])
         self.normalize = normalize
@@ -43,7 +47,7 @@ class AudioDataProcessor:
 
     @property
     def window_size_samples(self):
-        return int(self.sample_rate * self.window_stride)
+        return int(self.sample_rate * self.window_size)
 
     def retrieve_file(self, audio_path):
         sound, sample_rate = librosa.load(audio_path, sr=self.sample_rate)
@@ -77,10 +81,18 @@ class AudioDataProcessor:
         complex_spectrogram = librosa.stft(sound,
                                            n_fft=self.window_size_samples,
                                            hop_length=self.window_stride_samples,
-                                           win_length=self.window_size_samples)
+                                           win_length=self.window_size_samples,
+                                           window=self.window)
         spectrogram, phase = librosa.magphase(complex_spectrogram)
         # S = log(S+1)
-        spectrogram = torch.from_numpy(np.log1p(spectrogram))
+        spectrogram = np.log1p(spectrogram)
+        spectrogram = torch.FloatTensor(spectrogram)
+
+        if self.normalize:
+            mean = spectrogram.mean()
+            std = spectrogram.std()
+            spectrogram.add_(mean)
+            spectrogram.div_(std)
 
         return spectrogram
 

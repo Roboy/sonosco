@@ -4,7 +4,11 @@ setup(
     name="sonosco",
     description="Framework for deep automatic speech recognition systems.",
     author="Roboy",
-    packages=["sonosco"],
+    packages=find_packages(),
     include_package_data=True,
-    dependency_links=[]
+    dependency_links=[],
+    install_requires = ['torch',
+                        'dataclasses',
+                        'python-Levenshtein',
+                        'librosa']
 )
