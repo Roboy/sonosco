@@ -1,10 +1,10 @@
 import logging
+
 LOGGER = logging.getLogger(__name__)
 
 
-def CER(model_out, batch, decoder):
+def character_error_rate(model_out, batch, decoder):
     inputs, targets, input_percentages, target_sizes = batch
-    input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
 
     # unflatten targets
     split_targets = []

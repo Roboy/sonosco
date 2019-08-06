@@ -1,10 +1,10 @@
 import logging
+
 LOGGER = logging.getLogger(__name__)
 
 
-def WER(model_out, batch, decoder):
+def word_error_rate(model_out, batch, decoder):
     inputs, targets, input_percentages, target_sizes = batch
-    input_sizes = input_percentages.mul_(int(inputs.size(3))).int()
 
     # unflatten targets
     split_targets = []
@@ -24,5 +24,4 @@ def WER(model_out, batch, decoder):
     del out
 
     wer *= 100/len(target_strings)
-
     return wer
