@@ -33,7 +33,7 @@ def create_results(transcripts, filenames, output_path):
 @click.option("-m", "--model_path", default="pretrained/deepspeech_final.pth", type=click.STRING,
               help="Path to a pretrained model.")
 @click.option("-d", "--decoder", default="greedy", type=click.STRING, help="Type of decoder.")
-@click.option("-a", "--audio_path", default="input", type=click.STRING, help="Path to audio files folder.")
+@click.option("-a", "--audio_path", default="in", type=click.STRING, help="Path to audio files folder.")
 @click.option("--cuda", is_flag=True, help="Should cuda be used.")
 @click.option('--top-paths', default=1, type=click.INT, help='number of beams to return')
 @click.option('--beam-width', default=10, type=click.INT, help='Beam width to use')
@@ -49,7 +49,7 @@ def create_results(transcripts, filenames, output_path):
 @click.option('--lm-workers', default=1, type=click.INT, help='Number of LM processes to use')
 @click.option('--data_workers', default=5, type=click.INT, help='Number of data loading workers')
 @click.option('--batch_size', default=16, type=click.INT, help='Batch size')
-@click.option('--output_path', default="output", type=click.STRING, help='Output path')
+@click.option('--output_path', default="out", type=click.STRING, help='Output path')
 def main(model_path, cuda, audio_path, **kwargs):
     create_manifest_wav_only(audio_path, "manifest.txt")
 
