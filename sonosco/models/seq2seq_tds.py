@@ -3,9 +3,11 @@ import math
 import torch.nn as nn
 
 from collections import OrderedDict
-from .modules import SubsampleBlock, TDSBlock, Linear
-from typing import List, Tuple, Union
+from typing import List, Tuple
+from dataclasses import field
+
 from sonosco.model.serialization import serializable
+from .modules import SubsampleBlock, TDSBlock, Linear
 
 
 LOGGER = logging.getLogger(__name__)
@@ -27,17 +29,17 @@ class TDSEncoder(nn.Module):
     """
     input_dim: int
     in_channel: int
-    channels: List[int]
-    kernel_sizes: List[Tuple[int, int]]
     dropout: float
     bottleneck_dim: int
+    channels: List[int] = field(default_factory=list)
+    kernel_sizes: List[int] = field(default_factory=list)
 
     def __post_init__(self):
         assert self.input_dim % self.in_channel == 0
         assert len(self.channels) > 0
         assert len(self.channels) == len(self.kernel_sizes)
 
-        super(TDSEncoder, self).__init__()
+        super().__init__()
 
         self.input_freq = self.input_dim // self.in_channel
         self.bridge = None
@@ -59,17 +61,17 @@ class TDSEncoder(nn.Module):
 
             # Conv
             layers['tds%d_block%d' % (channel, layer)] = TDSBlock(channel=channel,
-                                                                  kernel_size=kernel_size[0],
+                                                                  kernel_size=kernel_size,
                                                                   in_freq=in_freq,
                                                                   dropout=self.dropout)
 
             in_ch = channel
 
+        self._output_dim = int(in_ch * in_freq)
+
         if self.bottleneck_dim > 0:
             self.bridge = Linear(self._output_dim, self.bottleneck_dim)
             self._output_dim = self.bottleneck_dim
-        else:
-            self._output_dim = int(in_ch * in_freq)
 
         self.layers = nn.Sequential(layers)
 
