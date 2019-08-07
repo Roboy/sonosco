@@ -101,5 +101,4 @@ class AudioDataProcessor:
             transcript = transcript_file.read().replace('\n', '')
         # TODO: Is it fast enough?
         transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
-        LOGGER.debug(f"transcript_path: {transcript_path} transcript: {transcript}")
         return transcript
