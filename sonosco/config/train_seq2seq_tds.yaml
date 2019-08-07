@@ -15,9 +15,19 @@ train:
     input_dim: 80 # Number of frequencies in mel-scale filter
     in_channel: 1 # Initial number of channels
     channels: [10, 10, 14, 14, 14, 18, 18, 18, 18, 18, 18] # TDS blocks, whenever the number changes a sub-sampling layer is inserted
-    kernel_sizes: [(21, 1), (21, 1), (21, 1), (21, 1), (21, 1), (21, 1), (21, 1), (21, 1), (21, 1), (21, 1), (21, 1)]
+    kernel_sizes: [21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
     dropout: 0.2
     bottleneck_dim: 1024
+
+  decoder:
+    input_dim: 1024
+    embedding_dim: 512
+    vocab_dim: 1000
+    key_dim: 512
+    value_dim: 512
+    rnn_hidden_dim: 512
+    rnn_type_str: "gru"
+    attention_type: "dot"
 
   batch_size: 32 # Batch size for training
   hidden_size: 800 # Hidden size of RNNs
