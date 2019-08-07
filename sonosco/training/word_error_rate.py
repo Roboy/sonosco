@@ -3,7 +3,7 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 
-def word_error_rate(model_out, batch, decoder):
+def word_error_rate(model_out, batch, decoder=None):
     inputs, targets, input_percentages, target_sizes = batch
 
     # unflatten targets

@@ -177,7 +177,7 @@ class TDSDecoder(nn.Module):
 
         probs = self.inference_softmax(outputs)
 
-        return probs
+        return probs, y_lens
 
 
 @serializable
@@ -218,8 +218,8 @@ class TDSSeq2Seq(nn.Module):
             pass
         else:
             # During training we are using teacher-forcing
-            probs = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
+            probs, y_lens  = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
 
         loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1))
 
-        return probs, loss
+        return probs, y_lens, loss
