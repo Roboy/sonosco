@@ -22,7 +22,6 @@ LOGGER = logging.getLogger(SONOSCO)
 @click.option("-c", "--config_path", default="config/train.yaml", type=click.STRING,
               help="Path to train configurations.")
 @click.option("-l", "--log_dir", default="log/", type=click.STRING, help="Log directory for tensorboard.")
-
 def main(experiment_name, config_path, log_dir):
     Experiment.create(experiment_name)
     config = parse_yaml(config_path)["train"]

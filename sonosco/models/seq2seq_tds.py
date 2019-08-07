@@ -2,7 +2,7 @@ import logging
 import math
 import torch
 import torch.nn as nn
-import torch.nn.functional as tfn
+import torch.nn.functional as torch_functional
 
 from collections import OrderedDict
 from typing import List, Tuple, Dict, Any
@@ -14,7 +14,7 @@ from .attention import DotAttention
 
 
 LOGGER = logging.getLogger(__name__)
-
+EOS = '$'
 
 @serializable
 class TDSEncoder(nn.Module):
@@ -182,24 +182,44 @@ class TDSDecoder(nn.Module):
 
 @serializable
 class TDSSeq2Seq(nn.Module):
+    labels: str
     encoder_args: dict = field(default_factory=dict)
     decoder_args: dict = field(default_factory=dict)
 
     def __post_init__(self):
         super().__init__()
+        self.labels = self.labels + EOS
+        self.labels_map = dict([(self.labels[i], i) for i in range(len(self.labels))])
+        self.decoder_args["vocab_dim"] = len(self.labels)
         self.encoder = TDSEncoder(**self.encoder_args)
         self.decoder = TDSDecoder(**self.decoder_args)
 
-    def forward(self, xs, xlens, y_labels=None, y_lens=None):
+    def forward(self, xs, xlens, y_labels=None):
+        y_in, y_out = list(), list()
+        # w = next(self.parameters())
+        # eos = w.new_zeros(1).fill_(self.labels_map[EOS]).long()
+        eos = torch.tensor([self.labels_map[EOS]], dtype=torch.int32)
+
+        for y in y_labels:
+            y_in.append(torch.cat([eos, y], dim=0))
+            y_out.append(torch.cat([y, eos], dim=0))
+
+        y_lens = [y.size(0) for y in y_in]
+
+        y_in_labels = torch.nn.utils.rnn.pad_sequence(y_in, batch_first=True).type(torch.LongTensor)
+        y_out_labels = torch.nn.utils.rnn.pad_sequence(y_out, batch_first=True).type(torch.LongTensor)
+
         encoding, encoding_lens = self.encoder(xs, xlens)
 
-        if y_labels is None or y_lens is None:
+        if y_labels is None:
             # TODO: implement
             # We are performing inference
             probs = None
             pass
         else:
             # During training we are using teacher-forcing
-            probs = self.decoder(encoding, encoding_lens, y_labels, y_lens)
+            probs = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
 
-        return probs
+        loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1))
+
+        return probs, loss
