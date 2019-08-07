@@ -142,6 +142,8 @@ class TDSDecoder(nn.Module):
         assert input_dim == key_dim + value_dim
         assert rnn_hidden_dim == key_dim
 
+        super().__init__()
+
         self.input_dim = input_dim
         self.embedding_dim = embedding_dim
         self.key_dim = key_dim
@@ -151,10 +153,10 @@ class TDSDecoder(nn.Module):
         self.rnn_type = rnn_type
         self.attention_type = attention_type
 
-        self.word_piece_embedding = nn.Embedding(self.vocab_size, self.embedding_dim)
+        self.word_piece_embedding = nn.Embedding(self.vocab_dim, self.embedding_dim)
 
         self.rnn = BatchRNN(input_size=self.embedding_dim, hidden_size=self.rnn_hidden_dim,
-                            rnn_type=self.rnn_type, batch_norm=True)
+                            rnn_type=self.rnn_type, batch_norm=False)
 
         self.attention = DotAttention(self.key_dim)
 
@@ -170,7 +172,9 @@ class TDSDecoder(nn.Module):
         # embed value that we get from teacher-forcing
         y_embed = self.word_piece_embedding(y_labels)
 
+        y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries, _ = self.rnn(y_embed, encoding_lens)
+        queries = queries.transpose(0, 1)
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
         summaries, scores = self.attention(queries, keys, values)
