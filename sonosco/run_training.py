@@ -10,8 +10,8 @@ from sonosco.training import Experiment, ModelTrainer
 from sonosco.datasets import create_data_loaders
 from sonosco.models import DeepSpeech2
 from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
-from sonosco.training.word_error_rate import WER
-from sonosco.training.character_error_rate import CER
+from sonosco.training.word_error_rate import word_error_rate
+from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.tensorboard_callback import TensorBoardCallback
 
 LOGGER = logging.getLogger(SONOSCO)
@@ -42,12 +42,13 @@ def main(experiment_name, config_path, log_dir):
 
     if config["decoder"] == GreedyDecoder.__name__:
         decoder = GreedyDecoder(labels=labels)
-    elif config["decoder"]==BeamCTCDecoder.__name__:
+    elif config["decoder"] == BeamCTCDecoder.__name__:
         decoder = BeamCTCDecoder(labels=labels)
     trainer = ModelTrainer(model, loss=custom_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
-                           decoder= decoder, metrics=[WER, CER], callbacks=[TensorBoardCallback(log_dir)])
+                           decoder=decoder, metrics=[word_error_rate, character_error_rate],
+                           callbacks=[TensorBoardCallback(log_dir)])
 
     try:
         trainer.start_training()

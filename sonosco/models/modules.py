@@ -173,7 +173,6 @@ class TDSBlock(nn.Module):
         xs = xs + residual  # `[B, out_ch * feat_dim, T, 1]`
 
         # layer normalization
-        xs = xs.unsqueeze(3)  # `[B, out_ch * feat_dim, T]`
         xs = xs.transpose(2, 1).contiguous().view(bs, time, -1)  # `[B, T, out_ch * feat_dim]`
         xs = self.layer_norm2(xs)
         xs = xs.view(bs, time, out_ch, feat_dim).contiguous().transpose(2, 1)
