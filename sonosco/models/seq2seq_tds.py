@@ -157,7 +157,7 @@ class TDSDecoder(nn.Module):
 
         self.inference_softmax = InferenceBatchSoftmax()
 
-    def forward(self, encoding, encoding_lens, y_labels):
+    def forward(self, encoding, encoding_lens, y_labels, y_lens):
         # split into keys and values
         # keys [B,T,K], values [B,T,V]
         keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
@@ -166,10 +166,11 @@ class TDSDecoder(nn.Module):
         y_embed = self.word_piece_embedding(y_labels)
 
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
-        queries = self.rnn(y_embed, encoding_lens)
+        queries = self.rnn(y_embed, y_lens)
         queries = queries.transpose(0, 1)
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
+        # TODO: add encoding_lens for attention calculation
         summaries, scores = self.attention(queries, keys, values)
 
         outputs = self.output_mlp(torch.cat([summaries, queries], dim=-1))
@@ -189,16 +190,16 @@ class TDSSeq2Seq(nn.Module):
         self.encoder = TDSEncoder(**self.encoder_args)
         self.decoder = TDSDecoder(**self.decoder_args)
 
-    def forward(self, xs, xlens, y_labels=None):
+    def forward(self, xs, xlens, y_labels=None, y_lens=None):
         encoding, encoding_lens = self.encoder(xs, xlens)
 
-        if y_labels is None:
+        if y_labels is None or y_lens is None:
             # TODO: implement
             # We are performing inference
             probs = None
             pass
         else:
             # During training we are using teacher-forcing
-            probs = self.decoder(encoding, encoding_lens, y_labels)
+            probs = self.decoder(encoding, encoding_lens, y_labels, y_lens)
 
         return probs

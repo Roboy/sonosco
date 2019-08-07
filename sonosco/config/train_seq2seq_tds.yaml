@@ -12,7 +12,7 @@ train:
   window: 'hamming' # Window type for spectrogram generation
 
   encoder:
-    input_dim: 80 # Number of frequencies in mel-scale filter
+    input_dim: 161 # Number of frequencies in mel-scale filter
     in_channel: 1 # Initial number of channels
     channels: [10, 10, 14, 14, 14, 18, 18, 18, 18, 18, 18] # TDS blocks, whenever the number changes a sub-sampling layer is inserted
     kernel_sizes: [21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
@@ -21,8 +21,8 @@ train:
 
   decoder:
     input_dim: 1024
-    embedding_dim: 512
-    vocab_dim: 1000
+    embedding_dim: 32
+    vocab_dim: 100
     key_dim: 512
     value_dim: 512
     rnn_hidden_dim: 512
