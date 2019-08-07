@@ -1,13 +1,16 @@
 import logging
 import math
+import torch
 import torch.nn as nn
+import torch.nn.functional as tfn
 
 from collections import OrderedDict
 from typing import List, Tuple
 from dataclasses import field
 
 from sonosco.model.serialization import serializable
-from .modules import SubsampleBlock, TDSBlock, Linear
+from .modules import SubsampleBlock, TDSBlock, Linear, BatchRNN, InferenceBatchSoftmax
+from .attention import DotAttention
 
 
 LOGGER = logging.getLogger(__name__)
@@ -31,8 +34,8 @@ class TDSEncoder(nn.Module):
     in_channel: int
     dropout: float
     bottleneck_dim: int
-    channels: List[int] = field(default_factory=list)
-    kernel_sizes: List[int] = field(default_factory=list)
+    channels: list = field(default_factory=list)
+    kernel_sizes: list = field(default_factory=list)
 
     def __post_init__(self):
         assert self.input_dim % self.in_channel == 0
@@ -122,3 +125,59 @@ class TDSEncoder(nn.Module):
         xlens /= self.subsample_factor
 
         return xs, xlens
+
+
+class TDSDecoder(nn.Module):
+
+    def __init__(self,
+                 input_dim: int = 1024,
+                 embedding_dim: int = 512,
+                 vocab_dim: int = 1000,
+                 key_dim: int = 512,
+                 value_dim: int = 512,
+                 rnn_hidden_dim: int = 512,
+                 rnn_type: type = nn.GRU,
+                 attention_type: str = "dor"):
+
+        assert input_dim == key_dim + value_dim
+        assert rnn_hidden_dim == key_dim
+
+        self.input_dim = input_dim
+        self.embedding_dim = embedding_dim
+        self.key_dim = key_dim
+        self.value_dim = value_dim
+        self.vocab_dim = vocab_dim
+        self.rnn_hidden_dim = rnn_hidden_dim
+        self.rnn_type = rnn_type
+        self.attention_type = attention_type
+
+        self.word_piece_embedding = nn.Embedding(self.vocab_size, self.embedding_dim)
+
+        self.rnn = BatchRNN(input_size=self.embedding_dim, hidden_size=self.rnn_hidden_dim,
+                            rnn_type=self.rnn_type, batch_norm=True)
+
+        self.attention = DotAttention(self.key_dim)
+
+        self.output_mlp = Linear(in_size=value_dim + self.rnn_hidden_dim, out_size=self.vocab_dim)
+
+        self.inference_softmax = InferenceBatchSoftmax()
+
+    def forward(self, encoding, encoding_lens, y_labels):
+        # split into keys and values
+        # keys [B,T,K], values [B,T,V]
+        keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
+
+        # embed value that we get from teacher-forcing
+        y_embed = self.word_piece_embedding(y_labels)
+
+        queries, _ = self.rnn(y_embed, encoding_lens)
+
+        # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
+        summaries, scores = self.attention(queries, keys, values)
+
+        outputs = self.output_mlp(torch.cat([summaries, queries], dim=-1))
+
+        probs = self.inference_softmax(outputs)
+
+        return probs
+
