@@ -2,20 +2,16 @@ import socket
 import threading
 import numpy as np
 import webrtcvad
-import pdb
-import io
-import time
 import sys
 import logging
 
-from monotonic import monotonic
 from collections import deque
 from sonosco.inputs.audio import SonoscoAudioInput
 
 
 class MicrophoneClient(SonoscoAudioInput):
 
-    def __init__(self, port, host='0.0.0.0', sample_rate=16000, chunk_size=1024):
+    def __init__(self, port=10001, host='172.16.100.2019', sample_rate=16000, chunk_size=1024):
         # self.format = pyaudio.paInt16
         self.SAMPLE_WIDTH = 2  # pyaudio.get_sample_size(self.format)  # size of each sample
         self.SAMPLE_RATE = sample_rate  # sampling rate in Hertz

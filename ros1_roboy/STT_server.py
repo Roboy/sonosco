@@ -10,6 +10,7 @@ from roboy_cognition_msgs.srv import RecognizeSpeech
 from roboy_control_msgs.msg import ControlLeds
 from webrtcvad_input import VadInput
 from std_msgs.msg import Empty
+from mic_client import MicrophoneClient
 
 model_path = "pretrained/deepspeech_final.pth"
 
@@ -22,7 +23,7 @@ def vad_callback(request, publishers):
     msg.duration = 0
     publishers['ledmode'].publish(msg)
     transcription = ""
-    with VadInput() as audio_input:
+    with MicrophoneClient() as audio_input:
         def handle_int(sig, chunk):
             global leave, got_a_sentence
 
