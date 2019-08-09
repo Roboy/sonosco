@@ -1,6 +1,6 @@
 train:
-  train_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
-  val_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
+  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest.csv'
   log_dir: 'logs' # Location for log files
   def_dir: 'examples/checkpoints/' # Default location to save/load models
 

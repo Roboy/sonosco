@@ -3,6 +3,7 @@ import click
 import torch.nn.functional as torch_functional
 import json
 
+from models.seq2seq_tds import TDSSeq2Seq
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
 from sonosco.common.path_utils import parse_yaml
@@ -13,7 +14,7 @@ from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.tensorboard_callback import TensorBoardCallback
-
+import torch
 LOGGER = logging.getLogger(SONOSCO)
 
 
@@ -25,28 +26,31 @@ LOGGER = logging.getLogger(SONOSCO)
 def main(experiment_name, config_path, log_dir):
     Experiment.create(experiment_name)
     config = parse_yaml(config_path)["train"]
-    with open(config["labels_path"]) as label_file:
-        labels = str(''.join(json.load(label_file)))
+    config['decoder']['vocab_dim'] = len(config['labels'])
+    train_loader, val_loader = create_data_loaders(**config)
 
-    train_loader, val_loader = create_data_loaders(**config, labels=labels)
-
-    def custom_loss(batch, model):
+    def cross_entropy_loss(batch, model):
         batch_x, batch_y, input_lengths, target_lengths = batch
-        model_output, output_lengths = model(batch_x, input_lengths)
-        loss = torch_functional.ctc_loss(model_output.transpose(0, 1), batch_y, output_lengths, target_lengths)
-        return loss, (model_output, output_lengths)
+        # check out the _collate_fn in loader to understand the next transformations
+        batch_x = batch_x.squeeze(1).transpose(1, 2)
+        batch_y = torch.split(batch_y, target_lengths.tolist())
 
-    # TODO: change to load different models dynamically
-    model = DeepSpeech2(labels=labels)
+        # max_len = max(batch_y, key=lambda x: x.size()[0]).size()[0]
+        # padded_batch_y = []
+        # for y in batch_y:
+        #    padded_y = torch_functional.pad(y, (0, max_len - y.size()[0]))
+        #    padded_batch_y.append(padded_y)
+        # batch_y = torch.stack(padded_batch_y).type(torch.LongTensor)
+        # batch_y = torch.nn.utils.rnn.pad_sequence(batch_y, batch_first=True).type(torch.LongTensor)
+        model_output, lens, loss = model(batch_x, input_lengths, batch_y)
+        # loss = torch_functional.cross_entropy(model_output.permute(0, 2, 1), batch_y)
+        return loss, (model_output, lens)
 
-    if config["decoder"] == GreedyDecoder.__name__:
-        decoder = GreedyDecoder(labels=labels)
-    elif config["decoder"] == BeamCTCDecoder.__name__:
-        decoder = BeamCTCDecoder(labels=labels)
-    trainer = ModelTrainer(model, loss=custom_loss, epochs=config["max_epochs"],
+    model = TDSSeq2Seq(config['labels'], config["encoder"], config["decoder"])
+    trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
-                           lr=config["learning_rate"], custom_model_eval=True,
-                           decoder=decoder, metrics=[word_error_rate, character_error_rate],
+                           lr=config["learning_rate"], custom_model_eval=True, metrics=[word_error_rate, character_error_rate],
+                           decoder=GreedyDecoder(config['labels']),
                            callbacks=[TensorBoardCallback(log_dir)])
 
     try:

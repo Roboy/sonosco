@@ -131,3 +131,4 @@ pip-selfcheck.json
 
 pretrained
 **/node_modules
+executables/log/
