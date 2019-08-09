@@ -12,7 +12,8 @@ def main(host, port):
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
     RATE = 16000
-    CHUNK = 4096
+    CHUNK_DURATION_MS = 30  # supports 10, 20 and 30 (ms)
+    CHUNK = int(RATE * CHUNK_DURATION_MS / 1000)
 
     audio = pyaudio.PyAudio()
 
@@ -28,7 +29,11 @@ def main(host, port):
         return (None, pyaudio.paContinue)
 
     # start Recording
-    stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK,
+    stream = audio.open(format=FORMAT,
+                        channels=CHANNELS,
+                        rate=RATE,
+                        input=True,
+                        frames_per_buffer=CHUNK,
                         stream_callback=callback)
     # stream.start_stream()
 
