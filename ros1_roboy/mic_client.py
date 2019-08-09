@@ -13,8 +13,9 @@ logging.basicConfig(level=logging.INFO)
 
 class MicrophoneClient(SonoscoAudioInput):
 
-    def __init__(self, port=10001, host='172.16.100.2019', sample_rate=16000, chunk_size=1024):
+    def __init__(self, port=10001, host='172.16.100.219', sample_rate=16000, chunk_size=1024):
         # self.format = pyaudio.paInt16
+
         self.SAMPLE_WIDTH = 2  # pyaudio.get_sample_size(self.format)  # size of each sample
         self.SAMPLE_RATE = sample_rate  # sampling rate in Hertz
         self.CHUNK = chunk_size
@@ -93,6 +94,7 @@ class MicrophoneClient(SonoscoAudioInput):
 
         except Exception as e:
             logging.exception(f"Mic client exception {e}")
+            raise e
 
     def __enter__(self):
         # assert self.stream is None, "This audio source is already inside a context manager"
