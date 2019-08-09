@@ -2,20 +2,18 @@ import socket
 import threading
 import numpy as np
 import webrtcvad
-import pdb
-import io
-import time
 import sys
 import logging
 
-from monotonic import monotonic
 from collections import deque
 from sonosco.inputs.audio import SonoscoAudioInput
+
+logging.basicConfig(level=logging.INFO)
 
 
 class MicrophoneClient(SonoscoAudioInput):
 
-    def __init__(self, port=10002, host='0.0.0.0', sample_rate=16000, chunk_size=1024):
+    def __init__(self, port=10001, host='172.16.100.2019', sample_rate=16000, chunk_size=1024):
         # self.format = pyaudio.paInt16
         self.SAMPLE_WIDTH = 2  # pyaudio.get_sample_size(self.format)  # size of each sample
         self.SAMPLE_RATE = sample_rate  # sampling rate in Hertz
@@ -53,46 +51,45 @@ class MicrophoneClient(SonoscoAudioInput):
 
     def request_audio(self, *args, **kwargs):
         try:
-            with self:
-                got_a_sentence = False
+            got_a_sentence = False
 
-                ring_buffer = deque(maxlen=self.NUM_PADDING_CHUNKS)
-                triggered = False
-                voiced_frames = []
-                ring_buffer_flags = [0] * self.NUM_WINDOW_CHUNKS
+            ring_buffer = deque(maxlen=self.NUM_PADDING_CHUNKS)
+            triggered = False
+            voiced_frames = []
+            ring_buffer_flags = [0] * self.NUM_WINDOW_CHUNKS
 
-                ring_buffer_index = 0
-                buffer_in = ''
+            ring_buffer_index = 0
+            buffer_in = ''
 
-                logging.info("* recording")
+            logging.info("* recording")
 
-                while not got_a_sentence:  # and not leave:
-                    chunk = self.stream.read(self.CHUNK_SIZE)
-                    active = self.vad.is_speech(chunk, self.RATE)
-                    logging.info('1' if active else '0')
-                    ring_buffer_flags[ring_buffer_index] = 1 if active else 0
-                    ring_buffer_index += 1
-                    ring_buffer_index %= self.NUM_WINDOW_CHUNKS
-                    if not triggered:
-                        ring_buffer.append(chunk)
-                        num_voiced = sum(ring_buffer_flags)
-                        if num_voiced > 0.5 * self.NUM_WINDOW_CHUNKS:
-                            logging.info('+')
-                            triggered = True
-                            voiced_frames.extend(ring_buffer)
-                            ring_buffer.clear()
-                    else:
-                        voiced_frames.append(chunk)
-                        ring_buffer.append(chunk)
-                        num_unvoiced = self.NUM_WINDOW_CHUNKS - sum(ring_buffer_flags)
-                        if num_unvoiced > 0.9 * self.NUM_WINDOW_CHUNKS:
-                            sys.stdout.write('-')
-                            triggered = False
-                            got_a_sentence = True
+            while not got_a_sentence:  # and not leave:
+                chunk = self.stream.read(self.CHUNK_SIZE)
+                active = self.vad.is_speech(chunk, self.RATE)
+                logging.info('1' if active else '0')
+                ring_buffer_flags[ring_buffer_index] = 1 if active else 0
+                ring_buffer_index += 1
+                ring_buffer_index %= self.NUM_WINDOW_CHUNKS
+                if not triggered:
+                    ring_buffer.append(chunk)
+                    num_voiced = sum(ring_buffer_flags)
+                    if num_voiced > 0.5 * self.NUM_WINDOW_CHUNKS:
+                        logging.info('+')
+                        triggered = True
+                        voiced_frames.extend(ring_buffer)
+                        ring_buffer.clear()
+                else:
+                    voiced_frames.append(chunk)
+                    ring_buffer.append(chunk)
+                    num_unvoiced = self.NUM_WINDOW_CHUNKS - sum(ring_buffer_flags)
+                    if num_unvoiced > 0.9 * self.NUM_WINDOW_CHUNKS:
+                        sys.stdout.write('-')
+                        triggered = False
+                        got_a_sentence = True
 
-                data = b''.join(voiced_frames)
-                logging.info("* done recording")
-                return data
+            data = b''.join(voiced_frames)
+            logging.info("* done recording")
+            return data
 
         except Exception as e:
             logging.exception(f"Mic client exception {e}")
