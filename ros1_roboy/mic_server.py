@@ -33,7 +33,6 @@ def main(host, port):
                         channels=CHANNELS,
                         rate=RATE,
                         input=True,
-                        start=False,
                         frames_per_buffer=CHUNK,
                         stream_callback=callback)
     # stream.start_stream()
