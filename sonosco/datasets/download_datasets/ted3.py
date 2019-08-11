@@ -28,7 +28,7 @@ def try_download_ted3(target_dir, sample_rate, min_duration, max_duration):
     extracted_dir = os.path.join(path_to_data, "Ted3")
     if os.path.exists(extracted_dir):
         shutil.rmtree(extracted_dir)
-    LOGGER.info("Start downloading...")
+    LOGGER.info(f"Start downloading Ted 3 from {TED_LIUM_V2_DL_URL}")
     file_name = TED_LIUM_V2_DL_URL.split("/")[-1]
     target_filename = os.path.join(target_unpacked_dir, file_name)
     path_utils.try_download(target_filename, TED_LIUM_V2_DL_URL)
@@ -116,8 +116,8 @@ def prepare_dir(ted_dir, sample_rate):
 
 def main(**kwargs):
     global LOGGER
-    logger = logging.getLogger(SONOSCO)
-    setup_logging(logger)
+    LOGGER = logging.getLogger(SONOSCO)
+    setup_logging(LOGGER)
     try_download_ted3(**kwargs)
 
 if __name__ == "__main__":
