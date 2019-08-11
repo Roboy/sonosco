@@ -95,7 +95,7 @@ def __create_serialize_body(fields_to_serialize: Iterable) -> List[str]:
             body_lines.append(__create_dict_entry("__class_module", f"self.{field.name}.__module__"))
             body_lines.append("},")
         else:
-            __throw_unsupported_data_type()
+            __throw_unsupported_data_type(field)
     body_lines.append(__create_dict_entry("state_dict", "self.state_dict()"))
     body_lines.append("}")
     return body_lines
@@ -119,17 +119,21 @@ def __extract_from_nn(name: str, cls: nn.Module, body_lines: List[str]):
 
 
 def __is_iterable_of_primitives(field) -> bool:
-    return hasattr(field, '__origin__') and field.__origin__ in __iterables and \
-           hasattr(field, '__args__') and __is_primitive(field.__args__[0])
+    # TODO: fix this
+    # return hasattr(field, '__origin__') and field.__origin__ in __iterables and \
+    #        hasattr(field, '__args__') and __is_primitive(field.__args__[0])
+    if field in __iterables:
+        return True
 
 
-def __throw_unsupported_data_type():
+def __throw_unsupported_data_type(field):
     """
     Throws unsupported data type exception
     Returns:
 
     """
-    raise TypeError("Unsupported data type. Currently only primitives, lists of primitives and types"
+    raise TypeError(f"Field name: {field.name}, Field type: {field.type}. "
+                    f"Unsupported data type. Currently only primitives, lists of primitives and types"
                     "objects can be serialized")
 
 

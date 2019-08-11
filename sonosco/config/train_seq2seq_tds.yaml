@@ -1,0 +1,67 @@
+train:
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
+  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest.csv'
+  log_dir: 'logs' # Location for log files
+  def_dir: 'examples/checkpoints/' # Default location to save/load models
+
+  load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
+
+  sample_rate: 16000 # Sample rate
+  window_size: 0.02 # Window size for spectrogram in seconds
+  window_stride: 0.01 # Window stride for spectrogram in seconds
+  window: 'hamming' # Window type for spectrogram generation
+
+  encoder:
+    input_dim: 161 # Number of frequencies in mel-scale filter
+    in_channel: 1 # Initial number of channels
+    channels: [10, 10, 14, 14, 14, 18, 18, 18, 18, 18, 18] # TDS blocks, whenever the number changes a sub-sampling layer is inserted
+    kernel_sizes: [21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
+    dropout: 0.2
+    bottleneck_dim: 1024
+
+  decoder:
+    input_dim: 1024
+    embedding_dim: 32
+    vocab_dim: 100
+    key_dim: 512
+    value_dim: 512
+    rnn_hidden_dim: 512
+    rnn_type_str: "gru"
+    attention_type: "dot"
+
+  batch_size: 32 # Batch size for training
+  hidden_size: 800 # Hidden size of RNNs
+  hidden_layers: 5 # Number of RNN layers
+  rnn_type: 'gru' # Type of the RNN unit: gru|lstm are supported
+  labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
+
+  max_epochs: 70 # Number of training epochs
+  learning_rate: 3.0e-4 # Initial learning rate
+  momentum: 0.9 # Momentum
+  max_norm: 800 # Norm cutoff to prevent explosion of gradients
+  learning_anneal: 1.1n # Annealing applied to learning rate every epoch
+  sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
+
+  checkpoint: True # Enables checkpoint saving of model
+  checkpoint_per_epoch: 1 # Save checkpoint per x epochs
+  silent: False # Turn on progress tracking per iteration
+  verbose: False # Turn on verbose progress tracking
+  continue: False # Continue training with a pre-trained model
+  finetune: False # Finetune a pre-trained model
+
+  num_data_workers: 8 # Number of workers used in data-loading
+  augment: False # Use random tempo and gain perturbations
+  shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
+
+  seed: 123456 # Seed to generators
+  cuda: True # Use cuda to train model
+  half_precision: True # Uses half precision to train a model
+  apex: True # Uses mixed precision to train a model
+  static_loss_scaling: False # Static loss scale for mixed precision
+  dynamic_loss_scaling: True # Use dynamic loss scaling for mixed precision
+
+  dist_url: 'tcp://127.0.0.1:1550' # URL used to set up distributed training
+  dist_backend: 'nccl' # Distributed backend
+  world_size: 1 # Number of distributed processes
+  rank: 0 # The rank of the current process
+  gpu_rank: 0 # If using distributed parallel for multi_gpu, sets the GPU for the process

@@ -4,6 +4,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 LOGGER = logging.getLogger(__name__)
 
+
 class TensorBoardCallback(AbstractCallback):
 
     def __init__(self, log_dir : str):
