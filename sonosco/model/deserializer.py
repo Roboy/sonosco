@@ -1,14 +1,14 @@
 import logging
 import sys
-from functools import reduce
-
 import torch
 import deprecation
 import torch.nn as nn
-from common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD
 
-from common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \
-    is_serialized_collection, is_serialized_type, raise_unsupported_data_type
+from typing import Dict, Any
+from functools import reduce
+from sonosco.common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, SERIALIZED_FIELD
+from sonosco.common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \
+    is_serialized_collection, is_serialized_type, raise_unsupported_data_type, is_serialized_dataclass
 
 LOGGER = logging.getLogger(__name__)
 
@@ -70,6 +70,10 @@ class ModelDeserializer:
 
         """
         package = self.deserialize_model_parameters(path)
+        return ModelDeserializer.__deserialize_model(cls, package)
+
+    @staticmethod
+    def __deserialize_model(cls: type, package: Dict[str, Any]) -> nn.Module:
         constructor_args_names = get_constructor_args(cls)
         serialized_args_names = set(package.keys())
         serialized_args_names.discard('state_dict')
@@ -91,13 +95,23 @@ class ModelDeserializer:
 
         for arg in args_to_apply:
             serialized_val = package.get(arg)
+
             # TODO: Rewrite this ugly if else chain to something more OO
-            if is_serialized_type(serialized_val):
+            if is_serialized_dataclass(serialized_val):
+                cls = reduce(getattr,
+                             f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}"
+                             .split("."), sys.modules[__name__])
+
+                kwargs[arg] = ModelDeserializer.__deserialize_model(cls, serialized_val[SERIALIZED_FIELD])
+
+            elif is_serialized_type(serialized_val):
                 kwargs[arg] = reduce(getattr,
                                      f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}"
                                      .split("."), sys.modules[__name__])
+
             elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):
                 kwargs[arg] = serialized_val
+
             else:
                 raise_unsupported_data_type()
 
