@@ -9,10 +9,12 @@ import sonosco.common.path_utils as path_utils
 import sonosco.common.utils as utils
 
 from random import random
-
+from typing import Callable, Union, Tuple, List, Any
 from sonosco.training import ModelTrainer
+from torch.utils.data import DataLoader
 from sonosco.training.model_checkpoint import ModelCheckpoint
 from sonosco.training.tensorboard_callback import TensorBoardCallback
+from .abstract_callback import AbstractCallback
 
 from time import time
 
@@ -118,23 +120,23 @@ class Experiment:
         path_utils.try_create_directory(dir_path)
 
     def setup_model_trainer(self,
-                            name,
-                            model,
-                            loss,
-                            epochs,
-                            train_data_loader,
-                            seed = None,
-                            model_checkpoints = True,
-                            tensorboad = True,
-                            val_data_loader = None,
-                            decoder = None,
+                            name: str,
+                            model: torch.nn.Module,
+                            loss: Union[Callable[[Any, Any], Any],
+                                        Callable[[torch.Tensor, torch.Tensor, torch.nn.Module], float]],
+                            epochs: int,
+                            train_data_loader: DataLoader,
+                            model_checkpoints: bool = True,
+                            tensorboard: bool = True,
+                            val_data_loader: DataLoader = None,
+                            decoder  = None,
                             optimizer = torch.optim.Adam,
-                            lr = 1e-4,
-                            custom_model_eval = False,
-                            gpu = None,
-                            clip_grads = None,
-                            metrics = None,
-                            callbacks = None):
+                            lr: float = 1e-4,
+                            custom_model_eval: bool = False,
+                            gpu: int = None,
+                            clip_grads: float = None,
+                            metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
+                            callbacks: List[AbstractCallback] = None):
         """
         Setup a model_trainer object with specified parameters, by default with checkpoint
         callback and tensorboard callback. Add this model trainer to the modeltrainers dictionary.
@@ -151,12 +153,24 @@ class Experiment:
             model_name = name + '_' + date_time + '_checkpoint.pt'
             trainer.add_callback(ModelCheckpoint(output_path=self.logs, model_name=model_name))
 
-        if tensorboad:
+        if tensorboard:
             trainer.add_callback(TensorBoardCallback(log_dir=self.logs))
 
         self.model_trainers = {name: trainer}
 
+    def start_training(self, trainer_name: str = None):
+        """
+        Starts training of all model trainers. If a trainer_name is specified, just this specific
+        model trainer is started.
 
+        :param trainer_name: str - if specified just the model trainer with this name gets started
+        """
+        if trainer_name is None:
+            for trainer in self.model_trainers.values():
+                trainer.start_training()
+        else:
+            self.model_trainers[trainer_name].start_training()
+        #TODO: add serialization after training is finished
 
     @staticmethod
     def add_file(folder_path, filename, content):
