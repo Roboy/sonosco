@@ -87,8 +87,8 @@ def __create_serialize_body(fields_to_serialize: Iterable) -> List[str]:
             body_lines.append(__create_dict_entry(field.name, f"self.{field.name}"))
         elif is_serializable(field.type):
             body_lines.append(f"'{field.name}': {{")
-            body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__name__"))
-            body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__module__"))
+            body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__class__.__name__"))
+            body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__class__.__module__"))
             body_lines.append(__create_dict_entry(SERIALIZED_FIELD, f"self.{field.name}.__serialize__()"))
             body_lines.append("},")
         elif __is_type(field.type):
@@ -98,6 +98,7 @@ def __create_serialize_body(fields_to_serialize: Iterable) -> List[str]:
             body_lines.append("},")
         else:
             __throw_unsupported_data_type(field)
+            
     body_lines.append(__create_dict_entry("state_dict", "self.state_dict()"))
     body_lines.append("}")
     return body_lines
