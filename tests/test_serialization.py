@@ -49,3 +49,4 @@ def test_model_serialization():
     assert deserialized_model.bidirectional == bidirectional
     assert deserialized_model.version == version
 
+test_model_serialization()

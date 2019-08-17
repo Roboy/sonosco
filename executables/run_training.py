@@ -15,6 +15,7 @@ from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.tensorboard_callback import TensorBoardCallback
 import torch
+
 LOGGER = logging.getLogger(SONOSCO)
 
 
@@ -49,7 +50,8 @@ def main(experiment_name, config_path, log_dir):
     model = TDSSeq2Seq(config['labels'], config["encoder"], config["decoder"])
     trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
-                           lr=config["learning_rate"], custom_model_eval=True, metrics=[word_error_rate, character_error_rate],
+                           lr=config["learning_rate"], custom_model_eval=True,
+                           metrics=[word_error_rate, character_error_rate],
                            decoder=GreedyDecoder(config['labels']),
                            callbacks=[TensorBoardCallback(log_dir)])
 

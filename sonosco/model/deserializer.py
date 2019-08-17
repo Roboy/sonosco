@@ -105,6 +105,13 @@ class ModelDeserializer:
                 kwargs[arg] = ModelDeserializer.__deserialize_model(cls, serialized_val[SERIALIZED_FIELD])
 
             elif is_serialized_type(serialized_val):
+                # todo: Add import of the package of the class to serialize (if necessary)
+                # Creates class object (type) from f"{serialized_val[CLASS_MODULE_FIELD]}
+                # .{serialized_val[CLASS_NAME_FIELD]}" string
+                # In current module we have only access to top level module (e.g torch)
+                # but we want to create particular class.
+                # The reduce method with call getattr with more nested path on each iteration
+                # (e.g torch, torch.nn, torch.nn.modules, etc.).
                 kwargs[arg] = reduce(getattr,
                                      f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}"
                                      .split("."), sys.modules[__name__])

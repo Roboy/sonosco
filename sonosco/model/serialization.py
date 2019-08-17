@@ -121,11 +121,8 @@ def __extract_from_nn(name: str, cls: nn.Module, body_lines: List[str]):
 
 
 def __is_iterable_of_primitives(field) -> bool:
-    # TODO: fix this
-    # return hasattr(field, '__origin__') and field.__origin__ in __iterables and \
-    #        hasattr(field, '__args__') and __is_primitive(field.__args__[0])
-    if field in __iterables:
-        return True
+    return hasattr(field, '__origin__') and field.__origin__ in __iterables and \
+           hasattr(field, '__args__') and __is_primitive(field.__args__[0])
 
 
 def __throw_unsupported_data_type(field):
