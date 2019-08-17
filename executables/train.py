@@ -37,16 +37,16 @@ def main(experiment_name, config_path):
         model_output, lens, loss = model(batch_x, input_lengths, batch_y)
         return loss, (model_output, lens)
 
+    device = torch.device("cuda" if CUDA_ENABLED else "cpu")
     model = TDSSeq2Seq(config['labels'], config["encoder"], config["decoder"])
-
-    if CUDA_ENABLED:
-        model.to("cuda:0")
+    model.to(device)
 
     trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
                            metrics=[word_error_rate, character_error_rate],
                            decoder=GreedyDecoder(config['labels']),
+                           device=device,
                            callbacks=[TensorBoardCallback(experiment.plots_path),
                                       ModelCheckpoint(experiment.checkpoints_path)])
 

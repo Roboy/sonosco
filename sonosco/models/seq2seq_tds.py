@@ -11,10 +11,12 @@ from dataclasses import field
 from sonosco.model.serialization import serializable
 from .modules import SubsampleBlock, TDSBlock, Linear, BatchRNN, InferenceBatchSoftmax, supported_rnns
 from .attention import DotAttention
+from sonosco.config.global_settings import CUDA_ENABLED
 
 
 LOGGER = logging.getLogger(__name__)
 EOS = '$'
+
 
 @serializable
 class TDSEncoder(nn.Module):
@@ -209,6 +211,10 @@ class TDSSeq2Seq(nn.Module):
         y_in_labels = torch.nn.utils.rnn.pad_sequence(y_in, batch_first=True).type(torch.LongTensor)
         y_out_labels = torch.nn.utils.rnn.pad_sequence(y_out, batch_first=True).type(torch.LongTensor)
 
+        if CUDA_ENABLED:
+            y_in_labels = y_in_labels.cuda()
+            y_out_labels = y_out_labels.cuda()
+
         encoding, encoding_lens = self.encoder(xs, xlens)
 
         if y_labels is None:
@@ -218,7 +224,7 @@ class TDSSeq2Seq(nn.Module):
             pass
         else:
             # During training we are using teacher-forcing
-            probs, y_lens  = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
+            probs, y_lens = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
 
         loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1))
 

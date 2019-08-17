@@ -41,7 +41,7 @@ class ModelTrainer:
                  optimizer=torch.optim.Adam,
                  lr: float = 1e-4,
                  custom_model_eval: bool = False,
-                 gpu: int = None,
+                 device=None,
                  clip_grads: float = None,
                  metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
                  callbacks: List[AbstractCallback] = None):
@@ -54,14 +54,11 @@ class ModelTrainer:
         self._epochs = epochs
         self._metrics = metrics if metrics is not None else list()
         self._callbacks = callbacks if callbacks is not None else list()
-        self._gpu = gpu
+        self._device = device
         self._custom_model_eval = custom_model_eval
         self._clip_grads = clip_grads
         self.decoder = decoder
         self._stop_training = False  # used stop training externally
-
-        if self._gpu is None and CUDA_ENABLED:
-            self._gpu = 0
 
     def set_metrics(self, metrics):
         """
@@ -251,11 +248,11 @@ class ModelTrainer:
         Parameters:
             tensors (list or Tensor): list of tensors or tensor tuples, can be nested
         """
-        if self._gpu is None:  # keep on cpu
+        if self._device is None:  # keep on cpu
             return tensors
 
         if type(tensors) != list and type(tensors) != tuple:  # not only for torch.Tensor
-            return tensors.to(device=self._gpu)
+            return tensors.to(device=self._device)
 
         cuda_tensors = list()
         for i in range(len(tensors)):
