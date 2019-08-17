@@ -28,7 +28,7 @@ class Experiment:
     def __init__(self,
                  experiment_name,
                  experiments_path=None,
-                 sub_directories=("plots", "logs", "code"),
+                 sub_directories=("plots", "logs", "code", "checkpoints"),
                  exclude_dirs=('__pycache__', '.git', 'experiments'),
                  exclude_files=('.pyc',)):
 
@@ -36,6 +36,8 @@ class Experiment:
         self.name = self._set_experiment_name(experiment_name)
         self.path = path.join(self.experiments_path, self.name)     # path to current experiment
         self.logs = path.join(self.experiments_path, "logs")
+        self.plots_path = path.join(self.experiments_path, "plots")
+        self.checkpoints_path = path.join(self.experiments_path, "checkpoints")
 
         self.code = path.join(self.experiments_path, "code")
         self._sub_directories = sub_directories
@@ -62,7 +64,7 @@ class Experiment:
         return f"{date_time}_{experiment_name}"
 
     def _set_logging(self):
-        utils.add_log_file(self.logs, LOGGER)
+        utils.add_log_file(path.join(self.logs, "logs"), LOGGER)
 
     def _init_directories(self):
         """ Create all basic directories. """

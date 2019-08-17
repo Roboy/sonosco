@@ -22,7 +22,6 @@ class ModelCheckpoint(AbstractCallback):
         self.best_val_score = sys.float_info.max
 
     def __call__(self, epoch, step, performance_measures, context):
-
         if 'val_loss' not in performance_measures:
             return
 
