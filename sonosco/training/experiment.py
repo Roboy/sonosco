@@ -180,6 +180,11 @@ class Experiment:
 
     @staticmethod
     def create(config: dict):
+        """
+        :param config: dict - specify a .yaml config with one or more parameters: name, seed,
+        experiment_path, sub_dirs, exclude_dirs, exclude_files and read it in as a dictionary.
+        :return: Experiment with configuration specified in config dictionary
+        """
         date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
         name = config.get('name', default='experiment')
         seed = config.get('global_seed', default=None)
