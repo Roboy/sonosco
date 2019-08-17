@@ -254,7 +254,7 @@ class ModelTrainer:
         if self._gpu is None:  # keep on cpu
             return tensors
 
-        if type(tensors) != list:  # not only for torch.Tensor
+        if type(tensors) != list and type(tensors) != tuple:  # not only for torch.Tensor
             return tensors.to(device=self._gpu)
 
         for i in range(len(tensors)):
