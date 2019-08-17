@@ -15,6 +15,18 @@ from mic_client import MicrophoneClient
 model_path = "pretrained/deepspeech_final.pth"
 
 asr = DeepSpeech2Inference(DeepSpeech2.load_model(model_path))
+leave = False
+got_a_sentence = False
+
+
+def handle_int(sig, chunk):
+    global leave, got_a_sentence
+
+    leave = True
+    got_a_sentence = True
+
+
+signal.signal(signal.SIGINT, handle_int)
 
 
 def vad_callback(request, publishers):
@@ -24,13 +36,6 @@ def vad_callback(request, publishers):
     publishers['ledmode'].publish(msg)
     transcription = ""
     with MicrophoneClient() as audio_input:
-        def handle_int(sig, chunk):
-            global leave, got_a_sentence
-
-            leave = True
-            got_a_sentence = True
-
-        signal.signal(signal.SIGINT, handle_int)
         while not leave:
             audio = audio_input.request_audio()
             transcription = asr.infer(audio)

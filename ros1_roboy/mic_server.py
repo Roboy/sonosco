@@ -12,7 +12,7 @@ def main(host, port):
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
     RATE = 16000
-    CHUNK_DURATION_MS = 30  # supports 10, 20 and 30 (ms)
+    CHUNK_DURATION_MS = 10  # supports 10, 20 and 30 (ms)
     CHUNK = int(RATE * CHUNK_DURATION_MS / 1000)
 
     audio = pyaudio.PyAudio()
