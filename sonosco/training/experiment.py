@@ -27,6 +27,7 @@ class Experiment:
 
     def __init__(self,
                  experiment_name,
+                 seed:int = None,
                  experiments_path=None,
                  sub_directories=("plots", "logs", "code", "checkpoints"),
                  exclude_dirs=('__pycache__', '.git', 'experiments'),
@@ -34,6 +35,7 @@ class Experiment:
 
         self.experiments_path = self._set_experiments_dir(experiments_path)
         self.name = self._set_experiment_name(experiment_name)
+        self.seed = seed
         self.path = path.join(self.experiments_path, self.name)     # path to current experiment
         self.logs = path.join(self.experiments_path, "logs")
         self.plots_path = path.join(self.experiments_path, "plots")
@@ -99,6 +101,8 @@ class Experiment:
         # create directory
         path_utils.try_create_directory(dir_path)
 
+    def setup_training(self, ):
+
     @staticmethod
     def add_file(folder_path, filename, content):
         """ Adds a file with provided content to folder. Convenience function. """
@@ -106,5 +110,12 @@ class Experiment:
             text_file.write(content)
 
     @staticmethod
-    def create(name: str):
-        return Experiment(name)
+    def create(config: dict):
+        name = config.get('name', default='experiment-' + str(datetime.time))
+        seed = config.get('global_seed', default=None)
+        experiment_path = config.get('experiment_path', default=None)
+        sub_dirs = config.get('sub_dirs', default=("plots", "logs", "code", "checkpoints"))
+        exclude_dirs = config.get('exclude_dirs', default=(('__pycache__', '.git', 'experiments'),))
+        exclude_files = config.get('exclude_files', default=('.pyc',))
+
+        return Experiment(name, seed, experiment_path, sub_dirs, exclude_dirs, exclude_files)
