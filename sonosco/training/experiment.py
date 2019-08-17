@@ -131,7 +131,7 @@ class Experiment:
                                gpu=gpu, clip_grads=clip_grads, metrics=metrics, callbacks=callbacks)
         if model_checkpoints:
             date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-            model_name = name + '_' + datetime + '_checkpoint.pt'
+            model_name = name + '_' + date_time + '_checkpoint.pt'
             trainer.add_callback(ModelCheckpoint(output_path=self.logs, model_name=model_name))
 
         if tensorboad:
