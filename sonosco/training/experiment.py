@@ -3,8 +3,12 @@ import os.path as path
 import datetime
 import torch
 import logging
+import numpy as np
+
 import sonosco.common.path_utils as path_utils
 import sonosco.common.utils as utils
+
+from random import random
 
 from sonosco.training import ModelTrainer
 from sonosco.training.model_checkpoint import ModelCheckpoint
@@ -40,7 +44,7 @@ class Experiment:
 
         self.experiments_path = self._set_experiments_dir(experiments_path)
         self.name = self._set_experiment_name(experiment_name)
-        self.seed = seed
+        if seed is not None: self._set_seed(seed)
         self.path = path.join(self.experiments_path, self.name)     # path to current experiment
         self.logs = path.join(self.experiments_path, "logs")
         self.plots_path = path.join(self.experiments_path, "plots")
@@ -69,6 +73,13 @@ class Experiment:
     def _set_experiment_name(experiment_name):
         date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
         return f"{date_time}_{experiment_name}"
+
+    @staticmethod
+    def _set_seed(seed):
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        np.random.seed(seed)
+        random.seed(seed)
 
     def _set_logging(self):
         utils.add_log_file(path.join(self.logs, "logs"), LOGGER)
@@ -112,6 +123,7 @@ class Experiment:
                             loss,
                             epochs,
                             train_data_loader,
+                            seed = None,
                             model_checkpoints = True,
                             tensorboad = True,
                             val_data_loader = None,
@@ -123,12 +135,17 @@ class Experiment:
                             clip_grads = None,
                             metrics = None,
                             callbacks = None):
+        """
+        Setup a model_trainer object with specified parameters, by default with checkpoint
+        callback and tensorboard callback. Add this model trainer to the modeltrainers dictionary.
+        """
 
         trainer = ModelTrainer(model=model, loss=loss, epochs=epochs,
                                train_data_loader=train_data_loader,
                                val_data_loader=val_data_loader, decoder=decoder,
                                optimizer=optimizer, lr=lr, custom_model_eval=custom_model_eval,
-                               gpu=gpu, clip_grads=clip_grads, metrics=metrics, callbacks=callbacks)
+                               gpu=gpu, clip_grads=clip_grads,
+                               metrics=metrics, callbacks=callbacks)
         if model_checkpoints:
             date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
             model_name = name + '_' + date_time + '_checkpoint.pt'
@@ -150,7 +167,7 @@ class Experiment:
     @staticmethod
     def create(config: dict):
         date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-        name = config.get('name', default='experiment-' + date_time)
+        name = config.get('name', default='experiment')
         seed = config.get('global_seed', default=None)
         experiment_path = config.get('experiment_path', default=None)
         sub_dirs = config.get('sub_dirs', default=("plots", "logs", "code", "checkpoints"))

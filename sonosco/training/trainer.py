@@ -35,15 +35,15 @@ class ModelTrainer:
                              Callable[[torch.Tensor, torch.Tensor, torch.nn.Module], float]],
                  epochs: int,
                  train_data_loader: DataLoader,
-                 val_data_loader: DataLoader,
-                 decoder,
-                 optimizer,
-                 lr: float,
-                 custom_model_eval: bool,
-                 gpu: int,
-                 clip_grads: float,
-                 metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]],
-                 callbacks: List[AbstractCallback]):
+                 val_data_loader: DataLoader = None,
+                 decoder = None,
+                 optimizer = torch.optim.Adam,
+                 lr: float = 1e-4,
+                 custom_model_eval: bool = False,
+                 gpu: int = None,
+                 clip_grads: float = None,
+                 metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
+                 callbacks: List[AbstractCallback] = None):
 
         self.model = model
         self.train_data_loader = train_data_loader
@@ -90,6 +90,9 @@ class ModelTrainer:
 
         self._close_callbacks()
 
+    def stop_training(self):
+        self._stop_training = True
+
     def _epoch_step(self, epoch):
         """ Execute one training epoch. """
         running_batch_loss = 0
@@ -116,9 +119,6 @@ class ModelTrainer:
             performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
             self._print_step_info(epoch, step, performance_measures)
             self._apply_callbacks(epoch, step, performance_measures)
-
-    def stop_training(self):
-        self._stop_training = True
 
     def _comp_gradients(self):
         """ Compute the gradient norm for all model parameters. """
