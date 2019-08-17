@@ -196,9 +196,9 @@ class TDSSeq2Seq(nn.Module):
 
     def forward(self, xs, xlens, y_labels=None):
         y_in, y_out = list(), list()
-        # w = next(self.parameters())
-        # eos = w.new_zeros(1).fill_(self.labels_map[EOS]).long()
-        eos = torch.tensor([self.labels_map[EOS]], dtype=torch.int32)
+        w = next(self.parameters())
+        eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.int32)
+        # eos = torch.tensor([self.labels_map[EOS]], dtype=torch.int32)
 
         for y in y_labels:
             y_in.append(torch.cat([eos, y], dim=0))
