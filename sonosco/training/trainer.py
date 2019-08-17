@@ -7,6 +7,7 @@ from collections import defaultdict
 from typing import Callable, Union, Tuple, List, Any
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
+from sonosco.config.global_settings import CUDA_ENABLED
 from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 
 
@@ -36,7 +37,7 @@ class ModelTrainer:
                  epochs: int,
                  train_data_loader: DataLoader,
                  val_data_loader: DataLoader = None,
-                 decoder = None,
+                 decoder=None,
                  optimizer=torch.optim.Adam,
                  lr: float = 1e-4,
                  custom_model_eval: bool = False,
@@ -58,6 +59,9 @@ class ModelTrainer:
         self._clip_grads = clip_grads
         self.decoder = decoder
         self._stop_training = False  # used stop training externally
+
+        if self._gpu is None and CUDA_ENABLED:
+            self._gpu = 0
 
     def set_metrics(self, metrics):
         """

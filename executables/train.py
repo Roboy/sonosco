@@ -13,6 +13,7 @@ from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.tensorboard_callback import TensorBoardCallback
 from sonosco.training.model_checkpoint import ModelCheckpoint
+from sonosco.config.global_settings import CUDA_ENABLED
 
 
 LOGGER = logging.getLogger(SONOSCO)
@@ -37,6 +38,10 @@ def main(experiment_name, config_path):
         return loss, (model_output, lens)
 
     model = TDSSeq2Seq(config['labels'], config["encoder"], config["decoder"])
+
+    if CUDA_ENABLED:
+        model.to("cuda:0")
+
     trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
