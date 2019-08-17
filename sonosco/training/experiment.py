@@ -1,9 +1,14 @@
 import os
 import os.path as path
 import datetime
+import torch
 import logging
 import sonosco.common.path_utils as path_utils
 import sonosco.common.utils as utils
+
+from sonosco.training import ModelTrainer
+from sonosco.training.model_checkpoint import ModelCheckpoint
+from sonosco.training.tensorboard_callback import TensorBoardCallback
 
 from time import time
 
@@ -101,7 +106,40 @@ class Experiment:
         # create directory
         path_utils.try_create_directory(dir_path)
 
-    def setup_training(self, ):
+    def setup_model_trainer(self,
+                            name,
+                            model,
+                            loss,
+                            epochs,
+                            train_data_loader,
+                            model_checkpoints = True,
+                            tensorboad = True,
+                            val_data_loader = None,
+                            decoder = None,
+                            optimizer = torch.optim.Adam,
+                            lr = 1e-4,
+                            custom_model_eval = False,
+                            gpu = None,
+                            clip_grads = None,
+                            metrics = None,
+                            callbacks = None):
+
+        trainer = ModelTrainer(model=model, loss=loss, epochs=epochs,
+                               train_data_loader=train_data_loader,
+                               val_data_loader=val_data_loader, decoder=decoder,
+                               optimizer=optimizer, lr=lr, custom_model_eval=custom_model_eval,
+                               gpu=gpu, clip_grads=clip_grads, metrics=metrics, callbacks=callbacks)
+        if model_checkpoints:
+            date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
+            model_name = name + '_' + datetime + '_checkpoint.pt'
+            trainer.add_callback(ModelCheckpoint(output_path=self.logs, model_name=model_name))
+
+        if tensorboad:
+            trainer.add_callback(TensorBoardCallback(log_dir=self.logs))
+
+        self.model_trainers = {name: trainer}
+
+
 
     @staticmethod
     def add_file(folder_path, filename, content):
@@ -111,7 +149,8 @@ class Experiment:
 
     @staticmethod
     def create(config: dict):
-        name = config.get('name', default='experiment-' + str(datetime.time))
+        date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
+        name = config.get('name', default='experiment-' + date_time)
         seed = config.get('global_seed', default=None)
         experiment_path = config.get('experiment_path', default=None)
         sub_dirs = config.get('sub_dirs', default=("plots", "logs", "code", "checkpoints"))

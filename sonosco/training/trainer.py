@@ -35,15 +35,15 @@ class ModelTrainer:
                              Callable[[torch.Tensor, torch.Tensor, torch.nn.Module], float]],
                  epochs: int,
                  train_data_loader: DataLoader,
-                 val_data_loader: DataLoader = None,
-                 decoder = None,
-                 optimizer=torch.optim.Adam,
-                 lr: float = 1e-4,
-                 custom_model_eval: bool = False,
-                 gpu: int = None,
-                 clip_grads: float = None,
-                 metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
-                 callbacks: List[AbstractCallback] = None):
+                 val_data_loader: DataLoader,
+                 decoder,
+                 optimizer,
+                 lr: float,
+                 custom_model_eval: bool,
+                 gpu: int,
+                 clip_grads: float,
+                 metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]],
+                 callbacks: List[AbstractCallback]):
 
         self.model = model
         self.train_data_loader = train_data_loader
