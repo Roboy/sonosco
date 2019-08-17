@@ -257,6 +257,7 @@ class ModelTrainer:
         if type(tensors) != list and type(tensors) != tuple:  # not only for torch.Tensor
             return tensors.to(device=self._gpu)
 
+        cuda_tensors = list()
         for i in range(len(tensors)):
-            tensors[i] = self._recursive_to_cuda(tensors[i])
-        return tensors
+            cuda_tensors.append(self._recursive_to_cuda(tensors[i]))
+        return cuda_tensors
