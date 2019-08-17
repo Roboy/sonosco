@@ -98,11 +98,9 @@ class ModelDeserializer:
 
             # TODO: Rewrite this ugly if else chain to something more OO
             if is_serialized_dataclass(serialized_val):
-                cls = reduce(getattr,
-                             f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}"
-                             .split("."), sys.modules[__name__])
-
-                kwargs[arg] = ModelDeserializer.__deserialize_model(cls, serialized_val[SERIALIZED_FIELD])
+                clazz = ModelDeserializer.__create_class_object(
+                    f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}")
+                kwargs[arg] = ModelDeserializer.__deserialize_model(clazz, serialized_val[SERIALIZED_FIELD])
 
             elif is_serialized_type(serialized_val):
                 # todo: Add import of the package of the class to serialize (if necessary)
@@ -112,9 +110,8 @@ class ModelDeserializer:
                 # but we want to create particular class.
                 # The reduce method with call getattr with more nested path on each iteration
                 # (e.g torch, torch.nn, torch.nn.modules, etc.).
-                kwargs[arg] = reduce(getattr,
-                                     f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}"
-                                     .split("."), sys.modules[__name__])
+                kwargs[arg] = ModelDeserializer.__create_class_object(
+                    f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}")
 
             elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):
                 kwargs[arg] = serialized_val
@@ -122,6 +119,11 @@ class ModelDeserializer:
             else:
                 raise_unsupported_data_type()
 
-        model = cls(**kwargs)
-        model.load_state_dict(package['state_dict'])
-        return model
+        obj = cls(**kwargs)
+        if package.get('state_dict'):
+            obj.load_state_dict(package['state_dict'])
+        return obj
+
+    @staticmethod
+    def __create_class_object(full_class_name: str):
+        return reduce(getattr, full_class_name.split("."), sys.modules[__name__])
