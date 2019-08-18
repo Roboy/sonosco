@@ -24,7 +24,7 @@ def try_download_voxforge(target_dir, sample_rate, min_duration, max_duration):
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     path_utils.try_create_directory(path_to_data)
 
-    LOGGER.info("Start downloading...")
+    LOGGER.info(f"Start downloading Voxforge from {VOXFORGE_URL_16kHz}")
     request = urllib.request.Request(VOXFORGE_URL_16kHz)
     response = urllib.request.urlopen(request)
     content = response.read()
@@ -104,8 +104,8 @@ def prepare_sample(recording_name, url, target_folder, sample_rate):
 
 def main(**kwargs):
     global LOGGER
-    logger = logging.getLogger(SONOSCO)
-    setup_logging(logger)
+    LOGGER = logging.getLogger(SONOSCO)
+    setup_logging(LOGGER)
     try_download_voxforge(**kwargs)
 
 

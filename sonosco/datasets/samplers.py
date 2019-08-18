@@ -3,11 +3,8 @@ import math
 import numpy as np
 import torch
 from torch.utils.data import Sampler
-<<<<<<< HEAD
-=======
 # from torch.distributed.deprecated import get_rank
 # from torch.distributed.deprecated import get_world_size
->>>>>>> 32ae1956ab76275f6ebdbc25a8dcc3f6218e504b
 
 
 class BucketingSampler(Sampler):
@@ -31,8 +28,6 @@ class BucketingSampler(Sampler):
 
     def shuffle(self, epoch):
         np.random.shuffle(self.bins)
-<<<<<<< HEAD
-=======
 
 
 # TODO: Optimise
@@ -72,4 +67,3 @@ class BucketingSampler(Sampler):
 #         g.manual_seed(epoch)
 #         bin_ids = list(torch.randperm(len(self.bins), generator=g))
 #         self.bins = [self.bins[i] for i in bin_ids]
->>>>>>> 32ae1956ab76275f6ebdbc25a8dcc3f6218e504b

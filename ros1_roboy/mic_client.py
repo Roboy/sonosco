@@ -13,8 +13,9 @@ logging.basicConfig(level=logging.INFO)
 
 class MicrophoneClient(SonoscoAudioInput):
 
-    def __init__(self, port=10001, host='172.16.100.2019', sample_rate=16000, chunk_size=1024):
+    def __init__(self, port=10002, host='192.168.65.2', sample_rate=16000, chunk_size=1024):
         # self.format = pyaudio.paInt16
+
         self.SAMPLE_WIDTH = 2  # pyaudio.get_sample_size(self.format)  # size of each sample
         self.SAMPLE_RATE = sample_rate  # sampling rate in Hertz
         self.CHUNK = chunk_size
@@ -44,7 +45,7 @@ class MicrophoneClient(SonoscoAudioInput):
     def write_to_streams(self):
         logging.info("Started mic client deamon")
         while True:
-            data = self.s.recv(self.CHUNK)
+            data = self.s.recv(self.CHUNK_BYTES)
             if self.record:
                 data = np.frombuffer(data, dtype=np.int16)
                 self.stream.write(data.tobytes())
@@ -64,7 +65,7 @@ class MicrophoneClient(SonoscoAudioInput):
             logging.info("* recording")
 
             while not got_a_sentence:  # and not leave:
-                chunk = self.stream.read(self.CHUNK_SIZE)
+                chunk = self.stream.read(self.CHUNK_BYTES)
                 active = self.vad.is_speech(chunk, self.RATE)
                 logging.info('1' if active else '0')
                 ring_buffer_flags[ring_buffer_index] = 1 if active else 0
@@ -93,6 +94,7 @@ class MicrophoneClient(SonoscoAudioInput):
 
         except Exception as e:
             logging.exception(f"Mic client exception {e}")
+            raise e
 
     def __enter__(self):
         # assert self.stream is None, "This audio source is already inside a context manager"
