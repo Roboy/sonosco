@@ -7,8 +7,8 @@ LOGGER = logging.getLogger(__name__)
 
 class TensorBoardCallback(AbstractCallback):
 
-    def __init__(self, log_dir : str):
-        self.writer = SummaryWriter(log_dir= log_dir)
+    def __init__(self, log_dir: str):
+        self.writer = SummaryWriter(log_dir=log_dir)
 
     def __call__(self,
                  epoch,

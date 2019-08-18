@@ -1,1 +1,1 @@
-CUDA_ENABLED = False
+CUDA_ENABLED = True
