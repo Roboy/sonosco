@@ -8,7 +8,7 @@ __primitives = {int, float, str, bool}
 __iterables = [list, set, tuple, dict]
 
 
-def serializable(_cls: type = None) -> object:
+def serializable(_cls: type = None, *, model=False) -> object:
     """
 
     Returns the same class as passed in, but with __init__ and __serialize__ methods.
@@ -24,7 +24,8 @@ def serializable(_cls: type = None) -> object:
 
 
     Args:
-        _cls: Python Class object
+        _cls type: Python Class object
+        model bool: indicator whether class is a Pytorch model
 
     Returns: enchanted class
 
@@ -32,7 +33,7 @@ def serializable(_cls: type = None) -> object:
 
     def wrap(cls):
         cls = _process_class(cls, init=True, repr=False, eq=False, order=False, unsafe_hash=False, frozen=False)
-        _set_new_attribute(cls, '__serialize__', __add_serialize(cls))
+        _set_new_attribute(cls, '__serialize__', __add_serialize(cls, model))
         return cls
 
     # See if we're being called as @serializable or @serializable().
@@ -56,7 +57,7 @@ def is_serializable(obj: object) -> bool:
     return hasattr(obj, '__serialize__')
 
 
-def __add_serialize(cls: type) -> object:
+def __add_serialize(cls: type, model: bool) -> object:
     """
     Adds __serialize__ method.
     Args:
@@ -67,11 +68,11 @@ def __add_serialize(cls: type) -> object:
     """
     fields_to_serialize = fields(cls)
     sonosco_self = '__sonosco_self__' if 'self' in fields_to_serialize else 'self'
-    serialize_body = __create_serialize_body(fields_to_serialize)
+    serialize_body = __create_serialize_body(fields_to_serialize, model)
     return _create_fn('__serialize__', [sonosco_self], serialize_body, return_type=dict)
 
 
-def __create_serialize_body(fields_to_serialize: Iterable) -> List[str]:
+def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[str]:
     """
     Creates body of __serialize__ method as list of strings.
     Args:
@@ -98,8 +99,8 @@ def __create_serialize_body(fields_to_serialize: Iterable) -> List[str]:
             body_lines.append("},")
         else:
             __throw_unsupported_data_type(field)
-            
-    body_lines.append(__create_dict_entry("state_dict", "self.state_dict()"))
+    if model:
+        body_lines.append(__create_dict_entry("state_dict", "self.state_dict()"))
     body_lines.append("}")
     return body_lines
 

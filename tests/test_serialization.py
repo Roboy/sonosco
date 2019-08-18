@@ -1,7 +1,7 @@
 import math
 import os
 from collections import OrderedDict
-from dataclasses import field
+from dataclasses import field, dataclass
 
 from sonosco.models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
 
@@ -25,7 +25,7 @@ class MockedNestedClass:
     yetAnotherSerializableClass: YetAnotherSerializableClass = YetAnotherSerializableClass(some_stuff="XDDDD")
 
 
-@serializable
+@serializable(model=True)
 class MockModel(nn.Module):
     mockedNestedClass: MockedNestedClass
     rnn_type: type = nn.LSTM
@@ -117,6 +117,9 @@ def test_model_serialization():
     assert deserialized_model.audio_conf == audio_conf
     assert deserialized_model.bidirectional == bidirectional
     assert deserialized_model.version == version
+    assert deserialized_model.mockedNestedClass.some_int == 42
+    assert deserialized_model.mockedNestedClass.some_collection == ['the', 'future', 'is', 'here']
+    assert deserialized_model.mockedNestedClass.yetAnotherSerializableClass.some_stuff == "old man"
 
 
 test_model_serialization()
