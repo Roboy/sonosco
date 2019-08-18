@@ -10,7 +10,7 @@ class DotAttention(nn.Module):
         self.scale = 1.0 / np.sqrt(query_dim)
         self.softmax = nn.Softmax(dim=2)
 
-    def forward(self, queries, keys, values):
+    def forward(self, queries, keys, values, mask):
         """
         :param queries: [B,T_dec,Q] (hidden state, decoder output, etc.)
         :param keys: [B,T_enc,K] (encoder outputs)
@@ -23,6 +23,10 @@ class DotAttention(nn.Module):
         keys = keys.permute(0, 2, 1)  # [B,T_enc,K] -> [B,K,T_enc]
         scores = torch.bmm(queries, keys)  # [B,T_dec,Q]*[B,K,T_enc] = [B,T_dec,T_enc]
         scores = self.softmax(scores.mul_(self.scale))
+
+        # mask
+        # scores = scores * mask
+        # energy.div(energy.sum(2, keepdim=True))
 
         # TODO: add soft window pre-training
         # weight values

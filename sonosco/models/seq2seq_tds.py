@@ -16,6 +16,8 @@ from sonosco.config.global_settings import CUDA_ENABLED
 
 LOGGER = logging.getLogger(__name__)
 EOS = '$'
+PADDING_VALUE = '%'
+MAX_LEN = 100
 
 
 @serializable
@@ -139,6 +141,7 @@ class TDSDecoder(nn.Module):
     rnn_hidden_dim: int = 512
     rnn_type_str: str = "gru"
     attention_type: str = "dot"
+    labels_map: dict = field(default_factory=dict)
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
@@ -159,27 +162,88 @@ class TDSDecoder(nn.Module):
 
         self.inference_softmax = InferenceBatchSoftmax()
 
-    def forward(self, encoding, encoding_lens, y_labels, y_lens):
+    def forward(self, encoding, encoding_lens, y_labels=None, y_lens=None, eos=None):
+        """
+        Performs teacher-forcing inference if y_labels and y_lens are given, otherwise
+        step-by-step inference while feeding the previously generated output into the rnn.
+
+        :param encoding: [B,T,E]
+        :param encoding_lens: len(encoding_lens)=B
+        :param y_labels: [B,T,Y]
+        :param y_lens: len(y_lens)=B
+        :param eos: tensor index
+        :return: probabilities and lengths
+        """
         # split into keys and values
         # keys [B,T,K], values [B,T,V]
         keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
 
+        if y_labels is not None and y_lens is not None:
+            return self.__forward_train(keys, values, encoding_lens, y_labels, y_lens)
+        else:
+            if eos is None:
+                raise ValueError("For inference eos has to be specified.")
+
+            return self.__forward_inference(keys, values, encoding_lens, eos)
+
+    @staticmethod
+    def __create_mask(inp, pad_idx):
+        mask = (inp != pad_idx).permute(1, 0)
+        return mask
+
+    def __forward_train(self, keys, values, encoding_lens, y_labels, y_lens):
         # embed value that we get from teacher-forcing
         y_embed = self.word_piece_embedding(y_labels)
-
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens)
         queries = queries.transpose(0, 1)
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
         # TODO: add encoding_lens for attention calculation
-        summaries, scores = self.attention(queries, keys, values)
+        mask = self.__create_mask(keys, self.labels_map[PADDING_VALUE])
+        summaries, scores = self.attention(queries, keys, values, mask)
 
         outputs = self.output_mlp(torch.cat([summaries, queries], dim=-1))
 
         probs = self.inference_softmax(outputs)
 
         return probs, y_lens
+
+    def __forward_inference(self, keys, values, encoding_lens):
+        batch_size = keys.size(0)
+        assert batch_size == 1
+
+        w = next(self.parameters())
+        eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.int32)
+        y_prev = self.word_piece_embedding(eos)
+
+        hidden = torch.zeros((self.rnn_hidden_dim, batch_size), dtype=torch.long)
+        outputs = torch.zeros(MAX_LEN, batch_size, self.vocab_dim)
+        attentions = torch.zeros(MAX_LEN, batch_size, keys.shape[1])
+        mask = self.__create_mask(keys, self.labels_map[PADDING_VALUE])
+
+        if CUDA_ENABLED:
+            outputs = outputs.cuda()
+            attentions = attentions.cuda()
+            hidden = hidden.cuda()
+
+        for t in range(MAX_LEN):
+            query, hidden = self.rnn.forward_one_step(y_prev, hidden)
+            summaries, score = self.attention(query.unsqueeze(1), keys, values, mask)
+            summary = summaries.squeeze(1)
+            output = self.output_mlp(torch.cat([summary, query], dim=-1))
+
+            # Store results
+            outputs[t] = output
+            attentions[t] = score
+
+            probs = self.inference_softmax(output)
+            best_index = probs.max(1)[1]
+
+            if best_index.item() == self.labels_map[EOS]:
+                return outputs[:t], attentions[:t]
+
+        return outputs, attentions
 
 
 @serializable
@@ -190,42 +254,38 @@ class TDSSeq2Seq(nn.Module):
 
     def __post_init__(self):
         super().__init__()
-        self.labels = self.labels + EOS
+        self.labels = self.labels + EOS + PADDING_VALUE
         self.labels_map = dict([(self.labels[i], i) for i in range(len(self.labels))])
         self.decoder_args["vocab_dim"] = len(self.labels)
         self.encoder = TDSEncoder(**self.encoder_args)
-        self.decoder = TDSDecoder(**self.decoder_args)
+        self.decoder = TDSDecoder(labels_map=self.labels_map, **self.decoder_args)
 
     def forward(self, xs, xlens, y_labels=None):
         y_in, y_out = list(), list()
         w = next(self.parameters())
         eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.int32)
-        # eos = torch.tensor([self.labels_map[EOS]], dtype=torch.int32)
-
-        for y in y_labels:
-            y_in.append(torch.cat([eos, y], dim=0))
-            y_out.append(torch.cat([y, eos], dim=0))
-
-        y_lens = [y.size(0) for y in y_in]
-
-        y_in_labels = torch.nn.utils.rnn.pad_sequence(y_in, batch_first=True).type(torch.LongTensor)
-        y_out_labels = torch.nn.utils.rnn.pad_sequence(y_out, batch_first=True).type(torch.LongTensor)
-
-        if CUDA_ENABLED:
-            y_in_labels = y_in_labels.cuda()
-            y_out_labels = y_out_labels.cuda()
 
         encoding, encoding_lens = self.encoder(xs, xlens)
 
-        if y_labels is None:
-            # TODO: implement
-            # We are performing inference
-            probs = None
-            pass
-        else:
-            # During training we are using teacher-forcing
+        if y_labels is not None:
+            for y in y_labels:
+                y_in.append(torch.cat([eos, y], dim=0))
+                y_out.append(torch.cat([y, eos], dim=0))
+
+            y_lens = [y.size(0) for y in y_in]
+
+            y_in_labels = torch.nn.utils.rnn.pad_sequence(y_in, batch_first=True).type(torch.LongTensor)
+            y_out_labels = torch.nn.utils.rnn.pad_sequence(y_out, batch_first=True).type(torch.LongTensor)
+
+            if CUDA_ENABLED:
+                y_in_labels = y_in_labels.cuda()
+                y_out_labels = y_out_labels.cuda()
+
             probs, y_lens = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
-
-        loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1))
-
-        return probs, y_lens, loss
+            loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1),
+                                                  ignore_index=self.labels_map[PADDING_VALUE])
+            return probs, y_lens, loss
+        else:
+            # Perform inference only for batch_size=1
+            probs, y_lens = self.decoder(encoding, encoding_lens)
+            return probs, y_lens
