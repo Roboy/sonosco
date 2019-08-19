@@ -192,6 +192,7 @@ class ModelTrainer:
         for metric in self._metrics:
             if self._custom_model_eval:
                 LOGGER.info(f"Compute metric: {metric.__name__}")
+                # TODO: this should be done somehow in a more abstract way
                 if metric.__name__ == 'word_error_rate' or metric.__name__ == 'character_error_rate':
                     metric_result = metric(y_pred, batch, self.decoder)
                 else:

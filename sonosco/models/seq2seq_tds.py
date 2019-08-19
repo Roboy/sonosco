@@ -162,7 +162,7 @@ class TDSDecoder(nn.Module):
 
         self.inference_softmax = InferenceBatchSoftmax()
 
-    def forward(self, encoding, encoding_lens, y_labels=None, y_lens=None, eos=None):
+    def forward(self, encoding, encoding_lens, y_labels=None, y_lens=None):
         """
         Performs teacher-forcing inference if y_labels and y_lens are given, otherwise
         step-by-step inference while feeding the previously generated output into the rnn.
@@ -171,7 +171,6 @@ class TDSDecoder(nn.Module):
         :param encoding_lens: len(encoding_lens)=B
         :param y_labels: [B,T,Y]
         :param y_lens: len(y_lens)=B
-        :param eos: tensor index
         :return: probabilities and lengths
         """
         # split into keys and values
@@ -181,10 +180,7 @@ class TDSDecoder(nn.Module):
         if y_labels is not None and y_lens is not None:
             return self.__forward_train(keys, values, encoding_lens, y_labels, y_lens)
         else:
-            if eos is None:
-                raise ValueError("For inference eos has to be specified.")
-
-            return self.__forward_inference(keys, values, encoding_lens, eos)
+            return self.__forward_inference(keys, values, encoding_lens)
 
     @staticmethod
     def __create_mask(inp, pad_idx):
