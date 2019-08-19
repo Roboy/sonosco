@@ -46,7 +46,8 @@ class Experiment:
 
         self.experiments_path = self._set_experiments_dir(experiments_path)
         self.name = self._set_experiment_name(experiment_name)
-        if seed is not None: self._set_seed(seed)
+        if seed is not None:
+            self._set_seed(seed)
         self.path = path.join(self.experiments_path, self.name)     # path to current experiment
         self.logs = path.join(self.experiments_path, "logs")
         self.plots_path = path.join(self.experiments_path, "plots")
