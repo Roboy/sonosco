@@ -1,3 +1,4 @@
+import inspect
 import logging
 import sys
 import torch
@@ -70,10 +71,11 @@ class ModelDeserializer:
 
         """
         package = self.deserialize_model_parameters(path)
-        return ModelDeserializer.__deserialize_model(cls, package)
+        caller_module = inspect.getmodule(inspect.stack()[1][0])
+        return ModelDeserializer.__deserialize_model(cls, package, caller_module)
 
     @staticmethod
-    def __deserialize_model(cls: type, package: Dict[str, Any]) -> nn.Module:
+    def __deserialize_model(cls: type, package: Dict[str, Any], caller_module: object) -> nn.Module:
         constructor_args_names = get_constructor_args(cls)
         serialized_args_names = set(package.keys())
         serialized_args_names.discard('state_dict')
@@ -98,16 +100,14 @@ class ModelDeserializer:
 
             # TODO: Rewrite this ugly if else chain to something more OO
             if is_serialized_dataclass(serialized_val):
-                cls = reduce(getattr,
-                             f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}"
-                             .split("."), sys.modules[__name__])
-
-                kwargs[arg] = ModelDeserializer.__deserialize_model(cls, serialized_val[SERIALIZED_FIELD])
+                clazz = ModelDeserializer.__create_class_object(
+                    f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}", caller_module)
+                kwargs[arg] = ModelDeserializer.__deserialize_model(clazz, serialized_val[SERIALIZED_FIELD],
+                                                                    caller_module)
 
             elif is_serialized_type(serialized_val):
-                kwargs[arg] = reduce(getattr,
-                                     f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}"
-                                     .split("."), sys.modules[__name__])
+                kwargs[arg] = ModelDeserializer.__create_class_object(
+                    f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}", caller_module)
 
             elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):
                 kwargs[arg] = serialized_val
@@ -115,6 +115,28 @@ class ModelDeserializer:
             else:
                 raise_unsupported_data_type()
 
-        model = cls(**kwargs)
-        model.load_state_dict(package['state_dict'])
-        return model
+        obj = cls(**kwargs)
+        if package.get('state_dict'):
+            obj.load_state_dict(package['state_dict'])
+        return obj
+
+    @staticmethod
+    def __create_class_object(full_class_name: str, caller_module: object):
+        # todo: Add import of the package of the class to serialize (if necessary)
+        # Creates class object (type) from full_class_name
+        # In current module we have only access to top level module (e.g torch)
+        # but we want to create particular class.
+        # The reduce method with call getattr with more nested path on each iteration
+        # (e.g torch, torch.nn, torch.nn.modules, etc.).
+
+        # todo: More generic approach should be implemented. For now only caller's scope and current scope are checked.
+        try:
+            return reduce(getattr, full_class_name.split("."), sys.modules[__name__])
+        except Exception as e:
+            LOGGER.info("could not find appropriate class in current module")
+
+        return reduce(getattr, full_class_name.split(".")[1:], caller_module)
+
+    @staticmethod
+    def __reduce_from_module(full_class_name: str, module: object):
+        reduce(getattr, full_class_name.split("."), module)
