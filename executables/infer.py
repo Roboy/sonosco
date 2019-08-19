@@ -1,16 +1,15 @@
 import logging
 import click
 import torch
-import torch.nn.functional as torch_functional
 
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
 from sonosco.common.path_utils import parse_yaml
-from sonosco.datasets import create_data_loaders
-from sonosco.models import DeepSpeech2, TDSSeq2Seq
+from sonosco.models import TDSSeq2Seq
 from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 from sonosco.datasets.processor import AudioDataProcessor
 from sonosco.config.global_settings import CUDA_ENABLED
+
 
 LOGGER = logging.getLogger(SONOSCO)
 
