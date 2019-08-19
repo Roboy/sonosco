@@ -131,7 +131,7 @@ class Experiment:
                             tensorboard: bool = True,
                             val_data_loader: DataLoader = None,
                             decoder  = None,
-                            optimizer = torch.optim.Adam,
+                            optimizer=torch.optim.Adam,
                             lr: float = 1e-4,
                             custom_model_eval: bool = False,
                             gpu: int = None,
@@ -151,8 +151,7 @@ class Experiment:
                                metrics=metrics, callbacks=callbacks)
         if model_checkpoints:
             date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-            model_name = name + '_' + date_time + '_checkpoint.pt'
-            trainer.add_callback(ModelCheckpoint(output_path=self.logs, model_name=model_name))
+            trainer.add_callback(ModelCheckpoint(output_path=self.checkpoints))
 
         if tensorboard:
             trainer.add_callback(TensorBoardCallback(log_dir=self.logs))

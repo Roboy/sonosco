@@ -37,7 +37,7 @@ class ModelTrainer:
                  train_data_loader: DataLoader,
                  val_data_loader: DataLoader = None,
                  decoder = None,
-                 optimizer = torch.optim.Adam,
+                 optimizer=torch.optim.Adam,
                  lr: float = 1e-4,
                  custom_model_eval: bool = False,
                  gpu: int = None,
