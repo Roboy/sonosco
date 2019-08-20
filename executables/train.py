@@ -37,7 +37,7 @@ def main(experiment_name, config_path):
         model_output, lens, loss = model(batch_x, input_lengths, batch_y)
         return loss, (model_output, lens)
 
-    device = torch.device("cuda" if CUDA_ENABLED else "cpu")
+    device = torch.device("cuda" if CUDA_ENABLED and torch.cuda.is_available() else "cpu")
     model = TDSSeq2Seq(config['labels'], config["encoder"], config["decoder"])
     model.to(device)
 

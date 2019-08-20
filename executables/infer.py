@@ -21,7 +21,7 @@ LOGGER = logging.getLogger(SONOSCO)
 def main(config_path, audio_path):
     config = parse_yaml(config_path)["train"]
     config['decoder']['vocab_dim'] = len(config['labels'])
-    device = torch.device("cuda" if CUDA_ENABLED else "cpu")
+    device = torch.device("cuda" if CUDA_ENABLED and torch.cuda.is_available() else "cpu")
 
     model = TDSSeq2Seq(config['labels'], config["encoder"], config["decoder"])
     model.to(device)
