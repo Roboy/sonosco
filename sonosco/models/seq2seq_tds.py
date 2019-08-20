@@ -184,7 +184,7 @@ class TDSDecoder(nn.Module):
 
     @staticmethod
     def __create_mask(inp, pad_idx):
-        mask = (inp != pad_idx).permute(1, 0)
+        mask = (inp != pad_idx).permute(1, 0, 2)
         return mask
 
     def __forward_train(self, keys, values, encoding_lens, y_labels, y_lens):
