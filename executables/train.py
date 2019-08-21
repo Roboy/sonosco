@@ -25,7 +25,7 @@ LOGGER = logging.getLogger(SONOSCO)
               help="Path to train configurations.")
 def main(config_path):
     config = parse_yaml(config_path)["train"]
-    experiment = Experiment.create(config)
+    experiment = Experiment.create(config, LOGGER)
 
     device = torch.device("cuda" if CUDA_ENABLED else "cpu")
 

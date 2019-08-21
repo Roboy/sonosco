@@ -88,19 +88,19 @@ class TDSEncoder(nn.Module):
 
     def reset_parameters(self):
         """Initialize parameters with uniform distribution."""
-        LOGGER.info('===== Initialize %s =====' % self.__class__.__name__)
+        LOGGER.debug('===== Initialize %s =====' % self.__class__.__name__)
         for n, p in self.named_parameters():
             if p.dim() == 1:
                 nn.init.constant_(p, val=0)  # bias
-                LOGGER.info('Initialize %s with %s / %.3f' % (n, 'constant', 0))
+                LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'constant', 0))
             elif p.dim() == 2:
                 fan_in = p.size(1)
                 nn.init.uniform_(p, a=-math.sqrt(4 / fan_in), b=math.sqrt(4 / fan_in))  # linear weight
-                LOGGER.info('Initialize %s with %s / %.3f' % (n, 'uniform', math.sqrt(4 / fan_in)))
+                LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'uniform', math.sqrt(4 / fan_in)))
             elif p.dim() == 4:
                 fan_in = p.size(1) * p[0][0].numel()
                 nn.init.uniform_(p, a=-math.sqrt(4 / fan_in), b=math.sqrt(4 / fan_in))  # conv weight
-                LOGGER.info('Initialize %s with %s / %.3f' % (n, 'uniform', math.sqrt(4 / fan_in)))
+                LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'uniform', math.sqrt(4 / fan_in)))
             else:
                 raise ValueError
 

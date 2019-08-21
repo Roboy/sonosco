@@ -4,7 +4,6 @@ import datetime
 import torch
 import logging
 import numpy as np
-
 import sonosco.common.path_utils as path_utils
 import sonosco.common.utils as utils
 
@@ -35,6 +34,7 @@ class Experiment:
 
     def __init__(self,
                  experiment_name,
+                 logger: logging.Logger = LOGGER,
                  seed: int = None,
                  experiments_path=None,
                  sub_directories=("plots", "logs", "code", "checkpoints"),
@@ -46,6 +46,7 @@ class Experiment:
         if seed is not None:
             self._set_seed(seed)
         self.__trainer: ModelTrainer = None
+        self.logger = logger
 
         self.logs_path = path.join(self.experiment_path, "logs")
         self.plots_path = path.join(self.experiment_path, "plots")
@@ -82,7 +83,7 @@ class Experiment:
         random.seed(seed)
 
     def _set_logging(self):
-        utils.add_log_file(path.join(self.logs_path, "logs"), LOGGER)
+        utils.add_log_file(path.join(self.logs_path, "logs"), self.logger)
 
     def _init_directories(self):
         """ Create all basic directories. """
@@ -154,14 +155,14 @@ class Experiment:
             text_file.write(content)
 
     @staticmethod
-    def create(config: dict):
+    def create(config: dict, logger: logging.Logger):
         """
         :param config: dict - specify a .yaml config with one or more parameters: name, seed,
         experiment_path, sub_dirs, exclude_dirs, exclude_files and read it in as a dictionary.
+        :param logger: logger
         :return: Experiment with configuration specified in config dictionary
         """
         name = config.get('experiment_name', 'experiment')
         experiment_path = config.get('experiment_path', None)
         seed = config.get('global_seed', None)
-
-        return Experiment(name, seed, experiment_path)
+        return Experiment(name, logger, seed, experiment_path)
