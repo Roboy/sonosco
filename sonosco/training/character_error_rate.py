@@ -20,7 +20,10 @@ def character_error_rate(model_out, batch, decoder):
     cer = 0
     for x in range(len(target_strings)):
         transcript, reference = decoded_output[x][0], target_strings[x][0]
-        cer += decoder.cer(transcript, reference) / float(len(reference))
+        try:
+            cer += decoder.cer(transcript, reference) / float(len(reference))
+        except ZeroDivisionError:
+            pass
     del out
     cer *= 100/len(target_strings)
 

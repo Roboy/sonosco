@@ -20,7 +20,10 @@ def word_error_rate(model_out, batch, decoder=None):
     wer = 0
     for x in range(len(target_strings)):
         transcript, reference = decoded_output[x][0], target_strings[x][0]
-        wer += decoder.wer(transcript, reference) / float(len(reference.split()))
+        try:
+            wer += decoder.wer(transcript, reference) / float(len(reference.split()))
+        except ZeroDivisionError:
+            pass
     del out
 
     wer *= 100/len(target_strings)

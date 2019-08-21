@@ -133,21 +133,24 @@ class TDSEncoder(nn.Module):
 
 @serializable
 class TDSDecoder(nn.Module):
+    labels:  str
     input_dim: int = 1024
     embedding_dim: int = 512
-    vocab_dim: int = 1000
     key_dim: int = 512
     value_dim: int = 512
     rnn_hidden_dim: int = 512
     rnn_type_str: str = "gru"
     attention_type: str = "dot"
-    labels_map: Dict[str, int] = field(default_factory=dict)
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
         assert self.rnn_hidden_dim == self.key_dim
 
         super().__init__()
+
+        self.labels = self.labels + EOS + PADDING_VALUE
+        self.labels_map = dict([(self.labels[i], i) for i in range(len(self.labels))])
+        self.vocab_dim = len(self.labels)
 
         self.rnn_type = supported_rnns[self.rnn_type_str]
 
@@ -249,16 +252,13 @@ class TDSSeq2Seq(nn.Module):
 
     def __post_init__(self):
         super().__init__()
-        self.labels = self.decoder_args["labels"] + EOS + PADDING_VALUE
-        self.labels_map = dict([(self.labels[i], i) for i in range(len(self.labels))])
-        self.decoder_args["vocab_dim"] = len(self.labels)
         self.encoder = TDSEncoder(**self.encoder_args)
-        self.decoder = TDSDecoder(labels_map=self.labels_map, **self.decoder_args)
+        self.decoder = TDSDecoder(**self.decoder_args)
 
     def forward(self, xs, xlens, y_labels=None):
         y_in, y_out = list(), list()
         w = next(self.parameters())
-        eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.int32)
+        eos = w.new_zeros(1).fill_(self.decoder.labels_map[EOS]).type(torch.int32)
 
         encoding, encoding_lens = self.encoder(xs, xlens)
 
@@ -278,7 +278,7 @@ class TDSSeq2Seq(nn.Module):
 
             probs, y_lens = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
             loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1),
-                                                  ignore_index=self.labels_map[PADDING_VALUE])
+                                                  ignore_index=self.decoder.labels_map[PADDING_VALUE])
             return probs, y_lens, loss
         else:
             # Perform inference only for batch_size=1

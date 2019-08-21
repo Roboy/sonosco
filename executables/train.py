@@ -41,7 +41,7 @@ def main(config_path):
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
                            metrics=[word_error_rate, character_error_rate],
-                           decoder=GreedyDecoder(config['labels']),
+                           decoder=GreedyDecoder(config["decoder"]['labels']),
                            device=device)
 
     # Setup experiment with a model trainer

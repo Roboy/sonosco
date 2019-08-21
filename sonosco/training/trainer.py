@@ -7,8 +7,6 @@ from collections import defaultdict
 from typing import Callable, Union, Tuple, List, Any
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
-from sonosco.config.global_settings import CUDA_ENABLED
-from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 
 
 LOGGER = logging.getLogger(__name__)
@@ -45,7 +43,6 @@ class ModelTrainer:
                  clip_grads: float = None,
                  metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
                  callbacks: List[AbstractCallback] = None):
-
         self.model = model
         self.train_data_loader = train_data_loader
         self.val_data_loader = val_data_loader
@@ -113,7 +110,7 @@ class ModelTrainer:
             running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
             # evaluate validation set at end of epoch
-            if self.val_data_loader and step == (len(self.train_data_loader) - 1):
+            if self.val_data_loader and step % 2 == 0:    # and step == (len(self.train_data_loader) - 1):
                 self._compute_validation_error(running_metrics)
 
             # print current loss and metrics and provide it to callbacks
@@ -161,7 +158,7 @@ class ModelTrainer:
             batch = self._recursive_to_cuda(batch)
 
             # evaluate loss
-            batch_x, batch_y = batch
+            batch_x, batch_y, input_lengths, target_lengths = batch
             if self._custom_model_eval:  # e.g. used for sequences and other complex model evaluations
                 val_loss, model_output = self.loss(batch, self.model)
             else:

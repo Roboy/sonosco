@@ -25,7 +25,7 @@ train:
   decoder:
     input_dim: 1024
     embedding_dim: 32
-    vocab_dim: 100
+#    vocab_dim: 100
     key_dim: 512
     value_dim: 512
     rnn_hidden_dim: 512
