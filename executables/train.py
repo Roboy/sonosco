@@ -19,10 +19,8 @@ LOGGER = logging.getLogger(SONOSCO)
 
 
 @click.command()
-@click.option("-c", "--config_path",
-              default="../sonosco/config/train_seq2seq_tds.yaml",
-              type=click.STRING,
-              help="Path to train configurations.")
+@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_tds.yaml",
+              type=click.STRING, help="Path to train configurations.")
 def main(config_path):
     config = parse_yaml(config_path)["train"]
     experiment = Experiment.create(config, LOGGER)

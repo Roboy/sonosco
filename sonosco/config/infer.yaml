@@ -1,5 +1,5 @@
 infer:
-  model_checkpoint_path: ""
+  model_checkpoint_path: "/Users/yuriy/Documents/University/ss2019/sonosco/experiments/2019-08-21_19:54:50_default/checkpoints/model_checkpoint.pt"
   audio_path: "" # Audio file to predict on
 
   sample_rate: 16000 # Sample rate

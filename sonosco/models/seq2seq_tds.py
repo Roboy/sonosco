@@ -20,7 +20,7 @@ PADDING_VALUE = '%'
 MAX_LEN = 100
 
 
-@serializable()
+@serializable
 class TDSEncoder(nn.Module):
     """TDS (time-depth separable convolutional) encoder.
     Args:
@@ -209,14 +209,15 @@ class TDSDecoder(nn.Module):
         return probs, y_lens
 
     def __forward_inference(self, keys, values, encoding_lens):
-        batch_size = keys.size(0)
+        batch_size = keys.shape[0]
         assert batch_size == 1
 
         w = next(self.parameters())
-        eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.int32)
+        eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.long)
         y_prev = self.word_piece_embedding(eos)
 
-        hidden = torch.zeros((self.rnn_hidden_dim, batch_size), dtype=torch.long)
+        # Initialize hidden with a transformation from the last state
+        hidden = torch.zeros((batch_size, 1, self.rnn_hidden_dim), dtype=torch.float32)
         outputs = torch.zeros(MAX_LEN, batch_size, self.vocab_dim)
         attentions = torch.zeros(MAX_LEN, batch_size, keys.shape[1])
         mask = self.__create_mask(keys, self.labels_map[PADDING_VALUE])
@@ -227,10 +228,11 @@ class TDSDecoder(nn.Module):
             hidden = hidden.cuda()
 
         for t in range(MAX_LEN):
-            query, hidden = self.rnn.forward_one_step(y_prev, hidden)
-            summaries, score = self.attention(query.unsqueeze(1), keys, values, mask)
+            # query [bs, time, features]
+            query, hidden = self.rnn.forward_one_step(y_prev.unsqueeze(1), hidden)
+            summaries, score = self.attention(query, keys, values, mask)
             summary = summaries.squeeze(1)
-            output = self.output_mlp(torch.cat([summary, query], dim=-1))
+            output = self.output_mlp(torch.cat([summary, query.squeeze(1)], dim=-1))
 
             # Store results
             outputs[t] = output
@@ -240,9 +242,11 @@ class TDSDecoder(nn.Module):
             best_index = probs.max(1)[1]
 
             if best_index.item() == self.labels_map[EOS]:
-                return outputs[:t], attentions[:t]
+                return outputs[:t].transpose(0, 1), torch.tensor([t], dtype=torch.long), attentions[:t].transpose(0, 1)
 
-        return outputs, attentions
+            y_prev = self.word_piece_embedding(best_index)
+
+        return outputs.transpose(0, 1), torch.tensor([MAX_LEN], dtype=torch.long), attentions.transpose(0, 1)
 
 
 @serializable(model=True)
@@ -282,5 +286,5 @@ class TDSSeq2Seq(nn.Module):
             return probs, y_lens, loss
         else:
             # Perform inference only for batch_size=1
-            probs, y_lens = self.decoder(encoding, encoding_lens)
-            return probs, y_lens
+            probs, y_lens, attentions = self.decoder(encoding, encoding_lens)
+            return probs, y_lens, attentions

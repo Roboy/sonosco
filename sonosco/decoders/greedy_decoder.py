@@ -72,5 +72,5 @@ class GreedyDecoder(Decoder):
         """
         _, max_probs = torch.max(probs, 2)
         strings, offsets = self.convert_to_strings(max_probs.view(max_probs.size(0), max_probs.size(1)), sizes,
-                                                   remove_repetitions=True, return_offsets=True)
+                                                   remove_repetitions=False, return_offsets=True)
         return strings, offsets

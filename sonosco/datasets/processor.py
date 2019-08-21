@@ -104,7 +104,12 @@ class AudioDataProcessor:
         return transcript
 
     def parse_audio_for_inference(self, audio_path):
+        """
+        Return spectrogram and its length in a format used for inference.
+        :param audio_path: Audio path.
+        :return: spect [1, seq_length, freqs], lens [scalar]
+        """
         spect = self.parse_audio(audio_path)
-        spect = spect.view(1, 1, spect.size(0), spect.size(1))
-        lens = torch.IntTensor([spect.size(3)]).int()
+        spect = spect.view(1, spect.size(0), spect.size(1)).transpose(1, 2)
+        lens = torch.IntTensor([spect.shape[1]]).int()
         return spect, lens
