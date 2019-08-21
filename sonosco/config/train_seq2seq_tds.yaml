@@ -13,6 +13,7 @@ train:
   window_size: 0.02 # Window size for spectrogram in seconds
   window_stride: 0.01 # Window stride for spectrogram in seconds
   window: 'hamming' # Window type for spectrogram generation
+  labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
 
   encoder:
     input_dim: 161 # Number of frequencies in mel-scale filter
