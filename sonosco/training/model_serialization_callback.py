@@ -10,6 +10,7 @@ from sonosco.model.serialization import serializable
 
 LOGGER = logging.getLogger(__name__)
 
+
 class ModelSerializationCallback(AbstractCallback):
     """
     Saves the model and optimizer state at the point with lowest validation error throughout training.
@@ -34,3 +35,4 @@ class ModelSerializationCallback(AbstractCallback):
         LOGGER.info("Saving model at checkpoint.")
         model.eval()
         self.serializer.serialize_model(model=model, path=self.output_path)
+        model.train()

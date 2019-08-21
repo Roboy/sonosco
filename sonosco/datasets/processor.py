@@ -102,3 +102,9 @@ class AudioDataProcessor:
         # TODO: Is it fast enough?
         transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
         return transcript
+
+    def parse_audio_for_inference(self, audio_path):
+        spect = self.parse_audio(audio_path)
+        spect = spect.view(1, 1, spect.size(0), spect.size(1))
+        lens = torch.IntTensor([spect.size(3)]).int()
+        return spect, lens
