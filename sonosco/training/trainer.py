@@ -91,6 +91,9 @@ class ModelTrainer:
 
         self._close_callbacks()
 
+    def stop_training(self):
+        self._stop_training = True
+
     def _epoch_step(self, epoch):
         """ Execute one training epoch. """
         running_batch_loss = 0
@@ -117,9 +120,6 @@ class ModelTrainer:
             performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
             self._print_step_info(epoch, step, performance_measures)
             self._apply_callbacks(epoch, step, performance_measures)
-
-    def stop_training(self):
-        self._stop_training = True
 
     def _comp_gradients(self):
         """ Compute the gradient norm for all model parameters. """
