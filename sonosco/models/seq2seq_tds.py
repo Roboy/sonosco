@@ -20,7 +20,7 @@ PADDING_VALUE = '%'
 MAX_LEN = 100
 
 
-@serializable
+@serializable()
 class TDSEncoder(nn.Module):
     """TDS (time-depth separable convolutional) encoder.
     Args:
@@ -245,7 +245,7 @@ class TDSDecoder(nn.Module):
         return outputs, attentions
 
 
-@serializable
+@serializable(model=True)
 class TDSSeq2Seq(nn.Module):
     encoder_args: Dict[str, str] = field(default_factory=dict)
     decoder_args: Dict[str, str] = field(default_factory=dict)
