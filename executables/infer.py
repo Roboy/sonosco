@@ -19,7 +19,7 @@ LOGGER = logging.getLogger(SONOSCO)
               help="Path to infer configuration file.")
 @click.option("-a", "--audio_path", default="audio.wav", type=click.STRING, help="Path to an audio file.")
 def main(config_path, audio_path):
-    config = parse_yaml(config_path)["train"]
+    config = parse_yaml(config_path)["infer"]
     config['decoder']['vocab_dim'] = len(config['labels'])
     device = torch.device("cuda" if CUDA_ENABLED else "cpu")
 
