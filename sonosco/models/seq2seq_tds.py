@@ -12,6 +12,7 @@ from sonosco.model.serialization import serializable
 from .modules import SubsampleBlock, TDSBlock, Linear, BatchRNN, InferenceBatchSoftmax, supported_rnns
 from .attention import DotAttention
 from sonosco.config.global_settings import CUDA_ENABLED
+from sonosco.common.utils import labels_to_dict
 
 
 LOGGER = logging.getLogger(__name__)
@@ -148,8 +149,10 @@ class TDSDecoder(nn.Module):
 
         super().__init__()
 
-        self.labels = self.labels + EOS + PADDING_VALUE
-        self.labels_map = dict([(self.labels[i], i) for i in range(len(self.labels))])
+        if EOS not in self.labels and PADDING_VALUE not in self.labels:
+            self.labels = self.labels + EOS + PADDING_VALUE
+
+        self.labels_map = labels_to_dict(self.labels)
         self.vocab_dim = len(self.labels)
 
         self.rnn_type = supported_rnns[self.rnn_type_str]

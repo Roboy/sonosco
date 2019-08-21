@@ -15,7 +15,7 @@ class TensorBoardCallback(AbstractCallback):
                  step,
                  performance_measures,
                  context,
-                 validation : bool = False):
+                 validation: bool = False):
 
         for key, value in performance_measures.items():
             LOGGER.info(f"performance measure: {key}, {value}")

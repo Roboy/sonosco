@@ -12,6 +12,7 @@ from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.losses import cross_entropy_loss
+from sonosco.training.tb_text_comparison_callback import TbTextComparisonCallback
 from sonosco.config.global_settings import CUDA_ENABLED
 
 
@@ -39,6 +40,7 @@ def main(config_path):
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
                            metrics=[word_error_rate, character_error_rate],
+                           callbacks=[TbTextComparisonCallback(log_dir=experiment.plots_path)],
                            decoder=GreedyDecoder(config["decoder"]['labels']),
                            device=device)
 

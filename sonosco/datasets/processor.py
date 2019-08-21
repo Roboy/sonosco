@@ -37,7 +37,7 @@ class AudioDataProcessor:
         self.window_size = window_size
         self.window = windows.get(kwargs['window'], windows['hamming'])
         self.sample_rate = sample_rate
-        self.labels_map = dict([(labels[i], i) for i in range(len(labels))])
+        self.labels_map = utils.labels_to_dict(labels)
         self.normalize = normalize
         self.augment = augment
 

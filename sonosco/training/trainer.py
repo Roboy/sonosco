@@ -104,19 +104,20 @@ class ModelTrainer:
             loss, model_output, grad_norm = self._train_on_batch(batch)
             running_batch_loss += loss.item()
 
-            # compute metrics
-            LOGGER.info("Compute Metrics")
-            self._compute_running_metrics(model_output, batch, running_metrics)
-            running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
+            with torch.no_grad():
+                # compute metrics
+                LOGGER.info("Compute Metrics")
+                self._compute_running_metrics(model_output, batch, running_metrics)
+                running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
-            # evaluate validation set at end of epoch
-            if self.val_data_loader and step % 2 == 0:    # and step == (len(self.train_data_loader) - 1):
-                self._compute_validation_error(running_metrics)
+                # evaluate validation set at end of epoch
+                if self.val_data_loader and step % 2 == 0:    # and step == (len(self.train_data_loader) - 1):
+                    self._compute_validation_error(running_metrics)
 
-            # print current loss and metrics and provide it to callbacks
-            performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
-            self._print_step_info(epoch, step, performance_measures)
-            self._apply_callbacks(epoch, step, performance_measures)
+                # print current loss and metrics and provide it to callbacks
+                performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
+                self._print_step_info(epoch, step, performance_measures)
+                self._apply_callbacks(epoch, step, performance_measures)
 
     def _comp_gradients(self):
         """ Compute the gradient norm for all model parameters. """

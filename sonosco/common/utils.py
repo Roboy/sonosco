@@ -98,3 +98,7 @@ def save_run_params_in_file(folder_path, run_config):
     with open(path.join(folder_path, "run_params.conf"), 'w') as run_param_file:
         for attr, value in sorted(run_config.__dict__.items()):
             run_param_file.write(f"{attr}: {value}\n")
+
+
+def labels_to_dict(labels: str):
+    return dict([(labels[i], i + 1) for i in range(len(labels))])
