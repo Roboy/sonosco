@@ -102,3 +102,7 @@ def save_run_params_in_file(folder_path, run_config):
 
 def labels_to_dict(labels: str):
     return dict([(labels[i], i + 1) for i in range(len(labels))])
+
+
+def reverse_labels_to_dict(labels: str):
+    return dict([(i+1, c) for (i, c) in enumerate(labels)])

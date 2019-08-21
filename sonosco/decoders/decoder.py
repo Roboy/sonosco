@@ -16,6 +16,7 @@
 # Modified to support pytorch Tensors
 
 import Levenshtein as Lev
+from sonosco.common.utils import reverse_labels_to_dict
 
 
 class Decoder(object):
@@ -32,7 +33,7 @@ class Decoder(object):
     def __init__(self, labels, blank_index=None):
         # e.g. labels = "_'ABCDEFGHIJKLMNOPQRSTUVWXYZ#"
         self.labels = labels
-        self.int_to_char = dict([(i, c) for (i, c) in enumerate(labels)])
+        self.int_to_char = reverse_labels_to_dict(labels)
         self.blank_index = blank_index
         space_index = len(labels)  # To prevent errors in decode, we add an out of bounds index for the space
         if ' ' in labels:
