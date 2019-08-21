@@ -38,7 +38,7 @@ class Experiment:
 
     def __init__(self,
                  experiment_name,
-                 seed:int = None,
+                 seed: int = None,
                  experiments_path=None,
                  sub_directories=("plots", "logs", "code", "checkpoints"),
                  exclude_dirs=('__pycache__', '.git', 'experiments'),
@@ -49,9 +49,10 @@ class Experiment:
         if seed is not None:
             self._set_seed(seed)
         self.path = path.join(self.experiments_path, self.name)     # path to current experiment
-        self.logs = path.join(self.experiments_path, "logs")
+        self.logs_path = path.join(self.experiments_path, "logs")
         self.plots_path = path.join(self.experiments_path, "plots")
         self.checkpoints_path = path.join(self.experiments_path, "checkpoints")
+        self.__trainer: ModelTrainer = None
 
         self.code = path.join(self.experiments_path, "code")
         self._sub_directories = sub_directories
@@ -85,7 +86,7 @@ class Experiment:
         random.seed(seed)
 
     def _set_logging(self):
-        utils.add_log_file(path.join(self.logs, "logs"), LOGGER)
+        utils.add_log_file(path.join(self.logs_path, "logs"), LOGGER)
 
     def _init_directories(self):
         """ Create all basic directories. """
@@ -120,57 +121,36 @@ class Experiment:
         # create directory
         path_utils.try_create_directory(dir_path)
 
-    def setup_model_trainer(self,
-                            name: str,
-                            model: torch.nn.Module,
-                            loss: Union[Callable[[Any, Any], Any],
-                                        Callable[[torch.Tensor, torch.Tensor, torch.nn.Module], float]],
-                            epochs: int,
-                            train_data_loader: DataLoader,
-                            model_checkpoints: bool = True,
-                            tensorboard: bool = True,
-                            val_data_loader: DataLoader = None,
-                            decoder  = None,
-                            optimizer=torch.optim.Adam,
-                            lr: float = 1e-4,
-                            custom_model_eval: bool = False,
-                            gpu: int = None,
-                            clip_grads: float = None,
-                            metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
-                            callbacks: List[AbstractCallback] = None):
+    def setup_model_trainer(self, trainer: ModelTrainer, checkpoints: bool = True, tensorboard: bool = True):
         """
         Setup a model_trainer object with specified parameters, by default with checkpoint
         callback and tensorboard callback. Add this model trainer to the modeltrainers dictionary.
         """
+        self.__trainer = trainer
 
-        trainer = ModelTrainer(model=model, loss=loss, epochs=epochs,
-                               train_data_loader=train_data_loader,
-                               val_data_loader=val_data_loader, decoder=decoder,
-                               optimizer=optimizer, lr=lr, custom_model_eval=custom_model_eval,
-                               gpu=gpu, clip_grads=clip_grads,
-                               metrics=metrics, callbacks=callbacks)
-        if model_checkpoints:
-            date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-            trainer.add_callback(ModelCheckpoint(output_path=self.checkpoints))
+        if checkpoints:
+            self.__trainer.add_callback(ModelCheckpoint(output_path=self.checkpoints_path))
 
         if tensorboard:
-            trainer.add_callback(TensorBoardCallback(log_dir=self.logs))
+            self.__trainer.add_callback(TensorBoardCallback(log_dir=self.logs_path))
 
-        self.model_trainers = {name: trainer}
-
-    def start_training(self, trainer_name: str = None):
+    def start(self):
         """
-        Starts training of all model trainers. If a trainer_name is specified, just this specific
-        model trainer is started.
-
-        :param trainer_name: str - if specified just the model trainer with this name gets started
+        Starts model trainer.
         """
-        if trainer_name is None:
-            for trainer in self.model_trainers.values():
-                trainer.start_training()
-        else:
-            self.model_trainers[trainer_name].start_training()
-        #TODO: add serialization after training is finished
+        if self.__trainer is None:
+            raise ValueError("Model trainer is None.")
+
+        # TODO: add serialization after training is finished
+        self.__trainer.start_training()
+
+    def stop(self):
+        """
+        Starts model trainer.
+        """
+        if self.__trainer is None:
+            raise ValueError("Model trainer is None.")
+        self.__trainer.stop_training()
 
     @staticmethod
     def add_file(folder_path, filename, content):
@@ -185,12 +165,8 @@ class Experiment:
         experiment_path, sub_dirs, exclude_dirs, exclude_files and read it in as a dictionary.
         :return: Experiment with configuration specified in config dictionary
         """
-        date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-        name = config.get('name', default='experiment')
-        seed = config.get('global_seed', default=None)
+        name = config.get('experiment_name', default='experiment')
         experiment_path = config.get('experiment_path', default=None)
-        sub_dirs = config.get('sub_dirs', default=("plots", "logs", "code", "checkpoints"))
-        exclude_dirs = config.get('exclude_dirs', default=(('__pycache__', '.git', 'experiments'),))
-        exclude_files = config.get('exclude_files', default=('.pyc',))
+        seed = config.get('global_seed', default=None)
 
-        return Experiment(name, seed, experiment_path, sub_dirs, exclude_dirs, exclude_files)
+        return Experiment(name, seed, experiment_path)

@@ -38,8 +38,8 @@ class TDSEncoder(nn.Module):
     in_channel: int
     dropout: float
     bottleneck_dim: int
-    channels: list = field(default_factory=list)
-    kernel_sizes: list = field(default_factory=list)
+    channels: List[int] = field(default_factory=list)
+    kernel_sizes: List[int] = field(default_factory=list)
 
     def __post_init__(self):
         assert self.input_dim % self.in_channel == 0
@@ -141,7 +141,7 @@ class TDSDecoder(nn.Module):
     rnn_hidden_dim: int = 512
     rnn_type_str: str = "gru"
     attention_type: str = "dot"
-    labels_map: dict = field(default_factory=dict)
+    labels_map: Dict[str, int] = field(default_factory=dict)
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
@@ -244,13 +244,12 @@ class TDSDecoder(nn.Module):
 
 @serializable
 class TDSSeq2Seq(nn.Module):
-    labels: str
-    encoder_args: dict = field(default_factory=dict)
-    decoder_args: dict = field(default_factory=dict)
+    encoder_args: Dict[str, str] = field(default_factory=dict)
+    decoder_args: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         super().__init__()
-        self.labels = self.labels + EOS + PADDING_VALUE
+        self.labels = self.decoder_args["labels"] + EOS + PADDING_VALUE
         self.labels_map = dict([(self.labels[i], i) for i in range(len(self.labels))])
         self.decoder_args["vocab_dim"] = len(self.labels)
         self.encoder = TDSEncoder(**self.encoder_args)
