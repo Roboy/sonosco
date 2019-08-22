@@ -30,4 +30,3 @@ Flask-SocketIO
 azure-cognitiveservices-speech==1.5.0
 tb-nightly==1.15.0a20190802
 future==0.17.1
--e git+https://github.com:parlance/ctcdecode.git

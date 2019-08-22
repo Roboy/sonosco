@@ -1,16 +1,14 @@
 import math
 import os
+
 from collections import OrderedDict
 from dataclasses import field, dataclass
-
-from sonosco.models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
-
-from sonosco.model.serialization import serializable
 from torch import nn
 from typing import Dict, List
-
-from model.serializer import ModelSerializer
-from model.deserializer import ModelDeserializer
+from sonosco.models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
+from sonosco.model.serializer import ModelSerializer
+from sonosco.model.deserializer import ModelDeserializer
+from sonosco.model.serialization import serializable
 
 
 @serializable

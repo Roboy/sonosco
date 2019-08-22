@@ -12,10 +12,13 @@ from sonosco.model.serialization import serializable
 from .modules import SubsampleBlock, TDSBlock, Linear, BatchRNN, InferenceBatchSoftmax, supported_rnns
 from .attention import DotAttention
 from sonosco.config.global_settings import CUDA_ENABLED
+from sonosco.common.utils import labels_to_dict
 
 
 LOGGER = logging.getLogger(__name__)
 EOS = '$'
+PADDING_VALUE = '%'
+MAX_LEN = 100
 
 
 @serializable
@@ -36,8 +39,8 @@ class TDSEncoder(nn.Module):
     in_channel: int
     dropout: float
     bottleneck_dim: int
-    channels: list = field(default_factory=list)
-    kernel_sizes: list = field(default_factory=list)
+    channels: List[int] = field(default_factory=list)
+    kernel_sizes: List[int] = field(default_factory=list)
 
     def __post_init__(self):
         assert self.input_dim % self.in_channel == 0
@@ -86,19 +89,19 @@ class TDSEncoder(nn.Module):
 
     def reset_parameters(self):
         """Initialize parameters with uniform distribution."""
-        LOGGER.info('===== Initialize %s =====' % self.__class__.__name__)
+        LOGGER.debug('===== Initialize %s =====' % self.__class__.__name__)
         for n, p in self.named_parameters():
             if p.dim() == 1:
                 nn.init.constant_(p, val=0)  # bias
-                LOGGER.info('Initialize %s with %s / %.3f' % (n, 'constant', 0))
+                LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'constant', 0))
             elif p.dim() == 2:
                 fan_in = p.size(1)
                 nn.init.uniform_(p, a=-math.sqrt(4 / fan_in), b=math.sqrt(4 / fan_in))  # linear weight
-                LOGGER.info('Initialize %s with %s / %.3f' % (n, 'uniform', math.sqrt(4 / fan_in)))
+                LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'uniform', math.sqrt(4 / fan_in)))
             elif p.dim() == 4:
                 fan_in = p.size(1) * p[0][0].numel()
                 nn.init.uniform_(p, a=-math.sqrt(4 / fan_in), b=math.sqrt(4 / fan_in))  # conv weight
-                LOGGER.info('Initialize %s with %s / %.3f' % (n, 'uniform', math.sqrt(4 / fan_in)))
+                LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'uniform', math.sqrt(4 / fan_in)))
             else:
                 raise ValueError
 
@@ -131,9 +134,9 @@ class TDSEncoder(nn.Module):
 
 @serializable
 class TDSDecoder(nn.Module):
+    labels:  str
     input_dim: int = 1024
     embedding_dim: int = 512
-    vocab_dim: int = 1000
     key_dim: int = 512
     value_dim: int = 512
     rnn_hidden_dim: int = 512
@@ -145,6 +148,12 @@ class TDSDecoder(nn.Module):
         assert self.rnn_hidden_dim == self.key_dim
 
         super().__init__()
+
+        if EOS not in self.labels and PADDING_VALUE not in self.labels:
+            self.labels = self.labels + EOS + PADDING_VALUE
+
+        self.labels_map = labels_to_dict(self.labels)
+        self.vocab_dim = len(self.labels)
 
         self.rnn_type = supported_rnns[self.rnn_type_str]
 
@@ -159,21 +168,42 @@ class TDSDecoder(nn.Module):
 
         self.inference_softmax = InferenceBatchSoftmax()
 
-    def forward(self, encoding, encoding_lens, y_labels, y_lens):
+    def forward(self, encoding, encoding_lens, y_labels=None, y_lens=None):
+        """
+        Performs teacher-forcing inference if y_labels and y_lens are given, otherwise
+        step-by-step inference while feeding the previously generated output into the rnn.
+
+        :param encoding: [B,T,E]
+        :param encoding_lens: len(encoding_lens)=B
+        :param y_labels: [B,T,Y]
+        :param y_lens: len(y_lens)=B
+        :return: probabilities and lengths
+        """
         # split into keys and values
         # keys [B,T,K], values [B,T,V]
         keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
 
+        if y_labels is not None and y_lens is not None:
+            return self.__forward_train(keys, values, encoding_lens, y_labels, y_lens)
+        else:
+            return self.__forward_inference(keys, values, encoding_lens)
+
+    @staticmethod
+    def __create_mask(inp, pad_idx):
+        mask = (inp != pad_idx).permute(1, 0, 2)
+        return mask
+
+    def __forward_train(self, keys, values, encoding_lens, y_labels, y_lens):
         # embed value that we get from teacher-forcing
         y_embed = self.word_piece_embedding(y_labels)
-
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens)
         queries = queries.transpose(0, 1)
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
         # TODO: add encoding_lens for attention calculation
-        summaries, scores = self.attention(queries, keys, values)
+        mask = self.__create_mask(keys, self.labels_map[PADDING_VALUE])
+        summaries, scores = self.attention(queries, keys, values, mask)
 
         outputs = self.output_mlp(torch.cat([summaries, queries], dim=-1))
 
@@ -181,51 +211,83 @@ class TDSDecoder(nn.Module):
 
         return probs, y_lens
 
+    def __forward_inference(self, keys, values, encoding_lens):
+        batch_size = keys.shape[0]
+        assert batch_size == 1
 
-@serializable
+        w = next(self.parameters())
+        eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.long)
+        y_prev = self.word_piece_embedding(eos)
+
+        # Initialize hidden with a transformation from the last state
+        hidden = torch.zeros((batch_size, 1, self.rnn_hidden_dim), dtype=torch.float32)
+        outputs = torch.zeros(MAX_LEN, batch_size, self.vocab_dim)
+        attentions = torch.zeros(MAX_LEN, batch_size, keys.shape[1])
+        mask = self.__create_mask(keys, self.labels_map[PADDING_VALUE])
+
+        if CUDA_ENABLED:
+            outputs = outputs.cuda()
+            attentions = attentions.cuda()
+            hidden = hidden.cuda()
+
+        for t in range(MAX_LEN):
+            # query [bs, time, features]
+            query, hidden = self.rnn.forward_one_step(y_prev.unsqueeze(1), hidden)
+            summaries, score = self.attention(query, keys, values, mask)
+            summary = summaries.squeeze(1)
+            output = self.output_mlp(torch.cat([summary, query.squeeze(1)], dim=-1))
+
+            # Store results
+            outputs[t] = output
+            attentions[t] = score
+
+            probs = self.inference_softmax(output)
+            best_index = probs.max(1)[1]
+
+            if best_index.item() == self.labels_map[EOS]:
+                return outputs[:t].transpose(0, 1), torch.tensor([t], dtype=torch.long), attentions[:t].transpose(0, 1)
+
+            y_prev = self.word_piece_embedding(best_index)
+
+        return outputs.transpose(0, 1), torch.tensor([MAX_LEN], dtype=torch.long), attentions.transpose(0, 1)
+
+
+@serializable(model=True)
 class TDSSeq2Seq(nn.Module):
-    labels: str
-    encoder_args: dict = field(default_factory=dict)
-    decoder_args: dict = field(default_factory=dict)
+    encoder_args: Dict[str, str] = field(default_factory=dict)
+    decoder_args: Dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self):
         super().__init__()
-        self.labels = self.labels + EOS
-        self.labels_map = dict([(self.labels[i], i) for i in range(len(self.labels))])
-        self.decoder_args["vocab_dim"] = len(self.labels)
         self.encoder = TDSEncoder(**self.encoder_args)
         self.decoder = TDSDecoder(**self.decoder_args)
 
     def forward(self, xs, xlens, y_labels=None):
         y_in, y_out = list(), list()
         w = next(self.parameters())
-        eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.int32)
-        # eos = torch.tensor([self.labels_map[EOS]], dtype=torch.int32)
-
-        for y in y_labels:
-            y_in.append(torch.cat([eos, y], dim=0))
-            y_out.append(torch.cat([y, eos], dim=0))
-
-        y_lens = [y.size(0) for y in y_in]
-
-        y_in_labels = torch.nn.utils.rnn.pad_sequence(y_in, batch_first=True).type(torch.LongTensor)
-        y_out_labels = torch.nn.utils.rnn.pad_sequence(y_out, batch_first=True).type(torch.LongTensor)
-
-        if CUDA_ENABLED:
-            y_in_labels = y_in_labels.cuda()
-            y_out_labels = y_out_labels.cuda()
+        eos = w.new_zeros(1).fill_(self.decoder.labels_map[EOS]).type(torch.int32)
 
         encoding, encoding_lens = self.encoder(xs, xlens)
 
-        if y_labels is None:
-            # TODO: implement
-            # We are performing inference
-            probs = None
-            pass
-        else:
-            # During training we are using teacher-forcing
+        if y_labels is not None:
+            for y in y_labels:
+                y_in.append(torch.cat([eos, y], dim=0))
+                y_out.append(torch.cat([y, eos], dim=0))
+
+            y_lens = [y.size(0) for y in y_in]
+
+            y_in_labels = torch.nn.utils.rnn.pad_sequence(y_in, batch_first=True).type(torch.LongTensor)
+            y_out_labels = torch.nn.utils.rnn.pad_sequence(y_out, batch_first=True).type(torch.LongTensor)
+
+            if CUDA_ENABLED:
+                y_in_labels = y_in_labels.cuda()
+                y_out_labels = y_out_labels.cuda()
+
             probs, y_lens = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
-
-        loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1))
-
-        return probs, y_lens, loss
+            loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1),
+                                                  ignore_index=self.decoder.labels_map[PADDING_VALUE])
+            return probs, y_lens, loss
+        else:
+            # Perform inference only for batch_size=1
+            probs, y_lens, attentions = self.decoder(encoding, encoding_lens)
+            return probs, y_lens, attentions

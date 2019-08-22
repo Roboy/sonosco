@@ -100,6 +100,12 @@ class BatchRNN(nn.Module):
             x = x.view(x.size(0), x.size(1), 2, -1).sum(2).view(x.size(0), x.size(1), -1)  # (TxNxH*2) -> (TxNxH) by sum
         return x
 
+    def forward_one_step(self, x, *args, **kwargs):
+        if self.batch_norm is not None:
+            x = self.batch_norm(x)
+        x, h = self.rnn(x, *args, **kwargs)
+        return x, h
+
 
 class TDSBlock(nn.Module):
     """TDS block.

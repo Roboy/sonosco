@@ -4,17 +4,13 @@ import datetime
 import torch
 import logging
 import numpy as np
-
 import sonosco.common.path_utils as path_utils
 import sonosco.common.utils as utils
 
 from random import random
-from typing import Callable, Union, Tuple, List, Any
-from sonosco.training import ModelTrainer
-from torch.utils.data import DataLoader
-from sonosco.training.model_checkpoint import ModelCheckpoint
-from sonosco.training.tensorboard_callback import TensorBoardCallback
-from .abstract_callback import AbstractCallback
+from .trainer import ModelTrainer
+from .model_checkpoint import ModelCheckpoint
+from .tensorboard_callback import TensorBoardCallback
 
 from time import time
 
@@ -38,22 +34,24 @@ class Experiment:
 
     def __init__(self,
                  experiment_name,
-                 seed:int = None,
+                 logger: logging.Logger = LOGGER,
+                 seed: int = None,
                  experiments_path=None,
                  sub_directories=("plots", "logs", "code", "checkpoints"),
                  exclude_dirs=('__pycache__', '.git', 'experiments'),
                  exclude_files=('.pyc',)):
-
-        self.experiments_path = self._set_experiments_dir(experiments_path)
         self.name = self._set_experiment_name(experiment_name)
+        # Path to current experiment
+        self.experiment_path = path.join(self._set_experiments_dir(experiments_path), self.name)
         if seed is not None:
             self._set_seed(seed)
-        self.path = path.join(self.experiments_path, self.name)     # path to current experiment
-        self.logs = path.join(self.experiments_path, "logs")
-        self.plots_path = path.join(self.experiments_path, "plots")
-        self.checkpoints_path = path.join(self.experiments_path, "checkpoints")
+        self.__trainer: ModelTrainer = None
+        self.logger = logger
 
-        self.code = path.join(self.experiments_path, "code")
+        self.logs_path = path.join(self.experiment_path, "logs")
+        self.plots_path = path.join(self.experiment_path, "plots")
+        self.checkpoints_path = path.join(self.experiment_path, "checkpoints")
+        self.code_path = path.join(self.experiment_path, "code")
         self._sub_directories = sub_directories
 
         self._exclude_dirs = exclude_dirs
@@ -85,12 +83,11 @@ class Experiment:
         random.seed(seed)
 
     def _set_logging(self):
-        utils.add_log_file(path.join(self.logs, "logs"), LOGGER)
+        utils.add_log_file(path.join(self.logs_path, "logs"), self.logger)
 
     def _init_directories(self):
         """ Create all basic directories. """
-        path_utils.try_create_directory(self.experiments_path)
-        path_utils.try_create_directory(path.join(self.experiments_path, self.name))
+        path_utils.try_create_directory(self.experiment_path)
         for sub_dir_name in self._sub_directories:
             self.add_directory(sub_dir_name)
 
@@ -102,7 +99,7 @@ class Experiment:
         """ Copy code from execution directory in experiment code directory. """
         sources_path = os.path.dirname(os.path.dirname(__file__))
         sources_path = sources_path if sources_path != '' else './'
-        utils.copy_code(sources_path, self.code,
+        utils.copy_code(sources_path, self.code_path,
                         exclude_dirs=self._exclude_dirs,
                         exclude_files=self._exclude_files)
 
@@ -115,62 +112,41 @@ class Experiment:
         if dir_name not in self._sub_directories:
             self._sub_directories.append(dir_name)
         # add as member
-        dir_path = path.join(self.experiments_path, self.name, dir_name)
+        dir_path = path.join(self.experiment_path, dir_name)
         self._add_member(dir_name, dir_path)
         # create directory
         path_utils.try_create_directory(dir_path)
 
-    def setup_model_trainer(self,
-                            name: str,
-                            model: torch.nn.Module,
-                            loss: Union[Callable[[Any, Any], Any],
-                                        Callable[[torch.Tensor, torch.Tensor, torch.nn.Module], float]],
-                            epochs: int,
-                            train_data_loader: DataLoader,
-                            model_checkpoints: bool = True,
-                            tensorboard: bool = True,
-                            val_data_loader: DataLoader = None,
-                            decoder  = None,
-                            optimizer=torch.optim.Adam,
-                            lr: float = 1e-4,
-                            custom_model_eval: bool = False,
-                            gpu: int = None,
-                            clip_grads: float = None,
-                            metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
-                            callbacks: List[AbstractCallback] = None):
+    def setup_model_trainer(self, trainer: ModelTrainer, checkpoints: bool = True, tensorboard: bool = True):
         """
         Setup a model_trainer object with specified parameters, by default with checkpoint
         callback and tensorboard callback. Add this model trainer to the modeltrainers dictionary.
         """
+        self.__trainer = trainer
 
-        trainer = ModelTrainer(model=model, loss=loss, epochs=epochs,
-                               train_data_loader=train_data_loader,
-                               val_data_loader=val_data_loader, decoder=decoder,
-                               optimizer=optimizer, lr=lr, custom_model_eval=custom_model_eval,
-                               gpu=gpu, clip_grads=clip_grads,
-                               metrics=metrics, callbacks=callbacks)
-        if model_checkpoints:
-            date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-            trainer.add_callback(ModelCheckpoint(output_path=self.checkpoints))
+        if checkpoints:
+            self.__trainer.add_callback(ModelCheckpoint(output_path=self.checkpoints_path))
 
         if tensorboard:
-            trainer.add_callback(TensorBoardCallback(log_dir=self.logs))
+            self.__trainer.add_callback(TensorBoardCallback(log_dir=self.plots_path))
 
-        self.model_trainers = {name: trainer}
-
-    def start_training(self, trainer_name: str = None):
+    def start(self):
         """
-        Starts training of all model trainers. If a trainer_name is specified, just this specific
-        model trainer is started.
-
-        :param trainer_name: str - if specified just the model trainer with this name gets started
+        Starts model trainer.
         """
-        if trainer_name is None:
-            for trainer in self.model_trainers.values():
-                trainer.start_training()
-        else:
-            self.model_trainers[trainer_name].start_training()
-        #TODO: add serialization after training is finished
+        if self.__trainer is None:
+            raise ValueError("Model trainer is None.")
+
+        # TODO: add serialization after training is finished
+        self.__trainer.start_training()
+
+    def stop(self):
+        """
+        Starts model trainer.
+        """
+        if self.__trainer is None:
+            raise ValueError("Model trainer is None.")
+        self.__trainer.stop_training()
 
     @staticmethod
     def add_file(folder_path, filename, content):
@@ -179,18 +155,14 @@ class Experiment:
             text_file.write(content)
 
     @staticmethod
-    def create(config: dict):
+    def create(config: dict, logger: logging.Logger):
         """
         :param config: dict - specify a .yaml config with one or more parameters: name, seed,
         experiment_path, sub_dirs, exclude_dirs, exclude_files and read it in as a dictionary.
+        :param logger: logger
         :return: Experiment with configuration specified in config dictionary
         """
-        date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
-        name = config.get('name', default='experiment')
-        seed = config.get('global_seed', default=None)
-        experiment_path = config.get('experiment_path', default=None)
-        sub_dirs = config.get('sub_dirs', default=("plots", "logs", "code", "checkpoints"))
-        exclude_dirs = config.get('exclude_dirs', default=(('__pycache__', '.git', 'experiments'),))
-        exclude_files = config.get('exclude_files', default=('.pyc',))
-
-        return Experiment(name, seed, experiment_path, sub_dirs, exclude_dirs, exclude_files)
+        name = config.get('experiment_name', 'experiment')
+        experiment_path = config.get('experiment_path', None)
+        seed = config.get('global_seed', None)
+        return Experiment(name, logger, seed, experiment_path)

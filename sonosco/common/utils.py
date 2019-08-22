@@ -9,16 +9,17 @@ from typing import Tuple
 
 
 def setup_logging(logger: logging.Logger, filename=None, verbosity=False):
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG) if verbosity else logger.setLevel(logging.INFO)
 
     if filename is not None:
         add_log_file(filename, logger)
 
-    c_handler = logging.StreamHandler()
-    c_handler.setLevel(logging.DEBUG) if verbosity else c_handler.setLevel(logging.INFO)
-    c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    c_handler.setFormatter(c_format)
-    logger.addHandler(c_handler)
+    # Somehow stream handler is already setup before this or after at some different place
+    # c_handler = logging.StreamHandler()
+    # c_handler.setLevel(logging.DEBUG) if verbosity else c_handler.setLevel(logging.INFO)
+    # c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    # c_handler.setFormatter(c_format)
+    # logger.addHandler(c_handler)
 
 
 def add_log_file(filename: str, logger: logging.Logger):
@@ -97,3 +98,11 @@ def save_run_params_in_file(folder_path, run_config):
     with open(path.join(folder_path, "run_params.conf"), 'w') as run_param_file:
         for attr, value in sorted(run_config.__dict__.items()):
             run_param_file.write(f"{attr}: {value}\n")
+
+
+def labels_to_dict(labels: str):
+    return dict([(labels[i], i + 1) for i in range(len(labels))])
+
+
+def reverse_labels_to_dict(labels: str):
+    return dict([(i+1, c) for (i, c) in enumerate(labels)])

@@ -7,8 +7,6 @@ from collections import defaultdict
 from typing import Callable, Union, Tuple, List, Any
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
-from sonosco.config.global_settings import CUDA_ENABLED
-from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
 
 
 LOGGER = logging.getLogger(__name__)
@@ -45,7 +43,6 @@ class ModelTrainer:
                  clip_grads: float = None,
                  metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
                  callbacks: List[AbstractCallback] = None):
-
         self.model = model
         self.train_data_loader = train_data_loader
         self.val_data_loader = val_data_loader
@@ -107,19 +104,20 @@ class ModelTrainer:
             loss, model_output, grad_norm = self._train_on_batch(batch)
             running_batch_loss += loss.item()
 
-            # compute metrics
-            LOGGER.info("Compute Metrics")
-            self._compute_running_metrics(model_output, batch, running_metrics)
-            running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
+            with torch.no_grad():
+                # compute metrics
+                LOGGER.info("Compute Metrics")
+                self._compute_running_metrics(model_output, batch, running_metrics)
+                running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
-            # evaluate validation set at end of epoch
-            if self.val_data_loader and step == (len(self.train_data_loader) - 1):
-                self._compute_validation_error(running_metrics)
+                # evaluate validation set at end of epoch
+                if self.val_data_loader and step % 2 == 0:    # and step == (len(self.train_data_loader) - 1):
+                    self._compute_validation_error(running_metrics)
 
-            # print current loss and metrics and provide it to callbacks
-            performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
-            self._print_step_info(epoch, step, performance_measures)
-            self._apply_callbacks(epoch, step, performance_measures)
+                # print current loss and metrics and provide it to callbacks
+                performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
+                self._print_step_info(epoch, step, performance_measures)
+                self._apply_callbacks(epoch, step, performance_measures)
 
     def _comp_gradients(self):
         """ Compute the gradient norm for all model parameters. """
@@ -161,7 +159,7 @@ class ModelTrainer:
             batch = self._recursive_to_cuda(batch)
 
             # evaluate loss
-            batch_x, batch_y = batch
+            batch_x, batch_y, input_lengths, target_lengths = batch
             if self._custom_model_eval:  # e.g. used for sequences and other complex model evaluations
                 val_loss, model_output = self.loss(batch, self.model)
             else:
@@ -192,6 +190,7 @@ class ModelTrainer:
         for metric in self._metrics:
             if self._custom_model_eval:
                 LOGGER.info(f"Compute metric: {metric.__name__}")
+                # TODO: this should be done somehow in a more abstract way
                 if metric.__name__ == 'word_error_rate' or metric.__name__ == 'character_error_rate':
                     metric_result = metric(y_pred, batch, self.decoder)
                 else:
