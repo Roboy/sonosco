@@ -6,10 +6,10 @@ WORKDIR /ros1
 COPY . .
 
 RUN apt update
-RUN apt install CHUNK_SIZE iputils-ping -y
+RUN apt install ffmpeg iputils-ping -y
 
 RUN git clone https://github.com/Roboy/sonosco.git
-RUN cd sonosco; git checkout SWA-56-implement-fully-convolutional-sequence-to-sequence-model; pip3 install .
+RUN cd sonosco; git checkout develop; pip3 install .
 RUN chmod +x STT_server.py
 RUN chmod +x STT_client.py
 #RUN .  ~/melodic_ws/devel/setup.bash

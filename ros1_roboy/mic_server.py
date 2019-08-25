@@ -26,6 +26,7 @@ def main(host, port):
     def callback(in_data, frame_count, time_info, status):
         for s in read_list[1:]:
             s.send(in_data)
+
         return (None, pyaudio.paContinue)
 
     # start Recording
