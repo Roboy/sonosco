@@ -35,14 +35,14 @@ class ModelTrainer:
                  epochs: int,
                  train_data_loader: DataLoader,
                  val_data_loader: DataLoader = None,
+                 decoder=None,
                  optimizer=torch.optim.Adam,
                  lr: float = 1e-4,
                  custom_model_eval: bool = False,
-                 gpu: int = None,
+                 device=None,
                  clip_grads: float = None,
                  metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
                  callbacks: List[AbstractCallback] = None):
-
         self.model = model
         self.train_data_loader = train_data_loader
         self.val_data_loader = val_data_loader
@@ -51,9 +51,10 @@ class ModelTrainer:
         self._epochs = epochs
         self._metrics = metrics if metrics is not None else list()
         self._callbacks = callbacks if callbacks is not None else list()
-        self._gpu = gpu
+        self._device = device
         self._custom_model_eval = custom_model_eval
         self._clip_grads = clip_grads
+        self.decoder = decoder
         self._stop_training = False  # used stop training externally
 
     def set_metrics(self, metrics):
@@ -87,6 +88,9 @@ class ModelTrainer:
 
         self._close_callbacks()
 
+    def stop_training(self):
+        self._stop_training = True
+
     def _epoch_step(self, epoch):
         """ Execute one training epoch. """
         running_batch_loss = 0
@@ -100,21 +104,20 @@ class ModelTrainer:
             loss, model_output, grad_norm = self._train_on_batch(batch)
             running_batch_loss += loss.item()
 
-            # compute metrics
-            self._compute_running_metrics(model_output, batch, running_metrics)
-            running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
+            with torch.no_grad():
+                # compute metrics
+                LOGGER.info("Compute Metrics")
+                self._compute_running_metrics(model_output, batch, running_metrics)
+                running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
-            # evaluate validation set at end of epoch
-            if self.val_data_loader and step == (len(self.train_data_loader) - 1):
-                self._compute_validation_error(running_metrics)
+                # evaluate validation set at end of epoch
+                if self.val_data_loader and step % 2 == 0:    # and step == (len(self.train_data_loader) - 1):
+                    self._compute_validation_error(running_metrics)
 
-            # print current loss and metrics and provide it to callbacks
-            performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
-            self._print_step_info(epoch, step, performance_measures)
-            self._apply_callbacks(epoch, step, performance_measures)
-
-    def stop_training(self):
-        self._stop_training = True
+                # print current loss and metrics and provide it to callbacks
+                performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
+                self._print_step_info(epoch, step, performance_measures)
+                self._apply_callbacks(epoch, step, performance_measures)
 
     def _comp_gradients(self):
         """ Compute the gradient norm for all model parameters. """
@@ -156,7 +159,7 @@ class ModelTrainer:
             batch = self._recursive_to_cuda(batch)
 
             # evaluate loss
-            batch_x, batch_y = batch
+            batch_x, batch_y, input_lengths, target_lengths = batch
             if self._custom_model_eval:  # e.g. used for sequences and other complex model evaluations
                 val_loss, model_output = self.loss(batch, self.model)
             else:
@@ -186,7 +189,12 @@ class ModelTrainer:
         """
         for metric in self._metrics:
             if self._custom_model_eval:
-                metric_result = metric(y_pred, batch)
+                LOGGER.info(f"Compute metric: {metric.__name__}")
+                # TODO: this should be done somehow in a more abstract way
+                if metric.__name__ == 'word_error_rate' or metric.__name__ == 'character_error_rate':
+                    metric_result = metric(y_pred, batch, self.decoder)
+                else:
+                    metric_result = metric(y_pred, batch)
             else:
                 batch_y = batch[1]
                 metric_result = metric(y_pred, batch_y)
@@ -239,12 +247,13 @@ class ModelTrainer:
         Parameters:
             tensors (list or Tensor): list of tensors or tensor tuples, can be nested
         """
-        if self._gpu is None:  # keep on cpu
+        if self._device is None:  # keep on cpu
             return tensors
 
-        if type(tensors) != list:  # not only for torch.Tensor
-            return tensors.to(device=self._gpu)
+        if type(tensors) != list and type(tensors) != tuple:  # not only for torch.Tensor
+            return tensors.to(device=self._device)
 
+        cuda_tensors = list()
         for i in range(len(tensors)):
-            tensors[i] = self._recursive_to_cuda(tensors[i])
-        return tensors
+            cuda_tensors.append(self._recursive_to_cuda(tensors[i]))
+        return cuda_tensors

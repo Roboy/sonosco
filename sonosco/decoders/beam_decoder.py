@@ -16,10 +16,11 @@
 # Modified to support pytorch Tensors
 import torch
 
-from decoders.decoder import Decoder
+from .decoder import Decoder
 
 
 class BeamCTCDecoder(Decoder):
+
     def __init__(self, labels, lm_path=None, alpha=0, beta=0, cutoff_top_n=40, cutoff_prob=1.0, beam_width=100,
                  num_processes=4, blank_index=0):
         super(BeamCTCDecoder, self).__init__(labels)

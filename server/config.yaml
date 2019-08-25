@@ -1,0 +1,21 @@
+models:
+  - id: 'deepspeech2'
+    path: '../pretrained/deepspeech_final.pth'
+    decoder: 'greedy'
+    name: 'DS2 (Greedy decoder)'
+  - id: 'deepspeech2_beam'
+    path: '../pretrained/deepspeech_final.pth'
+    decoder: 'beam'
+    name: 'DS2 (Beam decoder)'
+  - id: 'deepspeech2_beam_lm'
+    path: '../pretrained/deepspeech_final.pth'
+    decoder: 'beam'
+#    language: '../pretrained/kenlm_bnc_6gram.bin'
+    name: 'DS2 (Beam decoder with LM)'
+  - id: 'microsoft'
+    external: True
+    name: 'Microsoft'
+
+sample_rate: 16000
+sonosco_home: '~/.sonosco'
+audio_database_path: '~/.sonosco/audio_data'

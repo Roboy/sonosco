@@ -1,7 +1,7 @@
 import inspect
 from typing import Set
 
-from common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, PRIMITIVES, COLLECTIONS
+from sonosco.common.constants import *
 
 
 def get_constructor_args(cls) -> Set[str]:
@@ -75,6 +75,20 @@ def is_serialized_type(obj: object) -> bool:
 
     """
     return type(obj) is dict and CLASS_MODULE_FIELD in obj and CLASS_NAME_FIELD in obj
+
+
+def is_serialized_dataclass(obj: object) -> bool:
+    """
+    Checks if object is a type
+
+    Args:
+        obj: any python object
+
+    Returns: True if object is a type
+
+    """
+    return type(obj) is dict and CLASS_MODULE_FIELD in obj and CLASS_NAME_FIELD in obj \
+        and SERIALIZED_FIELD in obj
 
 
 def raise_unsupported_data_type():

@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 
-
 class AbstractCallback(ABC):
     """
     Interface that defines how callbacks must be specified.
     """
 
     @abstractmethod
-    def __call__(self, epoch, step, performance_measures, context):
+    def __call__(self, epoch : int, step : int, performance_measures : dict, context):
         """
         Called after every batch by the ModelTrainer.
         Parameters:

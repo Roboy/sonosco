@@ -1,7 +1,6 @@
+from sonosco.common.constants import CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
 from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
-
 from typing import List, Iterable
-
 from torch import nn
 
 __primitives = {int, float, str, bool}
@@ -9,7 +8,7 @@ __primitives = {int, float, str, bool}
 __iterables = [list, set, tuple, dict]
 
 
-def serializable(_cls: type = None) -> object:
+def serializable(_cls: type = None, *, model=False) -> object:
     """
 
     Returns the same class as passed in, but with __init__ and __serialize__ methods.
@@ -25,7 +24,8 @@ def serializable(_cls: type = None) -> object:
 
 
     Args:
-        _cls: Python Class object
+        _cls type: Python Class object
+        model bool: indicator whether class is a Pytorch model
 
     Returns: enchanted class
 
@@ -33,7 +33,7 @@ def serializable(_cls: type = None) -> object:
 
     def wrap(cls):
         cls = _process_class(cls, init=True, repr=False, eq=False, order=False, unsafe_hash=False, frozen=False)
-        _set_new_attribute(cls, '__serialize__', __add_serialize(cls))
+        _set_new_attribute(cls, '__serialize__', __add_serialize(cls, model))
         return cls
 
     # See if we're being called as @serializable or @serializable().
@@ -47,7 +47,7 @@ def serializable(_cls: type = None) -> object:
 
 def is_serializable(obj: object) -> bool:
     """
-    Checks if object is serializable
+    Checks if object is serializable.
     Args:
         obj: object to test
 
@@ -57,9 +57,9 @@ def is_serializable(obj: object) -> bool:
     return hasattr(obj, '__serialize__')
 
 
-def __add_serialize(cls: type) -> object:
+def __add_serialize(cls: type, model: bool) -> object:
     """
-    Adds __serialize__ method
+    Adds __serialize__ method.
     Args:
         cls: class to enchant
 
@@ -68,13 +68,13 @@ def __add_serialize(cls: type) -> object:
     """
     fields_to_serialize = fields(cls)
     sonosco_self = '__sonosco_self__' if 'self' in fields_to_serialize else 'self'
-    serialize_body = __create_serialize_body(fields_to_serialize)
+    serialize_body = __create_serialize_body(fields_to_serialize, model)
     return _create_fn('__serialize__', [sonosco_self], serialize_body, return_type=dict)
 
 
-def __create_serialize_body(fields_to_serialize: Iterable) -> List[str]:
+def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[str]:
     """
-    Creates body of __serialize__ method as list of strings
+    Creates body of __serialize__ method as list of strings.
     Args:
         fields_to_serialize (Iterable): iterable of fields to serialize
 
@@ -86,24 +86,28 @@ def __create_serialize_body(fields_to_serialize: Iterable) -> List[str]:
         # TODO: Rewrite this ugly if else chain to something more OO
         if __is_primitive(field.type) or __is_iterable_of_primitives(field.type):
             body_lines.append(__create_dict_entry(field.name, f"self.{field.name}"))
-        # TODO: add deserialization of classes
-        # elif is_dataclass(field.type):
-        #     body_lines.append(__create_dict_entry(field.name, f"self.{field.name}.__serlialize__()"))
+        elif is_serializable(field.type):
+            body_lines.append(f"'{field.name}': {{")
+            body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__class__.__name__"))
+            body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__class__.__module__"))
+            body_lines.append(__create_dict_entry(SERIALIZED_FIELD, f"self.{field.name}.__serialize__()"))
+            body_lines.append("},")
         elif __is_type(field.type):
             body_lines.append(f"'{field.name}': {{")
-            body_lines.append(__create_dict_entry("__class_name", f"self.{field.name}.__name__"))
-            body_lines.append(__create_dict_entry("__class_module", f"self.{field.name}.__module__"))
+            body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__name__"))
+            body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__module__"))
             body_lines.append("},")
         else:
-            __throw_unsupported_data_type()
-    body_lines.append(__create_dict_entry("state_dict", "self.state_dict()"))
+            __throw_unsupported_data_type(field)
+    if model:
+        body_lines.append(__create_dict_entry("state_dict", "self.state_dict()"))
     body_lines.append("}")
     return body_lines
 
 
 def __extract_from_nn(name: str, cls: nn.Module, body_lines: List[str]):
     """
-    Extract fields from torch.nn.Module class and updated body of __serialize methods with them,
+    Extract fields from torch.nn.Module class and updated body of __serialize methods with them.
 
     Args:
         name: name of the instance of nn.Module in containing class
@@ -123,13 +127,14 @@ def __is_iterable_of_primitives(field) -> bool:
            hasattr(field, '__args__') and __is_primitive(field.__args__[0])
 
 
-def __throw_unsupported_data_type():
+def __throw_unsupported_data_type(field):
     """
-    Throws unsupported data type exception
+    Throws unsupported data type exception.
     Returns:
 
     """
-    raise TypeError("Unsupported data type. Currently only primitives, lists of primitives and types"
+    raise TypeError(f"Field name: {field.name}, Field type: {field.type}. "
+                    f"Unsupported data type. Currently only primitives, lists of primitives and types"
                     "objects can be serialized")
 
 
@@ -148,7 +153,7 @@ def __create_dict_entry(key: str, value: str) -> str:
 
 def __is_primitive(obj: object) -> bool:
     """
-    Checks if object is Python primitive
+    Checks if object is Python primitive.
     Args:
         obj (object): object to check
 
@@ -160,7 +165,7 @@ def __is_primitive(obj: object) -> bool:
 
 def __is_type(obj):
     """
-    Checks if object is Python class
+    Checks if object is Python class.
     Args:
         obj (object): object to check
 

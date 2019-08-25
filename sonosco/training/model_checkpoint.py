@@ -1,9 +1,9 @@
 import logging
 import sys
 import os.path as path
-import torch
 
 from .abstract_callback import AbstractCallback
+from sonosco.model.serializer import ModelSerializer
 
 
 LOGGER = logging.getLogger(__name__)
@@ -20,24 +20,18 @@ class ModelCheckpoint(AbstractCallback):
     def __init__(self, output_path, model_name='model_checkpoint.pt'):
         self.output_path = path.join(output_path, model_name)
         self.best_val_score = sys.float_info.max
+        self.serializer = ModelSerializer()
 
     def __call__(self, epoch, step, performance_measures, context):
-
         if 'val_loss' not in performance_measures:
             return
 
         if performance_measures['val_loss'] < self.best_val_score:
             self.best_val_score = performance_measures['val_loss']
-            self._save_checkpoint(context.model, context.optimizer, epoch)
+            self._save_checkpoint(context.model)
 
-    def _save_checkpoint(self, model, optimizer, epoch):
+    def _save_checkpoint(self, model):
         LOGGER.info("Saving model at checkpoint.")
         model.eval()
-        model_state_dict = model.state_dict()
-        optimizer_state_dict = optimizer.state_dict()
-        torch.save({'arch': model.__class__.__name__,
-                    'epoch': epoch,
-                    'model_state_dict': model_state_dict,
-                    'optimizer_state_dict': optimizer_state_dict
-                    }, self.output_path)
+        self.serializer.serialize_model(model=model, path=self.output_path)
         model.train()

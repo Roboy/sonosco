@@ -24,3 +24,9 @@ pytest==4.6.3
 click==7.0
 deprecation==2.0.6
 dataclasses==0.6
+Flask
+Flask-Cors
+Flask-SocketIO
+azure-cognitiveservices-speech==1.5.0
+tb-nightly==1.15.0a20190802
+future==0.17.1
