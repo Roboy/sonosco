@@ -65,8 +65,16 @@ class AudioDataProcessor:
 
         return augmented
 
-    def parse_audio(self, audio_path, raw=False):
+    def parse_audio_from_file(self, audio_path, raw=False):
         sound, sample_rate = self.retrieve_file(audio_path)
+        if raw:
+            return sound
+
+        spectogram = self.parse_audio(self, sound, sample_rate)
+
+        return spectogram
+
+    def parse_audio(self, sound, sample_rate):
 
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
@@ -74,10 +82,6 @@ class AudioDataProcessor:
         if self.augment:
             sound = self.augment_audio(sound)
 
-        if raw:
-            return sound
-
-        # TODO: comment why take the last element?
         complex_spectrogram = librosa.stft(sound,
                                            n_fft=self.window_size_samples,
                                            hop_length=self.window_stride_samples,
