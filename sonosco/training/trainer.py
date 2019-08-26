@@ -43,9 +43,11 @@ class ModelTrainer:
     clip_grads: float = None
     metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = field(default_factory=list)
     callbacks: List[AbstractCallback] = field(default_factory=list)
+    _current_epoch: int = 0
 
     def __post_init__(self):
         self.optimizer = self.optimizer(self.model.parameters(), lr=self.lr)
+        self._current_epoch
         self._stop_training = False  # used stop training externally
 
     def set_metrics(self, metrics):
@@ -74,6 +76,8 @@ class ModelTrainer:
         for epoch in range(1, self.epochs + 1):
             self._epoch_step(epoch)
 
+            self._current_epoch+=1
+
             if self._stop_training:
                 break
 
@@ -81,6 +85,22 @@ class ModelTrainer:
 
     def stop_training(self):
         self._stop_training = True
+
+    def continue_training(self):
+        '''
+        Continue training model.
+        '''
+
+        self.model.train()
+
+        for epoch in range(self._current_epoch, self.epochs + 1):
+            self._epoch_step(epoch)
+
+            self._current_epoch +=1
+
+            if self._stop_training:
+                break
+        self._close_callbacks()
 
     def _epoch_step(self, epoch):
         """ Execute one training epoch. """
