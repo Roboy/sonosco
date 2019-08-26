@@ -4,6 +4,8 @@ import torch.optim.optimizer
 import torch.nn.utils.clip_grad as grads
 
 from collections import defaultdict
+from dataclasses import field
+
 from typing import Callable, Union, Tuple, List, Any
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
@@ -27,34 +29,23 @@ class ModelTrainer:
         gpu (int, optional): if not set training runs on cpu, otherwise an int is expected that determines the training gpu
         clip_grads (float, optional): if set training gradients will be clipped at specified norm
     """
+    model: torch.nn.Module
+    loss: Union[Callable[[Any, Any], Any],
+                Callable[[torch.Tensor, torch.Tensor, torch.nn.Module], float]]
+    epochs: int
+    train_data_loader: DataLoader
+    val_data_loader: DataLoader = None
+    decoder: type = None
+    optimizer: type = torch.optim.Adam
+    lr: float = 1e-4
+    custom_model_eval: bool = False
+    device: torch.device = None
+    clip_grads: float = None
+    metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = field(default_factory=list)
+    callbacks: List[AbstractCallback] = field(default_factory=list)
 
-    def __init__(self,
-                 model: torch.nn.Module,
-                 loss: Union[Callable[[Any, Any], Any],
-                             Callable[[torch.Tensor, torch.Tensor, torch.nn.Module], float]],
-                 epochs: int,
-                 train_data_loader: DataLoader,
-                 val_data_loader: DataLoader = None,
-                 decoder=None,
-                 optimizer=torch.optim.Adam,
-                 lr: float = 1e-4,
-                 custom_model_eval: bool = False,
-                 device=None,
-                 clip_grads: float = None,
-                 metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = None,
-                 callbacks: List[AbstractCallback] = None):
-        self.model = model
-        self.train_data_loader = train_data_loader
-        self.val_data_loader = val_data_loader
-        self.optimizer = optimizer(self.model.parameters(), lr=lr)
-        self.loss = loss
-        self._epochs = epochs
-        self._metrics = metrics if metrics is not None else list()
-        self._callbacks = callbacks if callbacks is not None else list()
-        self._device = device
-        self._custom_model_eval = custom_model_eval
-        self._clip_grads = clip_grads
-        self.decoder = decoder
+    def __post_init__(self):
+        self.optimizer = self.optimizer(self.model.parameters(), lr=self.lr)
         self._stop_training = False  # used stop training externally
 
     def set_metrics(self, metrics):
@@ -62,10 +53,10 @@ class ModelTrainer:
         Set metric functions that receive y_pred and y_true. Metrics are expected to return
         a basic numeric type like float or int.
         """
-        self._metrics = metrics
+        self.metrics = metrics
 
     def add_metric(self, metric):
-        self._metrics.append(metric)
+        self.metrics.append(metric)
 
     def set_callbacks(self, callbacks):
         """
@@ -73,14 +64,14 @@ class ModelTrainer:
         Context is a pointer to the ModelTrainer instance. Callbacks are called after each
         processed batch.
         """
-        self._callbacks = callbacks
+        self.callbacks = callbacks
 
     def add_callback(self, callback):
-        self._callbacks.append(callback)
+        self.callbacks.append(callback)
 
     def start_training(self):
         self.model.train()  # train mode
-        for epoch in range(1, self._epochs + 1):
+        for epoch in range(1, self.epochs + 1):
             self._epoch_step(epoch)
 
             if self._stop_training:
@@ -132,7 +123,7 @@ class ModelTrainer:
         """ Compute loss depending on settings, compute gradients and apply optimization step. """
         # evaluate loss
         batch_x, batch_y, input_lengths, target_lengths = batch
-        if self._custom_model_eval:
+        if self.custom_model_eval:
             loss, model_output = self.loss(batch, self.model)
         else:
             model_output = self.model(batch_x, input_lengths)
@@ -142,8 +133,8 @@ class ModelTrainer:
         loss.backward()  # backpropagation
 
         # gradient clipping
-        if self._clip_grads is not None:
-            grads.clip_grad_norm(self.model.parameters(), self._clip_grads)
+        if self.clip_grads is not None:
+            grads.clip_grad_norm(self.model.parameters(), self.clip_grads)
 
         grad_norm = self._comp_gradients()  # compute average gradient norm
 
@@ -160,7 +151,7 @@ class ModelTrainer:
 
             # evaluate loss
             batch_x, batch_y, input_lengths, target_lengths = batch
-            if self._custom_model_eval:  # e.g. used for sequences and other complex model evaluations
+            if self.custom_model_eval:  # e.g. used for sequences and other complex model evaluations
                 val_loss, model_output = self.loss(batch, self.model)
             else:
                 model_output = self.model(batch_x)
@@ -187,8 +178,8 @@ class ModelTrainer:
         Computes all metrics based on predictions and batches and adds them to the metrics
         dictionary. Allows to prepend a prefix to the metric names in the dictionary.
         """
-        for metric in self._metrics:
-            if self._custom_model_eval:
+        for metric in self.metrics:
+            if self.custom_model_eval:
                 LOGGER.info(f"Compute metric: {metric.__name__}")
                 # TODO: this should be done somehow in a more abstract way
                 if metric.__name__ == 'word_error_rate' or metric.__name__ == 'character_error_rate':
@@ -222,12 +213,12 @@ class ModelTrainer:
 
     def _apply_callbacks(self, epoch, step, performance_measures):
         """ Call all registered callbacks with current batch information. """
-        for callback in self._callbacks:
+        for callback in self.callbacks:
             callback(epoch, step, performance_measures, self)
 
     def _close_callbacks(self):
         """ Signal callbacks training is finished. """
-        for callback in self._callbacks:
+        for callback in self.callbacks:
             callback.close()
 
     def _print_step_info(self, epoch, step, performance_measures):
@@ -247,11 +238,11 @@ class ModelTrainer:
         Parameters:
             tensors (list or Tensor): list of tensors or tensor tuples, can be nested
         """
-        if self._device is None:  # keep on cpu
+        if self.device is None:  # keep on cpu
             return tensors
 
         if type(tensors) != list and type(tensors) != tuple:  # not only for torch.Tensor
-            return tensors.to(device=self._device)
+            return tensors.to(device=self.device)
 
         cuda_tensors = list()
         for i in range(len(tensors)):
