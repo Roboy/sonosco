@@ -47,7 +47,6 @@ class ModelTrainer:
 
     def __post_init__(self):
         self.optimizer = self.optimizer(self.model.parameters(), lr=self.lr)
-        self._current_epoch
         self._stop_training = False  # used stop training externally
 
     def set_metrics(self, metrics):
