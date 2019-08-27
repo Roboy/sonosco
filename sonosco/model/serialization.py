@@ -1,3 +1,5 @@
+import collections
+
 from sonosco.common.constants import CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
 from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
 from typing import List, Iterable, Callable
@@ -8,8 +10,8 @@ __primitives = {int, float, str, bool}
 __iterables = [list, set, tuple, dict]
 
 
-# TODO: Create CallableSerializable base class (and use instead of Callable from typing)
-# TODO: Prevent user from serializing lambdas. Only named methods can be serialized
+# TODO: Prevent user from serializing lambdas.
+# Only named methods can be serialized or the function has to be shipped separately
 
 def serializable(_cls: type = None, *, model=False) -> object:
     """
@@ -208,4 +210,4 @@ def __is_type(obj):
 
 
 def __is_callable(obj):
-    return obj == Callable
+    return hasattr(obj, '__origin__') and obj.__origin__ == collections.abc.Callable

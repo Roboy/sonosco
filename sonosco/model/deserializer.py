@@ -14,6 +14,7 @@ from sonosco.common.serialization_utils import get_constructor_args, get_class_b
 LOGGER = logging.getLogger(__name__)
 
 
+# TODO: Extend the scope of callables deserialization, so it can account for changes in module path
 class ModelDeserializer:
 
     @deprecation.deprecated(

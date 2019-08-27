@@ -30,7 +30,7 @@ class CallableClass:
 
 @serializable
 class MockedNestedClass:
-    some_method: Callable
+    some_method: Callable[[str, str], int]
     some_int: int = 5
     some_collection: List[str] = field(default_factory=list)
     yetAnotherSerializableClass: Callable = CallableClass(some_stuff="XDDDD")
