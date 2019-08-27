@@ -208,17 +208,20 @@ class TDSDecoder(nn.Module):
         :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
         :return: tensor of tokens, partially groundtruth partially sampled
         '''
-        C = np.random.random_sample(size=y_labels.shape)
-        C[C>self.sampling_prob] = 1
-        C[C<self.sampling_prob] = 0
-        R = torch.from_numpy(C).type(dtype=torch.double)
+        sampled_tensor = torch.randn(size=y_labels.size())
+        sampled_tensor[sampled_tensor>self.sampling_prob] = 1
+        sampled_tensor[sampled_tensor<self.sampling_prob] = 0
+        sampled_tensor = sampled_tensor.type(dtype=torch.long)
 
-        Z = np.random.uniform(low=0, high=len(self.labels[:])-2, size=y_labels.shape)
-        Z = torch.from_numpy(Z).type(dtype=torch.double)
-        ones = torch.ones(y_labels.shape)
+        sampled_tokens = torch.randint(high=len(self.labels[:])-2, low=0, size=y_labels.size()).type(dtype=torch.long)
+        ones = torch.ones(y_labels.shape).type(dtype=torch.long)
 
-        y_sampled = R * Z + (ones-R) * y_labels
+        if CUDA_ENABLED:
+            sampled_tensor.cuda()
+            sampled_tokens.cuda()
+            ones.cuda()
 
+        y_sampled = sampled_tensor * sampled_tokens + (ones-sampled_tensor) * y_labels
         return y_sampled
 
     @staticmethod
