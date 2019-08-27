@@ -14,7 +14,7 @@ def get_config(path='config.yaml'):
 
 
 def transcribe(model_config: Dict[str, Any], audio_path: str, device: device) -> str:
-    spect = model_config['processor'].parse_audio(audio_path)
+    spect = model_config['processor'].parse_audio_from_file(audio_path)
     spect = spect.view(1, 1, spect.size(0), spect.size(1))
     spect = spect.to(device)
     input_sizes = torch.IntTensor([spect.size(3)]).int()

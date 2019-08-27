@@ -3,6 +3,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as torch_functional
+import numpy as np
 
 from collections import OrderedDict
 from typing import List, Tuple, Dict, Any
@@ -76,6 +77,7 @@ class TDSEncoder(nn.Module):
             in_ch = channel
 
         self._output_dim = int(in_ch * in_freq)
+        self.hidden_size = self._output_dim
 
         if self.bottleneck_dim > 0:
             self.bridge = Linear(self._output_dim, self.bottleneck_dim)
@@ -121,6 +123,8 @@ class TDSEncoder(nn.Module):
         xs = self.layers(xs)  # `[B, out_ch, T, feat_dim]`
         bs, out_ch, time, freq = xs.size()
         xs = xs.transpose(2, 1).contiguous().view(bs, time, -1)  # `[B, T, out_ch * feat_dim]`
+        # Take the last hidden state
+        hidden = xs[:, -1, :].unsqueeze(1)  # [B,1,out_ch * feat_dim]
 
         # Bridge layer
         if self.bridge is not None:
@@ -129,7 +133,7 @@ class TDSEncoder(nn.Module):
         # Update xlens
         xlens /= self.subsample_factor
 
-        return xs, xlens
+        return xs, xlens, hidden
 
 
 @serializable
@@ -142,6 +146,7 @@ class TDSDecoder(nn.Module):
     rnn_hidden_dim: int = 512
     rnn_type_str: str = "gru"
     attention_type: str = "dot"
+    sampling_prob: float = 0
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
@@ -168,13 +173,14 @@ class TDSDecoder(nn.Module):
 
         self.inference_softmax = InferenceBatchSoftmax()
 
-    def forward(self, encoding, encoding_lens, y_labels=None, y_lens=None):
+    def forward(self, encoding, encoding_lens, hidden, y_labels=None, y_lens=None):
         """
         Performs teacher-forcing inference if y_labels and y_lens are given, otherwise
         step-by-step inference while feeding the previously generated output into the rnn.
 
         :param encoding: [B,T,E]
         :param encoding_lens: len(encoding_lens)=B
+        :param hidden: [B,1,H]
         :param y_labels: [B,T,Y]
         :param y_lens: len(y_lens)=B
         :return: probabilities and lengths
@@ -184,20 +190,47 @@ class TDSDecoder(nn.Module):
         keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
 
         if y_labels is not None and y_lens is not None:
-            return self.__forward_train(keys, values, encoding_lens, y_labels, y_lens)
+            return self.__forward_train(keys, values, encoding_lens, hidden, y_labels, y_lens)
         else:
-            return self.__forward_inference(keys, values, encoding_lens)
+            return self.__forward_inference(keys, values, encoding_lens, hidden)
+
+    def _random_sampling(self, y_labels):
+        '''
+        Randomly sample tokens given a specified probability, in order to bring
+        training closer to inference.
+
+        pseudo:
+        1. sample U random numbers c from uniform distribution (0,1) [B, T, c]
+        2. create vector of 1 and 0 with c > specified probability [B, T, 1 or 0]
+        3. Sample vector Z of tokens (uniform distribution over tokens excl. eos) [B,T,token]
+        4. Calc: Y_hat = R o Z + (1-R) o Y (Y being teacher forced tokens)
+
+        :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
+        :return: tensor of tokens, partially groundtruth partially sampled
+        '''
+        C = np.random.random_sample(size=y_labels.size)
+        C[C>self.sampling_prob] = 1
+        C[C<self.sampling_prob] = 0
+        R = torch.from_numpy(C)
+
+        Z = np.random.uniform(low=0, high=len(self.labels[:])-2, size=y_labels.size)
+        Z = torch.from_numpy(Z)
+        ones = torch.ones(y_labels.size)
+
+        y_sampled = R*Z + (ones-R)*y_labels
+
+        return y_sampled
 
     @staticmethod
     def __create_mask(inp, pad_idx):
         mask = (inp != pad_idx).permute(1, 0, 2)
         return mask
 
-    def __forward_train(self, keys, values, encoding_lens, y_labels, y_lens):
-        # embed value that we get from teacher-forcing
-        y_embed = self.word_piece_embedding(y_labels)
+    def __forward_train(self, keys, values, encoding_lens, hidden, y_labels, y_lens):
+        y_sampled = self._random_sampling(y_labels)
+        y_embed = self.word_piece_embedding(y_sampled)
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
-        queries = self.rnn(y_embed, y_lens)
+        queries = self.rnn(y_embed, y_lens, hidden)
         queries = queries.transpose(0, 1)
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
@@ -211,7 +244,7 @@ class TDSDecoder(nn.Module):
 
         return probs, y_lens
 
-    def __forward_inference(self, keys, values, encoding_lens):
+    def __forward_inference(self, keys, values, encoding_lens, hidden):
         batch_size = keys.shape[0]
         assert batch_size == 1
 
@@ -219,8 +252,10 @@ class TDSDecoder(nn.Module):
         eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.long)
         y_prev = self.word_piece_embedding(eos)
 
-        # Initialize hidden with a transformation from the last state
-        hidden = torch.zeros((batch_size, 1, self.rnn_hidden_dim), dtype=torch.float32)
+        # Now we pass the initial hidden state
+        # (Deprecated) Initialize hidden with a transformation from the last state
+        # hidden = torch.zeros((batch_size, 1, self.rnn_hidden_dim), dtype=torch.float32)
+
         outputs = torch.zeros(MAX_LEN, batch_size, self.vocab_dim)
         attentions = torch.zeros(MAX_LEN, batch_size, keys.shape[1])
         mask = self.__create_mask(keys, self.labels_map[PADDING_VALUE])
@@ -261,13 +296,16 @@ class TDSSeq2Seq(nn.Module):
         super().__init__()
         self.encoder = TDSEncoder(**self.encoder_args)
         self.decoder = TDSDecoder(**self.decoder_args)
+        self.bridge = Linear(in_size=self.encoder.hidden_size, out_size=self.decoder.rnn_hidden_dim)
 
     def forward(self, xs, xlens, y_labels=None):
         y_in, y_out = list(), list()
         w = next(self.parameters())
         eos = w.new_zeros(1).fill_(self.decoder.labels_map[EOS]).type(torch.int32)
 
-        encoding, encoding_lens = self.encoder(xs, xlens)
+        encoding, encoding_lens, hidden = self.encoder(xs, xlens)
+
+        initial_decoder_hidden = self.bridge(hidden)
 
         if y_labels is not None:
             for y in y_labels:
@@ -283,11 +321,11 @@ class TDSSeq2Seq(nn.Module):
                 y_in_labels = y_in_labels.cuda()
                 y_out_labels = y_out_labels.cuda()
 
-            probs, y_lens = self.decoder(encoding, encoding_lens, y_in_labels, y_lens)
+            probs, y_lens = self.decoder(encoding, encoding_lens, initial_decoder_hidden, y_in_labels, y_lens)
             loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1),
                                                   ignore_index=self.decoder.labels_map[PADDING_VALUE])
             return probs, y_lens, loss
         else:
             # Perform inference only for batch_size=1
-            probs, y_lens, attentions = self.decoder(encoding, encoding_lens)
+            probs, y_lens, attentions = self.decoder(encoding, encoding_lens, initial_decoder_hidden)
             return probs, y_lens, attentions

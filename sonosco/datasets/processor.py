@@ -70,12 +70,11 @@ class AudioDataProcessor:
         if raw:
             return sound
 
-        spectogram = self.parse_audio(self, sound, sample_rate)
+        spectogram = self.parse_audio(sound, sample_rate)
 
         return spectogram
 
     def parse_audio(self, sound, sample_rate):
-
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
 
@@ -113,7 +112,7 @@ class AudioDataProcessor:
         :param audio_path: Audio path.
         :return: spect [1, seq_length, freqs], lens [scalar]
         """
-        spect = self.parse_audio(audio_path)
+        spect = self.parse_audio_from_file(audio_path)
         spect = spect.view(1, spect.size(0), spect.size(1)).transpose(1, 2)
         lens = torch.IntTensor([spect.shape[1]]).int()
         return spect, lens

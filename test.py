@@ -40,7 +40,7 @@ def main(model_path, cuda, audio_path, **kwargs):
     decoder = BeamCTCDecoder(model.labels, blank_index=model.labels.index('_'))
     processor = AudioDataProcessor(**model.audio_conf)
 
-    spect = processor.parse_audio(audio_path)
+    spect = processor.parse_audio_from_file(audio_path)
     spect = spect.view(1, 1, spect.size(0), spect.size(1))
     spect = spect.to(device)
     input_sizes = torch.IntTensor([spect.size(3)]).int()
