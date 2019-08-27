@@ -1,16 +1,21 @@
 import logging
-from sonosco.training.abstract_callback import  AbstractCallback
+
+from sonosco.model.serialization import serializable
+
+from sonosco.training.abstract_callback import AbstractCallback
 from torch.utils.tensorboard import SummaryWriter
 
 LOGGER = logging.getLogger(__name__)
 
 
+@serializable
 class TbTextComparisonCallback(AbstractCallback):
+    log_dir: str
+    samples: int = 4
 
-    def __init__(self, log_dir: str, samples: int = 4):
+    def __post_init__(self):
         # samples should be less than batch size
-        self.samples = samples
-        self.writer = SummaryWriter(log_dir=log_dir)
+        self.writer = SummaryWriter(log_dir=self.log_dir)
 
     def __call__(self,
                  epoch,

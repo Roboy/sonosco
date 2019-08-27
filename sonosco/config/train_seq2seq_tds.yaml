@@ -2,8 +2,8 @@ train:
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/Users/florianlay/temp/data/an4/an4_train_manifest.csv'
-  val_manifest: '/Users/florianlay/temp/data/an4/an4_val_manifest.csv'
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
+  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest.csv'
   log_dir: 'logs' # Location for log files
   checkpoint_dir: 'checkpoints' # Default location to save/load models
 

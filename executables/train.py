@@ -46,12 +46,12 @@ def main(config_path):
                            decoder=GreedyDecoder(config["decoder"]['labels']),
                            device=device)
 
-    # # Setup experiment with a model trainer
-    # ms = ModelSerializer()
-    # mt = ms.serialize_model(trainer, "/Users/w.jurasz/Desktop/serialization_test/ms")
-    #
-    # md = ModelDeserializer()
-    # mnc = md.deserialize_model(ModelTrainer, "/Users/w.jurasz/Desktop/serialization_test/ms")
+    # Setup experiment with a model trainer
+    ms = ModelSerializer()
+    mt = ms.serialize_model(trainer, "/Users/w.jurasz/Desktop/serialization_test/ms")
+
+    md = ModelDeserializer()
+    mnc = md.deserialize_model(ModelTrainer, "/Users/w.jurasz/Desktop/serialization_test/ms")
 
     experiment.setup_model_trainer(trainer, checkpoints=True, tensorboard=True)
 

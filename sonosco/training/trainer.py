@@ -6,6 +6,8 @@ import torch.nn.utils.clip_grad as grads
 from collections import defaultdict
 from dataclasses import field, dataclass
 from typing import Callable, Union, Tuple, List, Any
+
+from sonosco.decoders.decoder import Decoder
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
 from sonosco.model.serialization import serializable
@@ -35,8 +37,8 @@ class ModelTrainer:
     epochs: int
     train_data_loader: DataLoader
     val_data_loader: DataLoader = None
-    decoder: type = None
-    optimizer: type = torch.optim.Adam
+    decoder: Decoder = None
+    optimizer_class: type = torch.optim.Adam
     lr: float = 1e-4
     custom_model_eval: bool = False
     device: torch.device = None
@@ -46,7 +48,7 @@ class ModelTrainer:
     _current_epoch: int = 0
 
     def __post_init__(self):
-        self.optimizer = self.optimizer(self.model.parameters(), lr=self.lr)
+        self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.lr)
         self._stop_training = False  # used stop training externally
 
     def set_metrics(self, metrics):

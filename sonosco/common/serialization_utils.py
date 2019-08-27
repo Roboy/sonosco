@@ -44,6 +44,12 @@ def is_serialized_collection_of_serializables(obj: any) -> bool:
            all(is_serialized_dataclass(o) for o in obj)
 
 
+def is_serialized_collection_of_callables(obj: any) -> bool:
+    return is_serialized_collection(obj) and \
+           len(obj) != 0 and \
+           all(is_serialized_dataclass(o) or is_serialized_type(obj) for o in obj)
+
+
 def is_serialized_collection(obj: object) -> bool:
     """
     Checks if object is a collection

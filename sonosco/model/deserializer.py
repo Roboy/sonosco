@@ -4,13 +4,13 @@ import sys
 import torch
 import deprecation
 import torch.nn as nn
-
 from typing import Dict, Any
 from functools import reduce
 from sonosco.common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, SERIALIZED_FIELD
 from sonosco.common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \
     is_serialized_collection, is_serialized_type, raise_unsupported_data_type, is_serialized_dataclass, \
     is_serialized_collection_of_serializables
+import sonosco  # don't remove, it's for object creation
 
 LOGGER = logging.getLogger(__name__)
 
@@ -126,6 +126,8 @@ class ModelDeserializer:
             # TODO: This has to be handled better, but for now only device is a tuple.
             elif type(serialized_val) is tuple:
                 kwargs[arg] = torch.device(serialized_val)
+            elif serialized_val is None:
+                kwargs[arg] = None
             else:
                 raise_unsupported_data_type()
 
@@ -144,12 +146,17 @@ class ModelDeserializer:
         # (e.g torch, torch.nn, torch.nn.modules, etc.).
 
         # todo: More generic approach should be implemented. For now only caller's scope and current scope are checked.
+        split_path = full_class_name.split(".")
         try:
-            return reduce(getattr, full_class_name.split("."), sys.modules[__name__])
+            return reduce(getattr, split_path, sys.modules[__name__])
         except Exception as e:
             LOGGER.info("could not find appropriate class in current module")
 
-        return reduce(getattr, full_class_name.split(".")[1:], caller_module)
+        try:
+            return reduce(getattr, split_path, caller_module)
+        except Exception as e:
+            # sometimes the next to last step should be removed from class name due to python import syntax
+            return reduce(getattr, split_path[:-2] + split_path[-1:], caller_module)
 
     @staticmethod
     def __reduce_from_module(full_class_name: str, module: object):

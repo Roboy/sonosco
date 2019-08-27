@@ -16,12 +16,14 @@
 # Modified to support pytorch Tensors
 
 import torch
+from sonosco.model.serialization import serializable
 
 from .decoder import Decoder
 
-
+# TODO: Make it actually serializable by extracting init
+@serializable
 class GreedyDecoder(Decoder):
-    def __init__(self, labels, blank_index=None):
+    def __init__(self, labels="_'ABCDEFGHIJKLMNOPQRSTUVWXYZ#", blank_index=None):
         super(GreedyDecoder, self).__init__(labels, blank_index)
 
     def convert_to_strings(self, sequences, sizes=None, remove_repetitions=False, return_offsets=False):
