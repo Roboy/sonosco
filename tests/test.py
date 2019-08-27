@@ -9,18 +9,6 @@ from sonosco.model.deserializer import ModelDeserializer
 from abc import ABC, abstractmethod
 
 
-def test(arg: Callable[[int, int], float]):
-    print(inspect.getsource(arg))
-
-
-def test2(a: int):
-    print(a)
-
-
-def mydiv(a: str, b: str):
-    return int(a) // int(b)
-
-
 @serializable
 class CallableClass(ABC):
     some_stuff: str = "XD"
@@ -28,7 +16,6 @@ class CallableClass(ABC):
     @abstractmethod
     def __call__(self, *args, **kwargs):
         return "XDDDD"
-
 
 @serializable()
 class SubClass1(CallableClass):
@@ -67,9 +54,3 @@ ms.serialize_model(MockedNestedClass(some_method=mydiv, lists=[SubClass1("some o
 md = ModelDeserializer()
 mnc = md.deserialize_model(MockedNestedClass, "/Users/w.jurasz/Desktop/serialization_test/ms")
 print(mnc.execute_callables())
-# class SomeClass:
-#     def __init__(self, method: Callable):
-#         self.m = method
-#
-#     def print_details(self):
-# CallableClass.__class__.__
