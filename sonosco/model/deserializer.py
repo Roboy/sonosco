@@ -9,7 +9,7 @@ from functools import reduce
 from sonosco.common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, SERIALIZED_FIELD
 from sonosco.common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \
     is_serialized_collection, is_serialized_type, raise_unsupported_data_type, is_serialized_dataclass, \
-    is_serialized_collection_of_serializables
+    is_serialized_collection_of_serializables, is_serialized_collection_of_callables
 import sonosco  # don't remove, it's for object creation
 
 LOGGER = logging.getLogger(__name__)
@@ -119,6 +119,14 @@ class ModelDeserializer:
                             f"{val[CLASS_MODULE_FIELD]}.{val[CLASS_NAME_FIELD]}",
                             caller_module),
                         val[SERIALIZED_FIELD],
+                        caller_module)
+                    for val in serialized_val]
+            # TODO: Won't work if we have functions and callable objects in one collection (works only for functions)
+            # TODO: Test this branch
+            elif is_serialized_collection_of_callables(serialized_val):
+                kwargs[arg] = [
+                    ModelDeserializer.__create_class_object(
+                        f"{val[CLASS_MODULE_FIELD]}.{val[CLASS_NAME_FIELD]}",
                         caller_module)
                     for val in serialized_val]
             elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):

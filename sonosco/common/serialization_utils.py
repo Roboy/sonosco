@@ -43,11 +43,11 @@ def is_serialized_collection_of_serializables(obj: any) -> bool:
            len(obj) != 0 and \
            all(is_serialized_dataclass(o) for o in obj)
 
-
+# TODOL Will catch collections of types as well, change this
 def is_serialized_collection_of_callables(obj: any) -> bool:
     return is_serialized_collection(obj) and \
            len(obj) != 0 and \
-           all(is_serialized_dataclass(o) or is_serialized_type(obj) for o in obj)
+           all(is_serialized_type(o) for o in obj)
 
 
 def is_serialized_collection(obj: object) -> bool:
