@@ -2,7 +2,7 @@ import collections
 
 from sonosco.common.constants import CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
 from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
-from typing import List, Iterable, Callable
+import typing
 from torch import nn
 
 __primitives = {int, float, str, bool}
@@ -77,7 +77,7 @@ def __add_serialize(cls: type, model: bool) -> object:
     return _create_fn('__serialize__', [sonosco_self], serialize_body, return_type=dict)
 
 
-def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[str]:
+def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -> typing.List[str]:
     """
     Creates body of __serialize__ method as list of strings.
     Args:
@@ -139,7 +139,7 @@ def __encode_serializable_serialization(body_lines, field):
     body_lines.append(__create_dict_entry(SERIALIZED_FIELD, f"self.{field.name}.__serialize__()"))
 
 
-def __extract_from_nn(name: str, cls: nn.Module, body_lines: List[str]):
+def __extract_from_nn(name: str, cls: nn.Module, body_lines: typing.List[str]):
     """
     Extract fields from torch.nn.Module class and updated body of __serialize methods with them.
 
@@ -210,4 +210,18 @@ def __is_type(obj):
 
 
 def __is_callable(obj):
-    return hasattr(obj, '__origin__') and obj.__origin__ == collections.abc.Callable
+    """
+    Check if object is a collections.abc.Callable
+    Args:
+         obj (object): object to check
+
+    Returns (bool): indicator of obj is a collections.abc.Callable
+
+    """
+
+    # TODO: Extend support for Unions to all other types
+    if hasattr(obj, '__origin__') and obj.__origin__ == typing.Union:
+        objs = list(obj.__args__)
+    else:
+        objs = [obj]
+    return all([hasattr(obj, '__origin__') and obj.__origin__ == collections.abc.Callable for obj in objs])

@@ -1,5 +1,5 @@
 import inspect
-from typing import Callable, List
+from typing import Callable, List, Union
 
 from dataclasses import field, fields, dataclass
 
@@ -33,7 +33,7 @@ class MockedNestedClass:
     some_method: Callable[[str, str], int]
     some_int: int = 5
     some_collection: List[str] = field(default_factory=list)
-    yetAnotherSerializableClass: Callable = CallableClass(some_stuff="XDDDD")
+    yetAnotherSerializableClass: Union[Callable[[any], any], Callable[[int], int]] = CallableClass(some_stuff="XDDDD")
 
     def execute_callables(self):
         return str(self.some_method(10, 5)) + self.yetAnotherSerializableClass()
