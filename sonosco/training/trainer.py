@@ -9,11 +9,11 @@ from dataclasses import field
 from typing import Callable, Union, Tuple, List, Any
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
-
+from sonosco.model.serialization import serializable
 
 LOGGER = logging.getLogger(__name__)
 
-
+@serializable()
 class ModelTrainer:
     """
     This class handles the training of a pytorch model. It provides convenience
