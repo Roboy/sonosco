@@ -1,12 +1,17 @@
+import collections
+
 from sonosco.common.constants import CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
 from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
-from typing import List, Iterable
+import typing
 from torch import nn
 
 __primitives = {int, float, str, bool}
 # TODO support for dict with Union value type
 __iterables = [list, set, tuple, dict]
 
+
+# TODO: Prevent user from serializing lambdas.
+# Only named methods can be serialized or the function has to be shipped separately
 
 def serializable(_cls: type = None, *, model=False) -> object:
     """
@@ -72,7 +77,7 @@ def __add_serialize(cls: type, model: bool) -> object:
     return _create_fn('__serialize__', [sonosco_self], serialize_body, return_type=dict)
 
 
-def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[str]:
+def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -> typing.List[str]:
     """
     Creates body of __serialize__ method as list of strings.
     Args:
@@ -81,21 +86,39 @@ def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[
     Returns (list): __serialize__ method body as list of strings
 
     """
-    body_lines = ["return {"]
+
+    fields_to_serialize = fields_to_serialize
+    callables = set(filter(lambda el: __is_callable(el.type), fields_to_serialize))
+    # fields_to_serialize -= callables
+
+    body_lines = ["from types import FunctionType"]
+    body_lines.append("from sonosco.model.serialization import is_serializable")
+
+    for c in callables:
+        body_lines.append(f"if isinstance(self.{c.name}, FunctionType):")
+        body_lines.append(f"    {c.name} = {{")
+        __encode_type_serialization(body_lines, c)
+        body_lines.append(f"}}")
+        body_lines.append(f"elif is_serializable(self.{c.name}):")
+        body_lines.append(f"    {c.name} = {{")
+        __encode_serializable_serialization(body_lines, c)
+        body_lines.append(f"}}")
+        body_lines.append(f"else: raise TypeError(\"Callable must be a function for now\")")
+
+    body_lines.append("return {")
     for field in fields_to_serialize:
         # TODO: Rewrite this ugly if else chain to something more OO
         if __is_primitive(field.type) or __is_iterable_of_primitives(field.type):
             body_lines.append(__create_dict_entry(field.name, f"self.{field.name}"))
+        elif __is_callable(field.type):
+            body_lines.append(f"'{field.name}': {field.name},")
         elif is_serializable(field.type):
             body_lines.append(f"'{field.name}': {{")
-            body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__class__.__name__"))
-            body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__class__.__module__"))
-            body_lines.append(__create_dict_entry(SERIALIZED_FIELD, f"self.{field.name}.__serialize__()"))
+            __encode_serializable_serialization(body_lines, field)
             body_lines.append("},")
         elif __is_type(field.type):
             body_lines.append(f"'{field.name}': {{")
-            body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__name__"))
-            body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__module__"))
+            __encode_type_serialization(body_lines, field)
             body_lines.append("},")
         else:
             __throw_unsupported_data_type(field)
@@ -105,7 +128,18 @@ def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[
     return body_lines
 
 
-def __extract_from_nn(name: str, cls: nn.Module, body_lines: List[str]):
+def __encode_type_serialization(body_lines, field):
+    body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__name__"))
+    body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__module__"))
+
+
+def __encode_serializable_serialization(body_lines, field):
+    body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__class__.__name__"))
+    body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__class__.__module__"))
+    body_lines.append(__create_dict_entry(SERIALIZED_FIELD, f"self.{field.name}.__serialize__()"))
+
+
+def __extract_from_nn(name: str, cls: nn.Module, body_lines: typing.List[str]):
     """
     Extract fields from torch.nn.Module class and updated body of __serialize methods with them.
 
@@ -134,8 +168,8 @@ def __throw_unsupported_data_type(field):
 
     """
     raise TypeError(f"Field name: {field.name}, Field type: {field.type}. "
-                    f"Unsupported data type. Currently only primitives, lists of primitives and types"
-                    "objects can be serialized")
+                    f"Unsupported data type. Currently only primitives, lists of primitives, types, callables "
+                    f"and other serializable objects can be serialized")
 
 
 def __create_dict_entry(key: str, value: str) -> str:
@@ -173,3 +207,21 @@ def __is_type(obj):
 
     """
     return obj is type
+
+
+def __is_callable(obj):
+    """
+    Check if object is a collections.abc.Callable
+    Args:
+         obj (object): object to check
+
+    Returns (bool): indicator of obj is a collections.abc.Callable
+
+    """
+
+    # TODO: Extend support for Unions to all other types
+    if hasattr(obj, '__origin__') and obj.__origin__ == typing.Union:
+        objs = list(obj.__args__)
+    else:
+        objs = [obj]
+    return all([hasattr(obj, '__origin__') and obj.__origin__ == collections.abc.Callable for obj in objs])

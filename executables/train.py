@@ -15,7 +15,6 @@ from sonosco.training.losses import cross_entropy_loss
 from sonosco.training.tb_text_comparison_callback import TbTextComparisonCallback
 from sonosco.config.global_settings import CUDA_ENABLED
 
-
 LOGGER = logging.getLogger(SONOSCO)
 
 

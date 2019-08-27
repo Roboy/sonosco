@@ -1,0 +1,2070 @@
+commit ceda17c925d69efc04e4f9a2938f1cf514348a72
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Aug 27 14:50:06 2019 +0200
+
+    Added serialization of function
+
+commit 20fd159bd874df817e8eb9d9dcb23ab73356c8d0
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 26 19:47:10 2019 +0200
+
+    rework inference part so that no file is saved (just in memory)
+
+commit 38c4c64c5dfb2423183daefa14d9fdd6fb4bdc49
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 26 19:45:51 2019 +0200
+
+    use correct parse_audio function
+
+commit f24bb0855fcc021c6b3eaabb34156241ef882e32
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 26 19:45:11 2019 +0200
+
+    split parse_audio in two functions: parse_audio_from _path and parse_audio that just takes an already loaded file
+
+commit 69dc25f6b875f20ba29418319e6e5bedf7701d8a
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 26 19:10:55 2019 +0200
+
+    remove unnecessary line
+
+commit 253ff78e3b03e5161146ce8a4fea8061e223f2be
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 26 19:03:49 2019 +0200
+
+    add continue training function to model trainer
+
+commit f70a787b7d661573a45ec9a56c5624ea8a8b9466
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 26 17:19:11 2019 +0200
+
+    prepare class parameters to be serialized
+
+commit f99d914aca58b58b40ed1d64c8e43a940c9694a0
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 26 17:05:34 2019 +0200
+
+    add microsoft_stt to ros1 folder (WIP - not tested yet) needs to be handled like in webserver (secret.yaml required, slight changes in the STT_server file
+
+commit 4c5ed72b77fb1b264fe4c24ca67213d511196fcb
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 26 16:44:57 2019 +0200
+
+    upgrade dependecies to higher version to compensate security vulnerabilities (could not really test it on my computer, but frontend works)
+
+commit 9c2935149e1c8aa929e5d14a588160c0f6fcc19b
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Aug 26 00:09:56 2019 +0200
+
+    Fixes for mic array communication
+
+commit 5998f28b4451521eb3dd55af5b7d9827dd24b8c5
+Merge: 07030e2 5c84c96
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Thu Aug 22 21:01:31 2019 +0300
+
+    Merge pull request #29 from Roboy/seq2seq-inference
+    
+    Seq2seq inference
+
+commit 5c84c96ebd36b42420fa8c2537a7545975ecc56c
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Thu Aug 22 02:49:07 2019 +0300
+
+    fix bugs
+
+commit 6ed61cb33aa99fc472bd85f29d32e2c69728b768
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Thu Aug 22 02:42:07 2019 +0300
+
+    implement text comparison
+
+commit cf3050d3781b7545d43fd03e5593c43bf57dcc02
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Thu Aug 22 01:21:45 2019 +0300
+
+    complete inference part
+
+commit 152591c7775f4ddbb3fc8dae2a60b536a8257c17
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 19:13:22 2019 +0300
+
+    update inference
+
+commit 35f12237069a26e32e9c6976df3297d5aef2f5dd
+Merge: 4cd5f62 202aff1
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Aug 21 16:58:41 2019 +0200
+
+    Merge branch 'seq2seq-inference' of https://github.com/Roboy/sonosco into seq2seq-inference
+
+commit 4cd5f622602cba6b5b605bc9ad97e5ad1da67684
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Aug 21 16:57:49 2019 +0200
+
+    add model flag to serialable in seq2seq
+
+commit deced6e278a46104f0224b2d5c6e6f02d5303e41
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Aug 21 16:56:12 2019 +0200
+
+    add model serialization callback
+
+commit 202aff10b2eae7cab8ea2733047e3ea9fb7c4774
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 16:29:52 2019 +0300
+
+    update config
+
+commit edda6d6bf9b4bd13cd33823e4c36c20ed3f987e9
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 16:03:48 2019 +0300
+
+    update logger'
+
+commit 1da108bf928d1ba31c6500a3fd841b03b238c7da
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 15:27:22 2019 +0300
+
+    update experiment
+
+commit 8a3db7d1daeecbd4cf7f304cc3186211bc80014e
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 15:06:26 2019 +0300
+
+    prepare traing.py
+
+commit 069814171ebbfc76462f0fdb7e290b24b4d9b5b7
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 13:34:00 2019 +0300
+
+    refactor code
+
+commit 74c564952ced151aef997c9662f993ce201aa96f
+Merge: 1b6c9aa 07030e2
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 13:00:36 2019 +0300
+
+    Merge branch 'develop' into seq2seq-inference
+
+commit 07030e2b72bd8f12704ec60ff507ec803eb23bf7
+Merge: d091a73 b39bbce
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 13:00:01 2019 +0300
+
+    Merge pull request #27 from Roboy/SWA-96-use-experiment-as-main-interface-for-user-to-interact-with
+    
+    Swa 96 use experiment as main interface for user to interact with
+
+commit 1b6c9aabba364d5b82cbac379e0d70021d28674a
+Merge: 11608b8 d091a73
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 12:58:40 2019 +0300
+
+    Merge branch 'develop' into seq2seq-inference
+
+commit 11608b8343d8c6d684ce12a1f4814c11f1687733
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 21 12:58:22 2019 +0300
+
+    update infer
+
+commit 33cb5f192279fa36a7859721e9708ab6ce8b1144
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Aug 21 01:19:16 2019 +0200
+
+    Fixed mask dimensions and added cuda availability check to settings
+
+commit ccfadf87f7b767dd1a158fe03a7ca2a86a2e5c13
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Aug 21 00:33:13 2019 +0200
+
+    Added cuda check to infer and train
+
+commit d091a730f4da31eb0f45a0cb96698dac8d727dec
+Merge: d826e06 87258ad
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Aug 19 18:02:40 2019 +0300
+
+    Merge pull request #28 from Roboy/recursive-serialize
+    
+    Recursive serialize
+
+commit 0b5d538658dae2d193cd3b9faf86f410f1efd59c
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Aug 19 17:42:00 2019 +0300
+
+    cleanup
+
+commit 0c1f611078bf5614b332c7a51f52ca0663d472cf
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Aug 19 17:39:16 2019 +0300
+
+    cleanup
+
+commit 5cdb8b039d89194c3379a4ebfa2e999ef5d30a63
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Aug 19 17:30:17 2019 +0300
+
+    start implementing the infer executable
+
+commit b39bbce3c924cfec2b21848685e346366707684c
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 19 15:09:34 2019 +0200
+
+    fix comments from pr
+
+commit 8fff12d66704f0eb6560dd89ad81b9db1476006d
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Aug 19 15:03:30 2019 +0200
+
+    move statement after if in new line
+
+commit 87258ad86384370b78a66a57c9f2d1cea4c1af80
+Merge: a96c0bf d826e06
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Aug 18 20:19:32 2019 +0200
+
+    Merge branch 'develop' into recursive-serialize
+
+commit a96c0bffed66cb3b215210f0fdc42b34c3697320
+Merge: 521eccb 5ae7a85
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Aug 18 20:17:11 2019 +0200
+
+    Merge branch 'develop' into recursive-serialize
+
+commit 521eccb28d5050420a90aeccae562130a34986d7
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Aug 18 20:15:12 2019 +0200
+
+    Removed test invocation
+
+commit 3347fb4def707356ee1bd9087d5f80a087d2c3ef
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Aug 18 20:14:52 2019 +0200
+
+    It's recursive
+
+commit a40741e0b4a656377835fc59eecdef31ae5715b5
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Aug 18 17:40:17 2019 +0300
+
+    start implementing seq2seq inference
+
+commit bbff3ee6bc63fc096ed20315af12b36b3b047a1d
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Aug 17 16:42:11 2019 +0200
+
+    add comment to create function
+
+commit ef76ab2fbc6f5e850c5dfa89b7a208b884f3fb75
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Aug 17 16:33:28 2019 +0200
+
+    add start_training function to experiment
+
+commit f39931db7fa803fc1489d419aace9f7cc3a47e7a
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Aug 17 16:04:34 2019 +0200
+
+    Test for nested model serialization
+
+commit ef94121bdf662d7be6198afbcf8c949fd47af555
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Aug 17 16:00:42 2019 +0200
+
+    add global seed to experiment
+
+commit 900ca4c0c99871de6587d21f26953242eec6c0e6
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Aug 17 15:40:37 2019 +0200
+
+    fix typo with date_time
+
+commit 0bd15deaed705499e604316fc0822d640412ef0f
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Aug 17 15:39:48 2019 +0200
+
+    add setup_model_trainer function in experiment. That creates a model trainer in the experiment and adds checkpoint callback and tensorboard callback by default
+
+commit 95f5b4c71406b70271b7cbd3d4816e16570135ee
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Aug 17 15:37:40 2019 +0200
+
+    Recursive call to deserialize
+
+commit d826e06d4e82d6d1c21274e020821ff36858b3e2
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat Aug 17 16:31:29 2019 +0300
+
+    add cuda support
+
+commit ff96e5c15bd1baf9dd07ec1f52aa110e07c719ab
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat Aug 17 16:08:07 2019 +0300
+
+    add cuda support
+
+commit 280a07daae1d8cc36f0e17872b4d580fb55e0b1c
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Aug 17 15:05:55 2019 +0200
+
+    adapt experiment create to use config file
+
+commit d6c88a5bea6a2223cb79928c6aa7733bce8fc987
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat Aug 17 16:04:51 2019 +0300
+
+    add cuda support
+
+commit a901b79a61930ac9a97bb8e9ef103c2752fc21e2
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat Aug 17 16:02:42 2019 +0300
+
+    add cuda support
+
+commit 19e637985d7e9d429752655e3efd82f5f8cc21c7
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat Aug 17 15:59:31 2019 +0300
+
+    add cuda support
+
+commit 281c6acd60a925f7528cbfb00b87e4fbcf227f48
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Aug 17 14:35:00 2019 +0200
+
+    Fixed todo and added some comments
+
+commit 62f8114285fa51955ea62b0e9d9fd79da52537ca
+Merge: d3edf59 5ae7a85
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat Aug 17 15:27:47 2019 +0300
+
+    merge develop
+
+commit d3edf593c042f207a1115fc625f7d22902ac261b
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat Aug 17 15:26:40 2019 +0300
+
+    update logging for training
+
+commit 8d4b41dcf50b64630b96ce0f97c321044a6b9210
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 14 23:52:11 2019 +0200
+
+    start implmeneting recursive serialization
+
+commit 5ae7a85316bf013ce40b68166b053939e5556234
+Merge: d3aefc1 987c346
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Aug 11 13:54:25 2019 +0200
+
+    Merge pull request #26 from Roboy/SWA-56-implement-fully-convolutional-sequence-to-sequence-model
+    
+    Swa 56 implement fully convolutional sequence to sequence model
+
+commit 987c3465fa3ba1e30d5db18b70a581a33d5367a6
+Merge: fe981de d3aefc1
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Aug 11 13:54:11 2019 +0200
+
+    Merge branch 'develop' into SWA-56-implement-fully-convolutional-sequence-to-sequence-model
+
+commit d3aefc152e95e6f8363217aaf92b9ce9c25a2c05
+Merge: 04adeef c61b409
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Aug 11 13:53:11 2019 +0200
+
+    Merge pull request #25 from Roboy/SWA-9-add-plot-generation-callbacks-tensorboard
+    
+    Swa 9 add plot generation callbacks tensorboard
+
+commit 04adeeff0f1577e9c4a54c5d23b61ab537ac6756
+Merge: 2e63964 00a3aa3
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Aug 11 13:52:58 2019 +0200
+
+    Merge pull request #24 from Roboy/SWA-62-add-metric-to-evaluation-wer-cer
+    
+    Swa 62 add metric to evaluation wer cer
+
+commit 2e639647f8cc9693b05f1b23e518a9c4ac6e9df7
+Merge: 23f3ddf 627ce09
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Aug 11 13:52:46 2019 +0200
+
+    Merge pull request #23 from Roboy/SWA-51-initial-work-on-merging-manifests
+    
+    Swa 51 initial work on merging manifests
+
+commit fe981de34f82b30ed05c325f0157579024d94351
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Aug 11 01:15:00 2019 +0200
+
+    Added melodic client
+
+commit 403405f4aadff842e25147e48035391c0070f3bf
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Fri Aug 9 20:38:52 2019 +0200
+
+    Fixed few problems with audio sercver
+
+commit d7c4c70456e381a1c134af44d79d170765eb27dd
+Merge: cea09eb 32ae195
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Fri Aug 9 20:21:41 2019 +0200
+
+    udpates
+
+commit cea09ebabdac62e727fdedea5bf865c93890070c
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Fri Aug 9 20:20:45 2019 +0200
+
+    updates
+
+commit 10f0fb9e5296605ca1ea1d0df08ae3bbe5a70cf0
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Fri Aug 9 20:20:12 2019 +0200
+
+    update chunk size on server
+
+commit 32ae1956ab76275f6ebdbc25a8dcc3f6218e504b
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Fri Aug 9 19:45:12 2019 +0200
+
+    Removed distributed sampler
+
+commit 586f4c52ac089fe2ae3a22e3f9713404129cb382
+Merge: a747d8e 970697b
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Fri Aug 9 19:27:09 2019 +0200
+
+    Merge branch 'SWA-56-implement-fully-convolutional-sequence-to-sequence-model' of github.com:Roboy/sonosco into SWA-56-implement-fully-convolutional-sequence-to-sequence-model
+
+commit a747d8e5dcadccfc3f9d56e4bde64bf3f306abba
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Fri Aug 9 19:26:27 2019 +0200
+
+    add mic client and server
+
+commit 970697bde408ba1fc9fb363686820aa9cf6e210b
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Aug 7 21:05:24 2019 +0200
+
+    Updated gitignore
+
+commit 8962db3c3e18b38591c53b6bafcde57466df0622
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Aug 7 21:04:37 2019 +0200
+
+    Running s2s with tensorboard
+
+commit 311e2cc4bc97fa9ecf993dbc2203be197bb99383
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 7 20:34:02 2019 +0200
+
+    add start and end tokens
+
+commit 0bd2cb07b0074eac1bfd0573bb993508cd617eec
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 7 19:21:15 2019 +0200
+
+    fix metrics
+
+commit 742f04349d83f941c7052b4fcacf40c0d179893b
+Merge: 1d0d122 c61b409
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 7 19:15:07 2019 +0200
+
+    Merge remote-tracking branch 'origin/SWA-9-add-plot-generation-callbacks-tensorboard' into SWA-56-implement-fully-convolutional-sequence-to-sequence-model
+
+commit 1d0d122a90b87936fe4fc4e0b3efe8ad0a31eded
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 7 12:08:07 2019 +0200
+
+    add training to tds model
+
+commit 1bc9fd9f14caf432bb2e031960bfa65244929d92
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 7 10:27:12 2019 +0200
+
+    implement seq2seq
+
+commit c56b03c40f8231783a6fbbad4fde0bc5545be63f
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 7 02:42:27 2019 +0200
+
+    update seq2seq
+
+commit d12555c474a2e5f40a9f51a46d6e479f3c950c62
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Aug 7 02:19:59 2019 +0200
+
+    implement decoder
+
+commit 6e8c54c99611b2f7bcf547c2c55e38bfa030f72d
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Aug 6 22:38:31 2019 +0200
+
+    update model
+
+commit aaac138e9fce0d745940e504f57b1dfd8d1576a7
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Aug 6 21:53:59 2019 +0200
+
+    implement tds encoder
+
+commit f6904cfafbdf4c1ae4da313f4a0d2571567a0031
+Merge: 11bd3b7 00a3aa3
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Aug 6 17:24:29 2019 +0200
+
+    Merge remote-tracking branch 'origin/SWA-62-add-metric-to-evaluation-wer-cer' into SWA-56-implement-fully-convolutional-sequence-to-sequence-model
+
+commit 11bd3b73535a414f748225c6938a173bcf82fbe8
+Merge: 850c2c8 23f3ddf
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Aug 4 12:28:31 2019 +0200
+
+    Merge branch 'develop' into SWA-56-implement-fully-convolutional-sequence-to-sequence-model
+
+commit 627ce09fc150c7d3b2593605be437eead6215d47
+Author: Flo <florian.lay@tum.de>
+Date:   Sat Aug 3 09:11:23 2019 +0000
+
+    fix minor issues
+
+commit c61b4097ef0c325c1e1f8721056fa19beda060db
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Aug 3 10:23:53 2019 +0200
+
+    add tensorboard callback
+
+commit eb0302a44f91b6f4aec070af98830bc3ce354cd4
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Aug 3 10:22:48 2019 +0200
+
+    remove logger output
+
+commit ebe897e322509fbf434b243046a7489d9096adf4
+Merge: 23f3ddf 00a3aa3
+Author: ga38nif <florian.lay@tum.de>
+Date:   Fri Aug 2 14:04:17 2019 +0200
+
+    Merge branch 'SWA-62-add-metric-to-evaluation-wer-cer' into SWA-9-add-plot-generation-callbacks-tensorboard
+
+commit 00a3aa34f76ce76e18de9ef81f920512772168ac
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jul 31 17:24:08 2019 +0200
+
+    remove unneccessary logger output
+
+commit 278053c38356690657061605397c7922ea7c72a5
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jul 31 17:17:23 2019 +0200
+
+    add character error rate as metric and add metrics to run_training
+
+commit 7289c0f5599b30f3e9bf2c802969314d563967e5
+Author: ga38nif <florian.lay@tum.de>
+Date:   Fri Jul 26 10:52:26 2019 +0200
+
+    modify wer metric
+
+commit e4695a19601e050fefc50267599c23e6c41bac4f
+Author: ga38nif <florian.lay@tum.de>
+Date:   Fri Jul 26 10:48:52 2019 +0200
+
+    add if statement for giving decoder to wer and cer metric callback
+
+commit e4d5441589c74b2a63ff32d34ef8b7802a8f8890
+Author: ga38nif <florian.lay@tum.de>
+Date:   Fri Jul 26 10:48:02 2019 +0200
+
+    change labels to labels json
+
+commit 0e4bb4ad20c8b9bd995ca1e947d48ff62f4dd5ba
+Author: ga38nif <florian.lay@tum.de>
+Date:   Fri Jul 26 10:46:12 2019 +0200
+
+    remove label entry in yaml file as label file is provided through labels path
+
+commit d19a49d6276a5c4c21e20f83f36b1f5f2dd14b0d
+Author: Flo <florian.lay@tum.de>
+Date:   Thu Jul 25 15:08:20 2019 +0000
+
+    fix small issue in common_voice download script
+
+commit 974093309c27c8d41fd6cb5eb35d8916dd050636
+Author: ga38nif <florian.lay@tum.de>
+Date:   Thu Jul 25 16:31:01 2019 +0200
+
+    WIP test WER callback
+
+commit 23f81355bf9100503a941f68de513d1266d4c26c
+Author: ga38nif <florian.lay@tum.de>
+Date:   Thu Jul 25 16:30:36 2019 +0200
+
+    pass decoder to WER or CER metric
+
+commit 8d59832281bbe99af6a61d10433e825126bd19e1
+Author: ga38nif <florian.lay@tum.de>
+Date:   Thu Jul 25 16:29:27 2019 +0200
+
+    add decoder to train yaml
+
+commit d5f773b1073a8a985b8478cc74bb6cd09a89654a
+Author: ga38nif <florian.lay@tum.de>
+Date:   Thu Jul 25 16:28:52 2019 +0200
+
+    WIP add word error rate as metric
+
+commit 23f3ddfcbe55c92ae4bdd00349b7cc7535a78b1e
+Merge: 0ca3903 30eff6d
+Author: WiktorJ <Wiktor.jurasz@gmail.com>
+Date:   Wed Jul 24 18:47:33 2019 +0200
+
+    Merge pull request #22 from Roboy/SWA-82-saving-data-and-transcription-in-pseudo-database
+    
+    Swa 82 saving data and transcription in pseudo database
+
+commit 54856eaf82f5716353e99dc973f50d1ca111c330
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jul 24 14:45:51 2019 +0200
+
+    add name of default merged manifest file
+
+commit df9ba40c760e8e76f66b3365410929bdd70fbb09
+Merge: de3e31b 1fec5e0
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jul 24 14:17:46 2019 +0200
+
+    Merge branch 'develop' into SWA-51-initial-work-on-merging-manifests
+
+commit 0ca390388e6dd25cffa4437f00257e1b29772afa
+Merge: 0cde324 afbcfa0
+Author: WiktorJ <Wiktor.jurasz@gmail.com>
+Date:   Sun Jul 21 19:35:35 2019 +0200
+
+    Merge pull request #17 from Roboy/SWA-84-ros1-integration
+    
+    SWA 84 ros1 integration
+
+commit afbcfa0fd69f0df9fcbd16489a7c5736adf59c67
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 21 19:35:05 2019 +0200
+
+    Changed branch to develop in Dockerfile
+
+commit 456500cfe28fea77fbe9b467ecb26f6e5b72b2a5
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 21 19:34:31 2019 +0200
+
+    Fixed wrong publish message format
+
+commit a97866efb57e81b0850049bfc8969b0e25128e2d
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 21 19:27:27 2019 +0200
+
+    Updated dp inference
+
+commit 5a923e6df01a89e298624929f6b2caa3a53f320e
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 21 19:21:08 2019 +0200
+
+    Added test server, fixed wrong service
+
+commit 30eff6df61e683ca45ed035e96b3c4fc38442222
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 21 13:04:26 2019 +0200
+
+    Fixed wrong config entry
+
+commit 168b99d6d17dce42144c15b2a8f6ddec2cfc2f5b
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 21 12:54:07 2019 +0200
+
+    Clean up and transcription also in temp files now
+
+commit 23dacb0d97c7128f360f77c114da4fe8a246360a
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 21 12:40:30 2019 +0200
+
+    Switched to temp files
+
+commit 60742ebbc950b9e6e1e1cca6df09e13765801d33
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 21 11:03:50 2019 +0200
+
+    JS formatting and temporary changed wav to webm
+
+commit 613cee99f7b857ced0191d65cf6b2400fe02b1d0
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jul 20 15:13:23 2019 +0200
+
+    Removed reduntant file
+
+commit de3ba258762a39c54621c47985bd6dd350e35c7d
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu Jul 18 12:22:01 2019 +0200
+
+    Fixed shutdown and args tuple
+
+commit d7d0dd0db9fc6e62375c5e65360ea16f4ae58ffe
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu Jul 18 12:19:54 2019 +0200
+
+    Switched to threds
+
+commit f65571c23c38c3acc41a80a7f8074105504f5450
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu Jul 18 11:43:34 2019 +0200
+
+    Version with callbackwrapper
+
+commit 9b25e070d38840e241c88e42143aa36e975c078f
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu Jul 18 01:14:30 2019 +0200
+
+    Added node init to all processes
+
+commit c9da52296dfd864987cb25004fd7f1df0cbd95b7
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 22:00:22 2019 +0200
+
+    Added multiprocessing manager
+
+commit 8a5278c5e56c50b2d2414e53a820f84a8e4b92c5
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 21:42:45 2019 +0200
+
+    missing value fixed
+
+commit ce620c9099d443cbd5f1b3822a1122626e32a882
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 21:40:03 2019 +0200
+
+    Updated callback
+
+commit 71ac3a57152c4b81cec15c4d82c1e861bdc663a6
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 21:05:27 2019 +0200
+
+    Fixed unhashable type
+
+commit ac3811a55184bfff870c7efff51f5be963ec01fb
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 21:00:54 2019 +0200
+
+    Added build scripts
+
+commit d07ecbf6675840e396f66db0851073383cff7242
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 20:55:11 2019 +0200
+
+    Dependency problem resolved
+
+commit 699e7e8aa12722be06877773d1fdeb0009e29465
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 19:59:20 2019 +0200
+
+    Added librosa saveing
+
+commit be7a5bf2d1bdc7ee3e0ef3f93d801911b9caf429
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 19:12:49 2019 +0200
+
+    Fixed path
+
+commit 0cde324f8f898a19d2843ab3a91ddc2a63ffcf9f
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 19:02:13 2019 +0200
+
+    add close model
+
+commit d08688e655533325368a007b1150074bf7abe064
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 18:58:26 2019 +0200
+
+    Done
+
+commit 4d99f988f1f5c55b0ed93697964e1ad9fb021a2a
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 18:52:04 2019 +0200
+
+    Exported dir creations to utils
+
+commit 43f6463f314f637cb3b6724b3a17bc6c16f81b1f
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 18:31:36 2019 +0200
+
+    Added creation of pseudo database
+
+commit 6d6bbd05b7087232d67b441381ffc9f7566288aa
+Merge: d44e90b f890d92
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 18:30:36 2019 +0200
+
+    resolve conflicts
+
+commit d44e90bca3debe38288da2b00ee2e14a6d7127b3
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 18:19:25 2019 +0200
+
+    update popup
+
+commit 603baadcf532873185a5f7baaae0bdf76a9b84e5
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 18:09:25 2019 +0200
+
+    update frontend
+
+commit f890d923c613b66a1e7f23d9c8000a3e6bb2a542
+Merge: 719d9b1 b1653db
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 17:37:20 2019 +0200
+
+    Merge pull request #20 from Roboy/SWA-75-add-transcription-request-to-vue-server
+    
+    Swa 75 add transcription request to vue server
+
+commit b1653db8bce42e1f720539e8af6daf1e66c54194
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 17:36:39 2019 +0200
+
+    fix margin
+
+commit 827900923e53c5e56bc2935d7b3d7fb7708bfaf3
+Merge: 3393cf7 719d9b1
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 17:10:49 2019 +0200
+
+    resolve conflicts
+
+commit 719d9b154676b82c2b84cc27ea706def9f2252c9
+Merge: 274e2d9 74a08f8
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 17:00:57 2019 +0200
+
+    Merge pull request #21 from Roboy/improve-layout
+    
+    Improve layout
+
+commit 74a08f83676e081e7b64f20407b41b9855070ad2
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 16:56:36 2019 +0200
+
+    update card view
+
+commit 9cdab8f5896d5b3ddfb3513be3f7e1368a1b153a
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 17 16:06:40 2019 +0200
+
+    improve layout
+
+commit 3393cf7624f499aeb2d7e4c31486e8cf84d55b4d
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jul 17 13:51:20 2019 +0200
+
+    center buttons and text in card popup
+
+commit 6c2e455b7482dcd4f43f3257435e72098ba928c0
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jul 17 13:46:03 2019 +0200
+
+    change folder where data is saved to .sonosco
+
+commit 566fcfd31406011a6c51ba1a31618084014e2875
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 17 09:58:37 2019 +0200
+
+    Updated Dockerfile
+
+commit ec9ebf9274d8d6c8065d0eaee9fb0057a92eaf47
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 16 23:54:35 2019 +0200
+
+    Fixed imports
+
+commit 447c02a83de0fd0f0e33a9020032e782ac7001a5
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 16 23:52:32 2019 +0200
+
+    Removed decoder as requred argument from inference interface
+
+commit 01628c5d75e56074288298853616b160108a0437
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 16 23:48:38 2019 +0200
+
+    Added client and small fixes
+
+commit 6530660ce673c22e2e971e87c1c89f5b5c24f1ab
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 16 22:21:01 2019 +0200
+
+    Added base Docerkfile
+
+commit 253b92936a6f0b7bd3e7ca6d29e218e19c5eba0f
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 16 22:04:20 2019 +0200
+
+    Fixed iteration
+
+commit 274e2d9f3a17014d5bb9d9b14ef91327690604cf
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jul 16 17:48:06 2019 +0200
+
+    remove tmp wav
+
+commit 22d3f8b35f3083d2ed829c103228cd79b129b864
+Author: ga38nif <florian.lay@tum.de>
+Date:   Tue Jul 16 17:43:18 2019 +0200
+
+    show cookie banner and rename variable in app.py
+
+commit 92384b19a98a7be4a2e112d028d4c8bd147a00a2
+Author: ga38nif <florian.lay@tum.de>
+Date:   Tue Jul 16 16:43:48 2019 +0200
+
+    make cookies work
+
+commit 80d001a995a6a3f6ce625642fe662b11346f2041
+Merge: cf3232e 74860e1
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jul 16 14:29:49 2019 +0200
+
+    Merge branch 'develop' of github.com:Roboy/sonosco into develop
+
+commit cf3232eb6226f411bbd7c432c1e413c301bf0b74
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jul 16 14:29:29 2019 +0200
+
+    cache model
+
+commit 74860e114ad2cd30032150a83ed6cdff11706325
+Merge: 8cea0cb 9e6e935
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jul 16 12:04:33 2019 +0200
+
+    Merge pull request #19 from Roboy/swa-85-multithreaded-processing
+    
+    add thread pool processing
+
+commit 9e6e93592736d332064c1fde07b20cb57cfc22ce
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jul 16 12:03:06 2019 +0200
+
+    add thread pool processing
+
+commit 8cea0cbb323cd55c52be5eb554f6fc2bb4e25db2
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 23:38:08 2019 +0200
+
+    restructure backend and frontend
+
+commit 4e3c8c6c03b362049fd9b7021b63d21fbc16babb
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 23:34:42 2019 +0200
+
+    restructure backend and frontend
+
+commit 42c6cc73a7fe3182a4877cc19131da3c8705e66c
+Merge: 9f87b25 b607d23
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 23:27:09 2019 +0200
+
+    Merge pull request #18 from Roboy/swa-73-enable-transcription-for-multiple-users
+    
+    Swa 73 enable transcription for multiple users
+
+commit b607d233e553640cd68210affd793f910a19b4e9
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 23:19:24 2019 +0200
+
+    implement transcriptions for multiple users
+
+commit 5d94c0c3e0249d1f22bf74454c09eeed3f38e7a7
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:56:56 2019 +0200
+
+    add static folder
+
+commit 0646192075490001f9db9e9149704f9a2f58a26a
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:45:29 2019 +0200
+
+    add configuration files for frontend
+
+commit a12da80c4fe03e2285ff6eca54552e0f29ed1f56
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:41:33 2019 +0200
+
+    add build scripts for node
+
+commit ee01abdabf1b74a8e7003f944ee4dfe705419bf5
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:20:53 2019 +0200
+
+    comment out language model in config
+
+commit ad2db198a6c2759105952ee98e86ead9652f2c3a
+Merge: fed22fc 9f87b25
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:13:58 2019 +0200
+
+    merge develop
+
+commit 9f87b25a1afa2938ac7eb98cd1932624c8190900
+Merge: e5e8264 43d2a0c
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:11:01 2019 +0200
+
+    Merge pull request #16 from Roboy/swa-81-add-language-model
+    
+    Swa 81 add language model
+
+commit 43d2a0c51804716a3384693bd9da8c629acbb17e
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:10:43 2019 +0200
+
+    resolve comments
+
+commit e5e8264b7febda5ac6a21f0e3de179d12b6cada7
+Merge: 6348db5 b972936
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:09:25 2019 +0200
+
+    Merge pull request #15 from Roboy/swa-71-integrate-microsoft
+    
+    Swa 71 integrate microsoft
+
+commit b97293665f3986c7933327c527688dc637955866
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jul 15 22:08:32 2019 +0200
+
+    remove unused code
+
+commit fed22fc48d6618d072cba9042cb03276545ecfe7
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon Jul 15 21:57:37 2019 +0200
+
+    WIP check and set cookies
+
+commit a41542db957326036017ba71c2caeda2b5225917
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jul 15 20:12:19 2019 +0200
+
+    Main flow finish, still have to resolve todos
+
+commit e813a0297261127b03c620171c3cd68a4b3e985b
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jul 15 19:56:09 2019 +0200
+
+    Added config
+
+commit 7836b9ffe010c43d0816315606e0ef3b24729449
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jul 15 19:42:35 2019 +0200
+
+    Added roboy example stub
+
+commit 3fdaa4bacc99ed35f2a4c9ee48c13be47e0aaf9f
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jul 15 15:13:57 2019 +0200
+
+    Fixed wrong interface
+
+commit 8cd9bd3c57374238fb5fbaef5be33e95fe33ac65
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jul 15 15:11:54 2019 +0200
+
+    Added ros1 server
+
+commit 6348db5c144d22cb9b6d6a5fe6ddeb200aa6d759
+Merge: 1fec5e0 969dfa9
+Author: WiktorJ <Wiktor.jurasz@gmail.com>
+Date:   Mon Jul 15 13:30:02 2019 +0200
+
+    Merge pull request #14 from Roboy/SWA-74-ros2-integration
+    
+    [WIP] SWA 74 ros2 integration
+
+commit 969dfa918c490fb654e443219d93836dda0015ed
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jul 15 13:29:34 2019 +0200
+
+    Applied revie comments
+
+commit b25b3ed8b7119c6f03da860edd8581e17d800d7f
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jul 14 22:21:44 2019 +0200
+
+    add language model
+
+commit 7e5675809ce289651ed4e640a4035f16fcf031dc
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jul 14 21:02:41 2019 +0200
+
+    update code
+
+commit 497f8364615f0d31962bbbe18a387a195ebcf11e
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jul 14 20:35:06 2019 +0200
+
+    remove pdb
+
+commit 82c87e74128c3881c3072693844fa4815fa296eb
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jul 14 20:30:44 2019 +0200
+
+    add beam decoder to server transcriptor
+
+commit 78529b1a2ec22c63ab231b135b600e5ef0088d72
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jul 14 19:48:47 2019 +0200
+
+    add microsoft
+
+commit fe4bc1524864107d8fc36decdc1680313d766d96
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jul 14 18:23:54 2019 +0200
+
+    fix microsoft model
+
+commit 74bd6ce2bde6bc721809575ff2aeaa9391dfd7d8
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jul 14 18:01:29 2019 +0200
+
+    add mirosoft as an external model
+
+commit 199b1c2086a229c9909452406e22bd1e4986b051
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 14 15:43:04 2019 +0200
+
+    Changed message type
+
+commit 486935ecba3e8bd1687151aa5edc63ec1a24b78e
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 14 01:39:31 2019 +0200
+
+    Added separate base Dockerfile and simple ros publishing scirpt
+
+commit 0f85af4277d16e0d6925f72978a1f005d41d6657
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jul 13 22:32:42 2019 +0200
+
+    Fixed imports
+
+commit e2e9c966a29fa36240dc42986960f81c76be248e
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jul 13 21:53:12 2019 +0200
+
+    Added init files
+
+commit a89311a8fd70db7e85ac7fc3f7422c28a52e2666
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jul 13 21:16:19 2019 +0200
+
+    setup.py update
+
+commit fb88477a21a7cec5e2b6aa8d6e4c36dfd0f06cc4
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Jul 13 19:08:18 2019 +0200
+
+    print transcription of first model element
+
+commit a458cf4801d942ecf9d3755f0983765d6e001368
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Jul 13 18:55:22 2019 +0200
+
+    add saveSample function to socket
+
+commit 6c49a5e695da2e835c3e5f89070c81c4b6543fd5
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Jul 13 18:54:18 2019 +0200
+
+    add socket call saveSample and pass it the required data
+
+commit 8d3111ce4d011edb011dc0457a8e8dba98d2bb63
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jul 13 18:53:17 2019 +0200
+
+    Initial version
+
+commit efef15f4d97584208e3a5f61a0fef34d26182b36
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Jul 13 17:58:17 2019 +0200
+
+    change popup to card
+
+commit c1aa8dc6839d123ef375a4bfcb2ba0c00b9bc5d1
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Jul 13 17:43:01 2019 +0200
+
+    add VueCookies package
+
+commit fe7bb07d37834de45b901b754ed447ecd6af46e5
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Jul 13 17:40:20 2019 +0200
+
+    add textarea and buttons hidden until transcribe is pressed
+
+commit 82cf720bfd4998d180e8e982c8986ea227501c87
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat Jul 13 16:11:37 2019 +0200
+
+    add two popup prompts one for name, one for transcript
+
+commit b31a8d3b7301c1c13d3c0ce9f0d43d4d198f5de4
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Fri Jul 12 18:09:49 2019 +0200
+
+    add build scripts & upgrade package.json
+
+commit f4a7b5b8f8ee414bde58637c830a2cb525f9ad7f
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Fri Jul 12 17:36:33 2019 +0200
+
+    bad commit
+
+commit 1fec5e00d81b1d7d55943cc5d6687c91e5a5eb40
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 10 09:08:01 2019 +0200
+
+    Changed deepspeech pretrained pth
+
+commit 08d112cc284d09035eb1700adf32edd3a747aaec
+Merge: 439aa64 c7e53aa
+Author: WiktorJ <Wiktor.jurasz@gmail.com>
+Date:   Wed Jul 10 07:21:52 2019 +0200
+
+    Merge pull request #13 from Roboy/SWA-70-extend-backed-to-load-multiple-models-at-the-same-time
+    
+    Swa 70 extend backed to load multiple models at the same time
+
+commit c7e53aa363e291981b91641c42cdfb6f74f368f4
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 9 02:14:32 2019 +0200
+
+    Removed unnecessary comments and logs
+
+commit 76dfbc2c89ff463dc18efa81c282bafd6e8813ec
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 9 02:11:38 2019 +0200
+
+    Multiple models transcrit independently
+
+commit 098159213e34cd7b4624ed7a880614ce2dad8d93
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 9 01:36:43 2019 +0200
+
+    Server using multiple models
+
+commit be3553eec593ae7639f63443b3e2581b3fd74f85
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jul 9 00:41:00 2019 +0200
+
+    Model ids list send to server
+
+commit 00c65e99694b663743a42f130f68ddc729a9c6e8
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jul 8 01:09:42 2019 +0200
+
+    Model list loaded from server
+
+commit d17458342d0829ed81b5666f29091e1716e1c17d
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 7 19:31:06 2019 +0200
+
+    Removed torchaudio, added vue-socket.io
+
+commit 439aa6408eb221f155a621d79a90312fb50c0b18
+Merge: 338d69a 3860554
+Author: WiktorJ <Wiktor.jurasz@gmail.com>
+Date:   Sun Jul 7 19:21:29 2019 +0200
+
+    Merge pull request #11 from Roboy/swa-49-create-inference-server
+    
+    upgrade frontend
+
+commit 3860554b69f9a3230015e12e23e6a608d810561f
+Author: WiktorJ <Wiktor.jurasz@gmail.com>
+Date:   Sun Jul 7 19:20:45 2019 +0200
+
+    Delete package-lock.json
+
+commit 57cdb4a2d7fda03ef6d85d3e6a24901e632cbb80
+Merge: 72f40c5 338d69a
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 7 19:19:47 2019 +0200
+
+    Merge branch 'develop' into swa-49-create-inference-server
+
+commit 338d69a1ee1da3f9d2330ce8027f15f0e5569885
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 7 19:18:30 2019 +0200
+
+    Updated .gitignore
+
+commit 20ddcd533d8d548418117844451026af2840b37e
+Merge: 57cee64 ca71d01
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jul 7 14:37:00 2019 +0200
+
+    Merge branch 'develop' of https://github.com/Roboy/sonosco into develop
+
+commit 57cee64496b0b8934c23cc0da8ff481e5aeadd0a
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 3 18:25:45 2019 +0200
+
+    Updated gitignore and removed package-lock.json
+
+commit 4068f70ab42bf18ce4cf40f9967facedb31244cb
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 3 18:07:31 2019 +0200
+
+    fix pretrained model
+
+commit a64d566943365a984bc5e0c61304c6abd96dbe52
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 16:51:58 2019 +0200
+
+    update interface
+
+commit 8e83f56fbc7105a03d3b5e2d448b8de869c7e26e
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 13:33:12 2019 +0200
+
+    remove unneeded files
+
+commit a835fbd97f403c15d80550546035199d6468547e
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 13:26:21 2019 +0200
+
+    use flask to serve bundled vuejs code
+
+commit 606259358997efff64d04cdc67be6c75019c6b80
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 11:14:31 2019 +0200
+
+    add flask server
+
+commit bcea0625189fcc8cdef27907400d905735e1904f
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 11:12:46 2019 +0200
+
+    add vue frontend
+
+commit 5489d60771dac5ed3e78a088726d97055cd7dda7
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jun 25 17:51:03 2019 +0200
+
+    add test script just for testing purposes
+
+commit 72f40c5844a933689294047e2e4e54b834115984
+Merge: 3367213 ca71d01
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Fri Jul 5 11:41:56 2019 +0200
+
+    merge master
+
+commit 3367213778fb0861090a623ec543bcd3d003472a
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Thu Jul 4 22:02:29 2019 +0200
+
+    upgrade frontend
+
+commit de3e31b71cc691ca4c4c087b28c89ef0b1ce8d24
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jul 3 19:10:25 2019 +0200
+
+    try create manifests folder and resolve issue about merging manifest content
+
+commit 527fa03391f83847b205049d0c08b7517c5e2942
+Merge: 4da76a4 11e6222
+Author: WiktorJ <Wiktor.jurasz@gmail.com>
+Date:   Wed Jul 3 18:29:14 2019 +0200
+
+    Merge pull request #7 from Roboy/SWA-45-create-model-loader
+    
+    Swa 45 create model loader
+
+commit ca71d0113967afd7ebe599e176c29c568c5df887
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 3 18:25:45 2019 +0200
+
+    Updated gitignore and removed package-lock.json
+
+commit 850c2c8ed36f4086b125de17e5db921b83cd93d8
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 3 18:22:13 2019 +0200
+
+    Furtrher updates
+
+commit e9b0b52439be40feddf3aefcc35b1cc94e3749ce
+Merge: 6b805b6 552f37a
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 3 18:08:52 2019 +0200
+
+    Merge pull request #9 from Roboy/swa-49-create-inference-server
+    
+    fix pretrained model
+
+commit 552f37a5fa54651cf61555df78f96e8fa3e02d3c
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jul 3 18:07:31 2019 +0200
+
+    fix pretrained model
+
+commit 1226f825cd41ea90ae27e05aac28bb885ae0774e
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jul 3 16:29:30 2019 +0200
+
+    adapt output of Logger
+
+commit a477a111135467fef1a4e3ee848ea0f376371715
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jul 3 00:22:35 2019 +0200
+
+    Added notebook with network arch
+
+commit 6b805b65dee96a6d92f3ae0d51f5597e53bf6411
+Merge: eee49f6 ffe1e5a
+Author: WiktorJ <Wiktor.jurasz@gmail.com>
+Date:   Mon Jul 1 23:11:45 2019 +0200
+
+    Merge pull request #8 from Roboy/swa-49-create-inference-server
+    
+    Swa 49 create inference server
+
+commit 11e622211731e5072f0f211e95ed6ccfbbf8ffed
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jun 29 12:14:57 2019 +0200
+
+    Rearranged structure
+
+commit 130083507ddd1b3f12e27dd5f74dcc6662316be3
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jun 29 12:09:12 2019 +0200
+
+    Docs fixes
+
+commit e541120dbda8df30f89830e0a48121343bd1ed4d
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jun 29 12:02:55 2019 +0200
+
+    Updated docs
+
+commit 46d24322fcf093f25b0b84adc941a9d567693c25
+Merge: afeeab6 eee49f6
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu Jun 27 22:05:20 2019 +0200
+
+    Merge branch 'develop' into SWA-45-create-model-loader
+
+commit afeeab64123d15c14c43fef31c5c96962dbf57b9
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu Jun 27 20:22:35 2019 +0200
+
+    Added types to constants
+
+commit 4a1fd22159a63a1d9d2f22dccc9e2e9d37f4fab8
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu Jun 27 15:51:25 2019 +0200
+
+    Added comments and some code clean up
+
+commit ecc9fa319b1fa74e9bf73140d7e70e4e42cdb050
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jun 26 18:14:08 2019 +0200
+
+    Whole flow works, added simple test
+
+commit 0deb245f3abe443fd95e82ca63f7391380064f82
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jun 26 18:02:54 2019 +0200
+
+    adapt merge_manifest to current status (click, paths, logger)
+
+commit ffe1e5affa79f70641faea4df787a0e14338b2cc
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 16:51:58 2019 +0200
+
+    update interface
+
+commit dc93a0b6ecaa60537754852d651ad1a653a03d87
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jun 26 14:24:46 2019 +0200
+
+    First load version done
+
+commit 4a7e61558cec2e73b12200acba5d311fceb91d53
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 13:33:12 2019 +0200
+
+    remove unneeded files
+
+commit 4c5a991480e6b1e230cf24156d1ab4004dbe15ca
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 13:26:21 2019 +0200
+
+    use flask to serve bundled vuejs code
+
+commit c8296a6dad071c4a76e2f50dbccd4845361da697
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 11:14:31 2019 +0200
+
+    add flask server
+
+commit 7c3ff697d2345828acfde238b4db0cf0df49ac2c
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 26 11:12:46 2019 +0200
+
+    add vue frontend
+
+commit 4bfd9fa558f50d9b7936cc7649b2c932466e2f80
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Tue Jun 25 23:15:36 2019 +0200
+
+    Serialize function generated correctly
+
+commit 287db6ad3083b904a8f92d8d07b87f463946d2c8
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jun 25 17:51:03 2019 +0200
+
+    add test script just for testing purposes
+
+commit 4da76a40f5e7b7bc4f7dea070232abd87d104ce6
+Merge: 36b71c3 eee49f6
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Tue Jun 25 14:45:50 2019 +0200
+
+    Merge pull request #6 from Roboy/develop
+    
+    Develop
+
+commit eee49f6b53fb785c0ec189eb56289b9e2c71356d
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jun 25 14:20:19 2019 +0200
+
+    use f strings
+
+commit 70b6bfb123e1582c7bf57a5cfcf2033bdfe9ff2c
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jun 25 14:18:26 2019 +0200
+
+    restructure model loader
+
+commit 2ffa5120ef8b29e5936821f1e49d9fcf1633798f
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jun 25 14:06:58 2019 +0200
+
+    make add_noise a class member
+
+commit b46c558157e348172cdb0b26a213311f9e2460e0
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jun 25 13:56:55 2019 +0200
+
+    restructure classes into separate modules
+
+commit 37d9a1c6b3bc4e2bd84553bd931f100458f99b38
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jun 24 23:43:48 2019 +0200
+
+    resolve comments
+
+commit 0d7c812f1d1b435a4f24dd79f90dbc60d144c37e
+Merge: 341e32a e3e21d8
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jun 24 22:48:16 2019 +0200
+
+    Merge branch 'develop' of github.com:Roboy/sonosco into develop
+
+commit 341e32abb89f53f63b6faa1ce6499c90b5fee96f
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jun 24 22:47:51 2019 +0200
+
+    resolve comments regarding noise makers
+
+commit 5640c5b7eb1e85fb4be35723e25f3a87b0d65f28
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jun 24 17:21:26 2019 +0200
+
+    Added super init to model
+
+commit e3e21d88d8ace89f47c8312ede5e3e621c23d43b
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jun 24 14:28:19 2019 +0200
+
+    Fix typo
+
+commit 1091b6b332c8704f67825d12b4a79bb35cbd76e3
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jun 24 09:27:20 2019 +0200
+
+    Fixed iterable of primitives type support
+
+commit f535798d4612be9d58132a2f600c1d374ce16b32
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon Jun 24 08:47:54 2019 +0200
+
+    Fixed comments
+
+commit eea91e55ca338a273a3080deb34d4a587a0ca096
+Merge: 0eaa2d3 0b21b69
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 23 16:04:54 2019 +0200
+
+    Merge pull request #4 from Roboy/swa-48-create-tit-interface
+    
+    Swa 48 create tit interface
+
+commit 0b21b69f9733038ecdcfc4ee8de936d0994d9ba7
+Merge: 0c43154 57caebc
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 23 16:01:19 2019 +0200
+
+    merge data loader
+
+commit 0c431541c44274c2032be6b73bcce33ab1a94622
+Merge: fc1431f f488e73
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 23 15:59:03 2019 +0200
+
+    resolve merge conflicts
+
+commit 57caebc0280db70ef7ca4ff44ffd6b4aba9014ed
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sun Jun 23 15:27:30 2019 +0200
+
+    rework audio dataloader and make it nicer
+
+commit fc1431f8eaf0ed0925848116be30714c7f6468b2
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 23 15:02:15 2019 +0200
+
+    fix deepspeech2 and first successful training run
+
+commit 1b0b39c4cbc923461bf0cdb49560ad65c3c4335b
+Merge: fbb9002 0eaa2d3
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sun Jun 23 13:58:48 2019 +0200
+
+    Merge branch 'develop' into SWA-47-work-on-dataloader-stub
+
+commit f488e7369058bc0a6c13c6652d812cdb8e03c7d6
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jun 23 00:20:44 2019 +0200
+
+    Improced serialize to support torch.nn.Module
+
+commit 9fc9eef20f6c051fb430031f7c1b37f946c3ab7e
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Fri Jun 21 15:03:00 2019 +0200
+
+    Added serialize decorator
+
+commit f18f303085b1d3cff2e3c75ce6902666a8106417
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 19 19:02:43 2019 +0200
+
+    update run_trainer
+
+commit 7d6a3d598916962a5f5680ac00ea57af8178cecc
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 19 17:49:11 2019 +0200
+
+    add travis ci
+
+commit f758b79dd7860aa9406d8438a9de76cc68b84242
+Merge: 0590f01 0eaa2d3
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 19 17:39:15 2019 +0200
+
+    merge develop
+
+commit 0590f01fc00dc0ea296baf9eccaad35dc27eb083
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 19 17:34:35 2019 +0200
+
+    start creating training interface
+
+commit 0eaa2d3827ab93e84ad31f7369416d406c4d1f46
+Merge: dc22d0a fb02636
+Author: Yuriy Arabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 19 15:07:41 2019 +0200
+
+    Merge pull request #1 from Roboy/augmentation
+    
+    Augmentation
+
+commit fbb90023f9734fa01e8d70fe9628567beec03cc7
+Author: ga38nif <florian.lay@tum.de>
+Date:   Tue Jun 18 22:37:23 2019 +0200
+
+    delete test script
+
+commit 678095d49ecdefe3dbb4100bd334418d5f3f5292
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Mon Jun 17 18:22:54 2019 +0200
+
+    add experiment
+
+commit d82fa16ab56f4a3039c373ce0011df436409b42e
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jun 16 22:42:57 2019 +0200
+
+    Added model loading and some utils
+
+commit fb026367279db3f4f81e6a6772cd15dab068a2d3
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 16 18:48:55 2019 +0200
+
+    resolve comments
+
+commit 7174f9c843df7ce15287ec7da138bc928c1202b0
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sun Jun 16 17:11:44 2019 +0200
+
+    Initial class structure and save methods
+
+commit 8d59622c84625adfce596cefe866697f814735a7
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 16 16:09:01 2019 +0200
+
+    start adding experiment class
+
+commit f96661f938bd4f0f8b07af161b0f9bb0c96c957a
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 16 15:27:02 2019 +0200
+
+    remove test code
+
+commit 7f4b362376022f0c735e3e5257e0a659848938df
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 16 15:22:53 2019 +0200
+
+    add augmentation
+
+commit 420608068f7622d378a7bd9dd84460c04156e281
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 16 13:52:23 2019 +0200
+
+    change to librosa
+
+commit 2e8de3abab3fc1e5195ab8a488e0d11a8eaa78dd
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sun Jun 16 12:39:08 2019 +0200
+
+    add augmentation utils
+
+commit dc22d0a074fad9d474cf6a76cd62a4b2d334e0f5
+Merge: 4cefe93 4ac59e9
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 12 18:25:14 2019 +0200
+
+    merged
+
+commit 4cefe935ae67e8c492569208a2230a09601f00a7
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 12 18:22:33 2019 +0200
+
+    add tests
+
+commit 4ac59e99b396e6e2730d4568d45547d81ee75880
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jun 12 11:32:45 2019 +0200
+
+    adapt voxforge to click and adapt to datapaths
+
+commit 459eef404b716b759ab142a23b8547eaa0117efc
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jun 12 11:15:09 2019 +0200
+
+    adapt download script for ted3 to click and new scheme
+
+commit 31ae0266730d9d99f4ebb323fe24e4404e968513
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jun 12 11:14:44 2019 +0200
+
+    add transcription function for ted3
+
+commit b93f7ee154221e23ff9201f955e8aed3b33bc5ce
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jun 12 11:14:21 2019 +0200
+
+    add global logger
+
+commit d3796279c59883d4002ce14dd5cdf078775841a5
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jun 12 09:18:00 2019 +0200
+
+    adapt an4 to new style and make it work.
+
+commit 52a24cd2537029eda7817ad65a4c4fb2f9ce59bf
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jun 12 09:17:09 2019 +0200
+
+    add audio_tools call to common voice
+
+commit b0ffed4a378bcbe1d522ba6ec2f4f8e7bcf50b3e
+Author: ga38nif <florian.lay@tum.de>
+Date:   Wed Jun 12 09:16:24 2019 +0200
+
+    add function for an4 dataset to audio_tools
+
+commit 028f1aeda36d60b9cf3921928dd34ed379b0b179
+Author: ga38nif <florian.lay@tum.de>
+Date:   Tue Jun 11 17:49:27 2019 +0200
+
+    adapt common_voice to click logger [Needs test with good internet connectivity]
+
+commit 3968b613b92a069412b00e1b3f51fd653d51cc11
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Thu Jun 6 12:46:55 2019 +0200
+
+    start refactoring audio dataset
+
+commit 03ba7e5b5a16d2d9afc4e7c36e8c7545a1968903
+Merge: 7752aaf 2445d71
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Thu Jun 6 11:29:29 2019 +0200
+
+    Merge branch 'develop' of github.com:Roboy/sonosco into develop
+
+commit 7752aaf991f65dfb5a65343afc8b97cad7206aff
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Thu Jun 6 11:29:17 2019 +0200
+
+    refactoring
+
+commit 2445d7133b6e7ade9d74e0edb231decc8349aa36
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu Jun 6 09:40:07 2019 +0200
+
+    Removed pycandle, improved local install
+
+commit 98f0943da99670a803cf1a6aa6b429082c7d845b
+Author: ga38nif <florian.lay@tum.de>
+Date:   Thu Jun 6 00:48:14 2019 +0200
+
+    start refactoring common_voice
+
+commit 61ce95031b516b283be3dff7b53a1e827dc21b0f
+Merge: e5ff4c3 d849589
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jun 5 09:51:47 2019 +0200
+
+    Adjusted DataLoader
+
+commit d849589b65b162122d1ebe1fc1a2fd0f66b78884
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 5 02:29:59 2019 +0200
+
+    move manifest to data dir
+
+commit f0fc4a92e75c7532c60462fc9b9a45e68ec45d7e
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Wed Jun 5 02:17:01 2019 +0200
+
+    finish refactoring librispeech download
+
+commit e5ff4c3024c61985c431ec9265c014d856b702d2
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Wed Jun 5 01:40:55 2019 +0200
+
+    Added conda local install, partialy adjusted model to pycandle
+
+commit 4135da1b7402d64d998e6ee854b4c82c8629ff01
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Tue Jun 4 14:14:07 2019 +0200
+
+    start refactoring librispeech data download
+
+commit 993e5ecfa41042491f0455d6e63c669f8587588e
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jun 1 18:50:17 2019 +0200
+
+    Fixed argsˆ
+
+commit d328973cc0370be6acca11ce28dbc07dedeec762
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jun 1 15:52:32 2019 +0200
+
+    Uncommented requirements
+
+commit 97d65ce3279163418ccb97ee2596488676346a9c
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jun 1 14:05:58 2019 +0200
+
+    Import fixed
+    ˆ
+
+commit 824e97bec1fb37f8a0e81700e7a0429b7530c61c
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat Jun 1 13:35:32 2019 +0200
+
+    Added simple train functionˆ
+
+commit 60f750030aa44393a50f90254f6b78ba3515e72c
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu May 30 22:05:59 2019 +0200
+
+    Added Dockerfile, started PyCandle integration
+
+commit b4c70bbdb00865a537d2890317be14f410f4e311
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Thu May 30 19:11:47 2019 +0200
+
+    Added install script plus slight refactornig
+
+commit d6163b755f99ded5015c382d7bec0f923d9b601d
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Mon May 27 00:30:37 2019 +0200
+
+    Minor fixedˆ
+
+commit 7a5d5a51db9b38f0fc1141f4d6809dd62760827d
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon May 27 00:29:04 2019 +0200
+
+    add utils file and merge_manifest script from deepspeech
+
+commit fcae804043b880cf6aac39ebe73978456f3f242e
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon May 27 00:28:30 2019 +0200
+
+    modify librispeech script to save data to .temp
+
+commit 31bc8125a7de4df0947b1a9b3870925f521d3c79
+Author: ga38nif <florian.lay@tum.de>
+Date:   Mon May 27 00:27:51 2019 +0200
+
+    add wget to requirements
+
+commit 08c7cdaac9d5e2837c976ac21012018ffe25861c
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sun May 26 23:51:39 2019 +0200
+
+    add scripts from deepspeech to download datasets
+
+commit 02eb538f8befc825c6226dd857d91c18a1fbbc3b
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sun May 26 23:38:53 2019 +0200
+
+    move collate fn in class
+
+commit dcaa86c03c6a00c165f82eae8d900aa63b438beb
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat May 25 17:58:06 2019 +0200
+
+    rename testscript
+
+commit ab254f587c2481503eed6e0dd25df6df012f997c
+Author: ga38nif <florian.lay@tum.de>
+Date:   Sat May 25 17:32:20 2019 +0200
+
+    init datasets folder, remove legacy code, split loader in multiple files
+
+commit 70d4fc3396edbfd901a64fc65487db555a377a19
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat May 25 12:31:22 2019 +0200
+
+    restructure code
+
+commit 855e5162ffcf9984db6c96e3da12a982223a56c8
+Author: yuriyarabskyy <yuriy.arabskyy@gmail.com>
+Date:   Sat May 25 12:28:20 2019 +0200
+
+    add requirements and move code to a subfolder
+
+commit 7bf80fb96819e3c51eb3a5087a428dfa1356b830
+Author: w.jurasz <w.jurasz@kigroup.de>
+Date:   Sat May 25 12:17:40 2019 +0200
+
+    Added gitignore and try catch on apex
+
+commit 36b71c3e775259624eabdb659f33778f91f9e88f
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Wed May 15 17:29:03 2019 +0200
+
+    Add STT service
+
+commit cc14c4451e48f9c19676e53ca7c125a751a00ef4
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Fri Apr 26 14:25:27 2019 +0200
+
+    Updated to REF
+
+commit fb10070f6a3a1988181025d4eb024e42c8d41479
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Thu Apr 4 19:08:19 2019 +0200
+
+    Updated config files
+
+commit d5a32cbd1cf9e7bbf98300f4de4a297eed003a45
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Wed Apr 3 16:57:40 2019 +0200
+
+    README fix
+
+commit 3ab95008a3baab1264e47db4e28f66f798e2432b
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Wed Apr 3 16:55:52 2019 +0200
+
+    Added description in README
+
+commit 96b8f7eeec5bffe041b875234f870cc5a588567e
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Tue Apr 2 23:04:47 2019 +0200
+
+    Updated configuration
+
+commit ac24d1d344ca01a23cf6df226e58e373711b8216
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Sat Mar 30 18:32:22 2019 +0100
+
+    Fix for AudioDataset
+
+commit b773cc233abe894c0d7db73247b377765c03990a
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Wed Mar 27 17:06:02 2019 +0100
+
+    Updated loader so the inference can be done on wave
+
+commit 1b85e3d02cb9f8206ca65daddae4484974f1c0a6
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Wed Mar 27 00:09:55 2019 +0100
+
+    Fix var
+
+commit 88321d460340329314f463afab0404a22e5018f1
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Wed Mar 27 00:09:10 2019 +0100
+
+    Added decoders + updated loader with legacy
+
+commit 2db9deaf622b4bdac2e77262dd7bfaa9a5b72a89
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Mon Mar 25 22:56:38 2019 +0100
+
+    Data processor initial reimplemntation -> + torchaudio - librosa
+
+commit 066b4417bca8db839f723a865824ab0c913d53f0
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Mon Mar 25 22:54:53 2019 +0100
+
+    Added stubs
+
+commit 47a7f3137c601a32fffff215d9d9fa655de7142a
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Sat Nov 3 20:11:04 2018 +0100
+
+    Update README.md
+
+commit 3c5389c7c28614bdc06b7d37e4a8befe1745fa82
+Author: Wagram Airiian <vagram.airiian@tum.de>
+Date:   Sat Nov 3 20:07:34 2018 +0100
+
+    Initial commit
