@@ -208,16 +208,16 @@ class TDSDecoder(nn.Module):
         :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
         :return: tensor of tokens, partially groundtruth partially sampled
         '''
-        C = np.random.random_sample(size=y_labels.size)
+        C = np.random.random_sample(size=y_labels.shape)
         C[C>self.sampling_prob] = 1
         C[C<self.sampling_prob] = 0
-        R = torch.from_numpy(C)
+        R = torch.from_numpy(C).type(dtype=torch.double)
 
-        Z = np.random.uniform(low=0, high=len(self.labels[:])-2, size=y_labels.size)
-        Z = torch.from_numpy(Z)
-        ones = torch.ones(y_labels.size)
+        Z = np.random.uniform(low=0, high=len(self.labels[:])-2, size=y_labels.shape)
+        Z = torch.from_numpy(Z).type(dtype=torch.double)
+        ones = torch.ones(y_labels.shape)
 
-        y_sampled = R*Z + (ones-R)*y_labels
+        y_sampled = R * Z + (ones-R) * y_labels
 
         return y_sampled
 
