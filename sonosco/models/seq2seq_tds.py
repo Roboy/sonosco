@@ -124,7 +124,7 @@ class TDSEncoder(nn.Module):
         bs, out_ch, time, freq = xs.size()
         xs = xs.transpose(2, 1).contiguous().view(bs, time, -1)  # `[B, T, out_ch * feat_dim]`
         # Take the last hidden state
-        hidden = xs[:, -1, :].unsqueeze(1)  # [B,1,out_ch * feat_dim]
+        hidden = xs[:, -1, :]  # [B, out_ch * feat_dim]
 
         # Bridge layer
         if self.bridge is not None:
@@ -188,6 +188,7 @@ class TDSDecoder(nn.Module):
         # split into keys and values
         # keys [B,T,K], values [B,T,V]
         keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
+        hidden = hidden.unsqueeze(0)
 
         if y_labels is not None and y_lens is not None:
             return self.__forward_train(keys, values, encoding_lens, hidden, y_labels, y_lens)
@@ -271,6 +272,7 @@ class TDSDecoder(nn.Module):
         for t in range(MAX_LEN):
             # query [bs, time, features]
             query, hidden = self.rnn.forward_one_step(y_prev.unsqueeze(1), hidden)
+            # import pdb; pdb.set_trace()
             summaries, score = self.attention(query, keys, values, mask)
             summary = summaries.squeeze(1)
             output = self.output_mlp(torch.cat([summary, query.squeeze(1)], dim=-1))

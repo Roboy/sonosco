@@ -35,6 +35,7 @@ class TbTextComparisonCallback(AbstractCallback):
         transcriptions = list()
 
         for i in range(min(self.samples, batch_x.shape[0])):
+            # import pdb; pdb.set_trace()
             sample_x, sample_len = batch_x[i].transpose(1, 2), input_lens[i]
             out, output_lens, attention = model(sample_x, sample_len)
             decoded_output, decoded_offsets = decoder.decode(out, output_lens)
