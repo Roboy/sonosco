@@ -1,9 +1,6 @@
 import logging
 import click
 import torch
-from sonosco.model.serializer import ModelSerializer
-
-from sonosco.model.deserializer import ModelDeserializer
 
 from sonosco.models.seq2seq_tds import TDSSeq2Seq
 from sonosco.common.constants import SONOSCO
@@ -47,7 +44,6 @@ def main(config_path):
                            device=device)
 
     # Setup experiment with a model trainer
-
     experiment.setup_model_trainer(trainer, checkpoints=True, tensorboard=True)
 
     try:
