@@ -9,7 +9,8 @@ from typing import Dict, Any
 from functools import reduce
 from sonosco.common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, SERIALIZED_FIELD
 from sonosco.common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \
-    is_serialized_collection, is_serialized_type, raise_unsupported_data_type, is_serialized_dataclass
+    is_serialized_collection, is_serialized_type, raise_unsupported_data_type, is_serialized_dataclass, \
+    is_serialized_collection_of_serializables
 
 LOGGER = logging.getLogger(__name__)
 
@@ -100,16 +101,26 @@ class ModelDeserializer:
             serialized_val = package.get(arg)
 
             # TODO: Rewrite this ugly if else chain to something more OO
+            # TODO: This now also catches callable classes
             if is_serialized_dataclass(serialized_val):
                 clazz = ModelDeserializer.__create_class_object(
                     f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}", caller_module)
                 kwargs[arg] = ModelDeserializer.__deserialize_model(clazz, serialized_val[SERIALIZED_FIELD],
                                                                     caller_module)
-
+            # TODO: This now also catches functions
             elif is_serialized_type(serialized_val):
                 kwargs[arg] = ModelDeserializer.__create_class_object(
                     f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}", caller_module)
 
+            elif is_serialized_collection_of_serializables(serialized_val):
+                kwargs[arg] = [
+                    ModelDeserializer.__deserialize_model(
+                        ModelDeserializer.__create_class_object(
+                            f"{val[CLASS_MODULE_FIELD]}.{val[CLASS_NAME_FIELD]}",
+                            caller_module),
+                        val[SERIALIZED_FIELD],
+                        caller_module)
+                    for val in serialized_val]
             elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):
                 kwargs[arg] = serialized_val
 

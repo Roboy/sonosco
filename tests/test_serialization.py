@@ -118,3 +118,4 @@ def test_model_serialization():
     assert deserialized_model.mockedNestedClass.some_int == 42
     assert deserialized_model.mockedNestedClass.some_collection == ['the', 'future', 'is', 'here']
     assert deserialized_model.mockedNestedClass.yetAnotherSerializableClass.some_stuff == "old man"
+

@@ -38,6 +38,12 @@ def get_class_by_name(name: str) -> type:
     return mod
 
 
+def is_serialized_collection_of_serializables(obj: any) -> bool:
+    return is_serialized_collection(obj) and \
+           len(obj) != 0 and \
+           all(is_serialized_dataclass(o) for o in obj)
+
+
 def is_serialized_collection(obj: object) -> bool:
     """
     Checks if object is a collection
@@ -88,7 +94,7 @@ def is_serialized_dataclass(obj: object) -> bool:
 
     """
     return type(obj) is dict and CLASS_MODULE_FIELD in obj and CLASS_NAME_FIELD in obj \
-        and SERIALIZED_FIELD in obj
+           and SERIALIZED_FIELD in obj
 
 
 def raise_unsupported_data_type():

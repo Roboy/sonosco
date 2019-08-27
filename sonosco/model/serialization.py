@@ -89,6 +89,7 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -
 
     fields_to_serialize = fields_to_serialize
     callables = set(filter(lambda el: __is_callable(el.type), fields_to_serialize))
+    serializable_iterables = set(filter(lambda el: __is_iterable_of_serializables(el.type), fields_to_serialize))
     # fields_to_serialize -= callables
 
     body_lines = ["from types import FunctionType"]
@@ -105,6 +106,15 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -
         body_lines.append(f"}}")
         body_lines.append(f"else: raise TypeError(\"Callable must be a function for now\")")
 
+    for field in serializable_iterables:
+        body_lines.append(f"{field.name} = []")
+        body_lines.append(f"for el in self.{field.name}:")
+        body_lines.append(f"    {field.name}.append({{")
+        body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"el.__class__.__name__"))
+        body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"el.__class__.__module__"))
+        body_lines.append(__create_dict_entry(SERIALIZED_FIELD, f"el.__serialize__()"))
+        body_lines.append("})")
+
     body_lines.append("return {")
     for field in fields_to_serialize:
         # TODO: Rewrite this ugly if else chain to something more OO
@@ -116,6 +126,8 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -
             body_lines.append(f"'{field.name}': {{")
             __encode_serializable_serialization(body_lines, field)
             body_lines.append("},")
+        elif __is_iterable_of_serializables(field.type):
+            body_lines.append(f"'{field.name}': {field.name},")
         elif __is_type(field.type):
             body_lines.append(f"'{field.name}': {{")
             __encode_type_serialization(body_lines, field)
@@ -157,8 +169,14 @@ def __extract_from_nn(name: str, cls: nn.Module, body_lines: typing.List[str]):
 
 
 def __is_iterable_of_primitives(field) -> bool:
-    return hasattr(field, '__origin__') and field.__origin__ in __iterables and \
-           hasattr(field, '__args__') and __is_primitive(field.__args__[0])
+    return __is_iterable(field) and hasattr(field, '__args__') and __is_primitive(field.__args__[0])
+
+
+def __is_iterable_of_serializables(field) -> bool:
+    return __is_iterable(field) and hasattr(field, '__args__') and is_serializable(field.__args__[0])
+
+def __is_iterable(field) -> bool:
+    return hasattr(field, '__origin__') and field.__origin__ in __iterables
 
 
 def __throw_unsupported_data_type(field):
@@ -185,11 +203,11 @@ def __create_dict_entry(key: str, value: str) -> str:
     return f'\'{key}\': {value},'
 
 
-def __is_primitive(obj: object) -> bool:
+def __is_primitive(obj: any) -> bool:
     """
     Checks if object is Python primitive.
     Args:
-        obj (object): object to check
+        obj (any): object to check
 
     Returns (bool): indicator of obj is primitive
 
@@ -197,11 +215,11 @@ def __is_primitive(obj: object) -> bool:
     return all(el in __primitives for el in obj) if obj is tuple else obj in __primitives
 
 
-def __is_type(obj):
+def __is_type(obj: any) -> bool:
     """
-    Checks if object is Python class.
+    Checks if obj is Python class.
     Args:
-        obj (object): object to check
+        obj (any): object to check
 
     Returns (bool): indicator of obj is class
 
@@ -209,13 +227,13 @@ def __is_type(obj):
     return obj is type
 
 
-def __is_callable(obj):
+def __is_callable(obj: any) -> bool:
     """
-    Check if object is a collections.abc.Callable
+    Check if object is a collections.abc.Callable or typing.Union of Callable
     Args:
-         obj (object): object to check
+         obj (any): object to check
 
-    Returns (bool): indicator of obj is a collections.abc.Callable
+    Returns (bool): indicator of obj is a collections.abc.Callable or typing.Union of Callable
 
     """
 
