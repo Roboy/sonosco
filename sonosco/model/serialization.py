@@ -90,13 +90,17 @@ def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[
     # fields_to_serialize -= callables
 
     body_lines = ["from types import FunctionType"]
+    body_lines.append("from sonosco.model.serialization import is_serializable")
+
     for c in callables:
         body_lines.append(f"if isinstance(self.{c.name}, FunctionType):")
         body_lines.append(f"    {c.name} = {{")
-        body_lines.append("         " + __create_dict_entry(CLASS_NAME_FIELD, f"self.{c.name}.__name__"))
-        body_lines.append("         " + __create_dict_entry(CLASS_MODULE_FIELD, f"self.{c.name}.__module__"))
-        body_lines.append(f"        }}")
-        # body_lines.append(f"elif is_serializable(self.{c.name}):")
+        __encode_type_serialization(body_lines, c)
+        body_lines.append(f"}}")
+        body_lines.append(f"elif is_serializable(self.{c.name}):")
+        body_lines.append(f"    {c.name} = {{")
+        __encode_serializable_serialization(body_lines, c)
+        body_lines.append(f"}}")
         body_lines.append(f"else: raise TypeError(\"Callable must be a function for now\")")
 
     body_lines.append("return {")
@@ -108,14 +112,11 @@ def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[
             body_lines.append(f"'{field.name}': {field.name},")
         elif is_serializable(field.type):
             body_lines.append(f"'{field.name}': {{")
-            body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__class__.__name__"))
-            body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__class__.__module__"))
-            body_lines.append(__create_dict_entry(SERIALIZED_FIELD, f"self.{field.name}.__serialize__()"))
+            __encode_serializable_serialization(body_lines, field)
             body_lines.append("},")
         elif __is_type(field.type):
             body_lines.append(f"'{field.name}': {{")
-            body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__name__"))
-            body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__module__"))
+            __encode_type_serialization(body_lines, field)
             body_lines.append("},")
         else:
             __throw_unsupported_data_type(field)
@@ -123,6 +124,17 @@ def __create_serialize_body(fields_to_serialize: Iterable, model: bool) -> List[
         body_lines.append(__create_dict_entry("state_dict", "self.state_dict()"))
     body_lines.append("}")
     return body_lines
+
+
+def __encode_type_serialization(body_lines, field):
+    body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__name__"))
+    body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__module__"))
+
+
+def __encode_serializable_serialization(body_lines, field):
+    body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__class__.__name__"))
+    body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__class__.__module__"))
+    body_lines.append(__create_dict_entry(SERIALIZED_FIELD, f"self.{field.name}.__serialize__()"))
 
 
 def __extract_from_nn(name: str, cls: nn.Module, body_lines: List[str]):
