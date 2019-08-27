@@ -75,7 +75,6 @@ class AudioDataProcessor:
         return spectogram
 
     def parse_audio(self, sound, sample_rate):
-
         if sample_rate != self.sample_rate:
             raise ValueError(f"The stated sample rate {self.sample_rate} and the factual rate {sample_rate} differ!")
 

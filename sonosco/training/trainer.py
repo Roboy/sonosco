@@ -4,8 +4,7 @@ import torch.optim.optimizer
 import torch.nn.utils.clip_grad as grads
 
 from collections import defaultdict
-from dataclasses import field
-
+from dataclasses import field, dataclass
 from typing import Callable, Union, Tuple, List, Any
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
@@ -13,7 +12,7 @@ from sonosco.model.serialization import serializable
 
 LOGGER = logging.getLogger(__name__)
 
-@serializable()
+@dataclass
 class ModelTrainer:
     """
     This class handles the training of a pytorch model. It provides convenience
