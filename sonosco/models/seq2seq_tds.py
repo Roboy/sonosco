@@ -3,6 +3,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as torch_functional
+import numpy as np
 
 from collections import OrderedDict
 from typing import List, Tuple, Dict, Any
@@ -145,6 +146,7 @@ class TDSDecoder(nn.Module):
     rnn_hidden_dim: int = 512
     rnn_type_str: str = "gru"
     attention_type: str = "dot"
+    sampling_prob: float = 0
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
@@ -192,14 +194,41 @@ class TDSDecoder(nn.Module):
         else:
             return self.__forward_inference(keys, values, encoding_lens, hidden)
 
+    def _random_sampling(self, y_labels):
+        '''
+        Randomly sample tokens given a specified probability, in order to bring
+        training closer to inference.
+
+        pseudo:
+        1. sample U random numbers c from uniform distribution (0,1) [B, T, c]
+        2. create vector of 1 and 0 with c > specified probability [B, T, 1 or 0]
+        3. Sample vector Z of tokens (uniform distribution over tokens excl. eos) [B,T,token]
+        4. Calc: Y_hat = R o Z + (1-R) o Y (Y being teacher forced tokens)
+
+        :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
+        :return: tensor of tokens, partially groundtruth partially sampled
+        '''
+        C = np.random.random_sample(size=y_labels.size)
+        C[C>self.sampling_prob] = 1
+        C[C<self.sampling_prob] = 0
+        R = torch.from_numpy(C)
+
+        Z = np.random.uniform(low=0, high=len(self.labels[:])-2, size=y_labels.size)
+        Z = torch.from_numpy(Z)
+        ones = torch.ones(y_labels.size)
+
+        y_sampled = R*Z + (ones-R)*y_labels
+
+        return y_sampled
+
     @staticmethod
     def __create_mask(inp, pad_idx):
         mask = (inp != pad_idx).permute(1, 0, 2)
         return mask
 
     def __forward_train(self, keys, values, encoding_lens, hidden, y_labels, y_lens):
-        # embed value that we get from teacher-forcing
-        y_embed = self.word_piece_embedding(y_labels)
+        y_sampled = self._random_sampling(y_labels)
+        y_embed = self.word_piece_embedding(y_sampled)
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens, hidden)
         queries = queries.transpose(0, 1)
