@@ -123,7 +123,9 @@ class ModelDeserializer:
                     for val in serialized_val]
             elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):
                 kwargs[arg] = serialized_val
-
+            # TODO: This has to be handled better, but for now only device is a tuple.
+            elif type(serialized_val) is tuple:
+                kwargs[arg] = torch.device(serialized_val)
             else:
                 raise_unsupported_data_type()
 

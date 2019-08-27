@@ -7,7 +7,7 @@ from sonosco.model.serialization import serializable
 from sonosco.model.serializer import ModelSerializer
 from sonosco.model.deserializer import ModelDeserializer
 from abc import ABC, abstractmethod
-
+from sonosco.training.trainer import ModelTrainer
 
 @serializable
 class CallableClass(ABC):
@@ -48,9 +48,9 @@ class MockedNestedClass:
 
 
 ms = ModelSerializer()
+mt = ModelTrainer()
+mt = ms.serialize_model(mt, "/Users/w.jurasz/Desktop/serialization_test/ms")
 
-ms.serialize_model(MockedNestedClass(some_method=mydiv, lists=[SubClass1("some other stuff"), SubClass2()]),
-                   "/Users/w.jurasz/Desktop/serialization_test/ms")
 md = ModelDeserializer()
-mnc = md.deserialize_model(MockedNestedClass, "/Users/w.jurasz/Desktop/serialization_test/ms")
-print(mnc.execute_callables())
+mnc = md.deserialize_model(ModelTrainer, "/Users/w.jurasz/Desktop/serialization_test/ms")
+

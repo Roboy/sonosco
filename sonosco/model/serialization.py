@@ -4,6 +4,7 @@ from sonosco.common.constants import CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIA
 from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
 import typing
 from torch import nn
+import torch
 
 __primitives = {int, float, str, bool}
 # TODO support for dict with Union value type
@@ -13,7 +14,10 @@ __iterables = [list, set, tuple, dict]
 # TODO: Prevent user from serializing lambdas.
 # Only named methods can be serialized or the function has to be shipped separately
 
-def serializable(_cls: type = None, *, model=False) -> object:
+# TODO: Some errors might not be found at annotating time (e.g. wrong callable or model not being serializable)
+# Thus it would be good to run "dry" serialization before user runs it after training.
+
+def serializable(_cls: type = None, *, model=False, enforced_serializable: list = None) -> object:
     """
 
     Returns the same class as passed in, but with __init__ and __serialize__ methods.
@@ -35,10 +39,12 @@ def serializable(_cls: type = None, *, model=False) -> object:
     Returns: enchanted class
 
     """
+    if enforced_serializable is None:
+        enforced_serializable = []
 
     def wrap(cls):
         cls = _process_class(cls, init=True, repr=False, eq=False, order=False, unsafe_hash=False, frozen=False)
-        _set_new_attribute(cls, '__serialize__', __add_serialize(cls, model))
+        _set_new_attribute(cls, '__serialize__', __add_serialize(cls, model, enforced_serializable))
         return cls
 
     # See if we're being called as @serializable or @serializable().
@@ -62,7 +68,7 @@ def is_serializable(obj: object) -> bool:
     return hasattr(obj, '__serialize__')
 
 
-def __add_serialize(cls: type, model: bool) -> object:
+def __add_serialize(cls: type, model: bool, enforced_serializable: list) -> object:
     """
     Adds __serialize__ method.
     Args:
@@ -73,11 +79,12 @@ def __add_serialize(cls: type, model: bool) -> object:
     """
     fields_to_serialize = fields(cls)
     sonosco_self = '__sonosco_self__' if 'self' in fields_to_serialize else 'self'
-    serialize_body = __create_serialize_body(fields_to_serialize, model)
+    serialize_body = __create_serialize_body(fields_to_serialize, model, enforced_serializable)
     return _create_fn('__serialize__', [sonosco_self], serialize_body, return_type=dict)
 
 
-def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -> typing.List[str]:
+def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool, enforced_serializable: list) -> \
+        typing.List[str]:
     """
     Creates body of __serialize__ method as list of strings.
     Args:
@@ -90,7 +97,7 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -
     fields_to_serialize = fields_to_serialize
     callables = set(filter(lambda el: __is_callable(el.type), fields_to_serialize))
     serializable_iterables = set(filter(lambda el: __is_iterable_of_serializables(el.type), fields_to_serialize))
-    # fields_to_serialize -= callables
+    callable_iterables = set(filter(lambda el: __is_iterable_of_callables(el.type), fields_to_serialize))
 
     body_lines = ["from types import FunctionType"]
     body_lines.append("from sonosco.model.serialization import is_serializable")
@@ -106,6 +113,20 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -
         body_lines.append(f"}}")
         body_lines.append(f"else: raise TypeError(\"Callable must be a function for now\")")
 
+    for field in callable_iterables:
+        body_lines.append(f"{field.name} = []")
+        body_lines.append(f"for el in self.{field.name}:")
+        body_lines.append(f"    if isinstance(el, FunctionType):")
+        body_lines.append(f"        tmp = {{")
+        __encode_type_serialization(body_lines, c)
+        body_lines.append(f"        }}")
+        body_lines.append(f"    elif is_serializable(el):")
+        body_lines.append(f"        tmp = {{")
+        __encode_serializable_serialization(body_lines, c)
+        body_lines.append(f"        }}")
+        body_lines.append(f"    else: raise TypeError(\"Callable must be a function or @serializable class for now\")")
+        body_lines.append(f"    {field.name}.append(tmp)")
+
     for field in serializable_iterables:
         body_lines.append(f"{field.name} = []")
         body_lines.append(f"for el in self.{field.name}:")
@@ -120,13 +141,15 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool) -
         # TODO: Rewrite this ugly if else chain to something more OO
         if __is_primitive(field.type) or __is_iterable_of_primitives(field.type):
             body_lines.append(__create_dict_entry(field.name, f"self.{field.name}"))
-        elif __is_callable(field.type):
-            body_lines.append(f"'{field.name}': {field.name},")
-        elif is_serializable(field.type):
+        elif field.type == torch.device:
+            body_lines.append(__create_dict_entry(field.name, f"(self.{field.name}.type, self.{field.name}.index)"))
+        elif is_serializable(field.type) or field.name in enforced_serializable:
             body_lines.append(f"'{field.name}': {{")
             __encode_serializable_serialization(body_lines, field)
             body_lines.append("},")
-        elif __is_iterable_of_serializables(field.type):
+        elif __is_iterable_of_serializables(field.type) or \
+                __is_iterable_of_callables(field.type) or \
+                __is_callable(field.type):
             body_lines.append(f"'{field.name}': {field.name},")
         elif __is_type(field.type):
             body_lines.append(f"'{field.name}': {{")
@@ -174,6 +197,11 @@ def __is_iterable_of_primitives(field) -> bool:
 
 def __is_iterable_of_serializables(field) -> bool:
     return __is_iterable(field) and hasattr(field, '__args__') and is_serializable(field.__args__[0])
+
+
+def __is_iterable_of_callables(field) -> bool:
+    return __is_iterable(field) and hasattr(field, '__args__') and __is_callable(field.__args__[0])
+
 
 def __is_iterable(field) -> bool:
     return hasattr(field, '__origin__') and field.__origin__ in __iterables

@@ -12,7 +12,8 @@ from sonosco.model.serialization import serializable
 
 LOGGER = logging.getLogger(__name__)
 
-@dataclass
+
+@serializable(enforced_serializable=['model'])
 class ModelTrainer:
     """
     This class handles the training of a pytorch model. It provides convenience
@@ -74,7 +75,7 @@ class ModelTrainer:
         for epoch in range(1, self.epochs + 1):
             self._epoch_step(epoch)
 
-            self._current_epoch+=1
+            self._current_epoch += 1
 
             if self._stop_training:
                 break
@@ -94,7 +95,7 @@ class ModelTrainer:
         for epoch in range(self._current_epoch, self.epochs + 1):
             self._epoch_step(epoch)
 
-            self._current_epoch +=1
+            self._current_epoch += 1
 
             if self._stop_training:
                 break
@@ -120,7 +121,7 @@ class ModelTrainer:
                 running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
                 # evaluate validation set at end of epoch
-                if self.val_data_loader and step % 2 == 0:    # and step == (len(self.train_data_loader) - 1):
+                if self.val_data_loader and step % 2 == 0:  # and step == (len(self.train_data_loader) - 1):
                     self._compute_validation_error(running_metrics)
 
                 # print current loss and metrics and provide it to callbacks

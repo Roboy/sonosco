@@ -1,5 +1,9 @@
 from abc import ABC, abstractmethod
 
+from sonosco.model.serialization import serializable
+
+
+@serializable
 class AbstractCallback(ABC):
     """
     Interface that defines how callbacks must be specified.
