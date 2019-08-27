@@ -124,7 +124,7 @@ class TDSEncoder(nn.Module):
         bs, out_ch, time, freq = xs.size()
         xs = xs.transpose(2, 1).contiguous().view(bs, time, -1)  # `[B, T, out_ch * feat_dim]`
         # Take the last hidden state
-        hidden = xs[:, -1, :].unsqueeze(1)  # [B,1,out_ch * feat_dim]
+        hidden = xs[:, -1, :]  # [B, out_ch * feat_dim]
 
         # Bridge layer
         if self.bridge is not None:
@@ -188,38 +188,12 @@ class TDSDecoder(nn.Module):
         # split into keys and values
         # keys [B,T,K], values [B,T,V]
         keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
+        hidden = hidden.unsqueeze(0)
 
         if y_labels is not None and y_lens is not None:
             return self.__forward_train(keys, values, encoding_lens, hidden, y_labels, y_lens)
         else:
             return self.__forward_inference(keys, values, encoding_lens, hidden)
-
-    def _random_sampling(self, y_labels):
-        '''
-        Randomly sample tokens given a specified probability, in order to bring
-        training closer to inference.
-
-        pseudo:
-        1. sample U random numbers c from uniform distribution (0,1) [B, T, c]
-        2. create vector of 1 and 0 with c > specified probability [B, T, 1 or 0]
-        3. Sample vector Z of tokens (uniform distribution over tokens excl. eos) [B,T,token]
-        4. Calc: Y_hat = R o Z + (1-R) o Y (Y being teacher forced tokens)
-
-        :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
-        :return: tensor of tokens, partially groundtruth partially sampled
-        '''
-        C = np.random.random_sample(size=y_labels.shape)
-        C[C>self.sampling_prob] = 1
-        C[C<self.sampling_prob] = 0
-        R = torch.from_numpy(C).type(dtype=torch.double)
-
-        Z = np.random.uniform(low=0, high=len(self.labels[:])-2, size=y_labels.shape)
-        Z = torch.from_numpy(Z).type(dtype=torch.double)
-        ones = torch.ones(y_labels.shape)
-
-        y_sampled = R * Z + (ones-R) * y_labels
-
-        return y_sampled
 
     @staticmethod
     def __create_mask(inp, pad_idx):
@@ -268,6 +242,7 @@ class TDSDecoder(nn.Module):
         for t in range(MAX_LEN):
             # query [bs, time, features]
             query, hidden = self.rnn.forward_one_step(y_prev.unsqueeze(1), hidden)
+            # import pdb; pdb.set_trace()
             summaries, score = self.attention(query, keys, values, mask)
             summary = summaries.squeeze(1)
             output = self.output_mlp(torch.cat([summary, query.squeeze(1)], dim=-1))
@@ -286,6 +261,40 @@ class TDSDecoder(nn.Module):
 
         return outputs.transpose(0, 1), torch.tensor([MAX_LEN], dtype=torch.long), attentions.transpose(0, 1)
 
+    def _random_sampling(self, y_labels):
+        """
+        Randomly sample tokens given a specified probability, in order to bring
+        training closer to inference.
+
+        pseudo:
+        1. sample U random numbers c from uniform distribution (0,1) [B, T, c]
+        2. create vector of 1 and 0 with c > specified probability [B, T, 1 or 0]
+        3. Sample vector Z of tokens (uniform distribution over tokens excl. eos) [B,T,token]
+        4. Calc: Y_hat = R o Z + (1-R) o Y (Y being teacher forced tokens)
+
+        :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
+        :return: tensor of tokens, partially groundtruth partially sampled
+        """
+        C = np.random.random_sample(size=y_labels.shape)
+        C[C > self.sampling_prob] = 1
+        C[C < self.sampling_prob] = 0
+        R = torch.from_numpy(C).type(dtype=torch.long)
+
+        Z = np.random.uniform(low=0, high=len(self.labels) - 2, size=y_labels.shape)
+        Z = torch.from_numpy(Z).type(dtype=torch.long)
+        ones = torch.ones(y_labels.shape, dtype=torch.long)
+
+        if CUDA_ENABLED:
+            R = R.cuda()
+            ones = ones.cuda()
+            Z = Z.cuda()
+
+        y_sampled = R * Z + (ones - R) * y_labels
+
+        if CUDA_ENABLED:
+            y_sampled = y_sampled.cuda()
+
+        return y_sampled
 
 @serializable(model=True)
 class TDSSeq2Seq(nn.Module):
