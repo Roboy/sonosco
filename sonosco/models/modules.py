@@ -94,7 +94,6 @@ class BatchRNN(nn.Module):
         if self.batch_norm is not None:
             x = self.batch_norm(x)
         x = nn.utils.rnn.pack_padded_sequence(x, output_lengths, enforce_sorted=False)
-        import pdb; pdb.set_trace()
         x, h = self.rnn(x, *args)
         x, _ = nn.utils.rnn.pad_packed_sequence(x)
         if self.bidirectional:

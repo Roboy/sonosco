@@ -224,7 +224,6 @@ class TDSDecoder(nn.Module):
             sampled_tokens = sampled_tokens.cuda()
             ones = ones.cuda()
 
-        # import pdb; pdb.set_trace()
         y_sampled = sampled_tensor * sampled_tokens + (ones - sampled_tensor) * y_labels
         return y_sampled
 
@@ -240,7 +239,7 @@ class TDSDecoder(nn.Module):
     def __forward_train(self, keys, values, hidden, encoding_lens, y_labels, y_lens):
         y_sampled = self._random_sampling(y_labels)
         # y_embed = self.word_piece_embedding(y_sampled)
-        y_embed = torch_functional.one_hot(y_sampled, self.vocab_dim)
+        y_embed = torch_functional.one_hot(y_sampled, self.vocab_dim).type(torch.float32)
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens, hidden)
         queries = queries.transpose(0, 1)
@@ -264,7 +263,7 @@ class TDSDecoder(nn.Module):
         w = next(self.parameters())
         eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.long)
         # y_prev = self.word_piece_embedding(eos)
-        y_prev = torch_functional.one_hot(eos, self.vocab_dim)
+        y_prev = torch_functional.one_hot(eos, self.vocab_dim).type(torch.float32)
 
         # Now we pass the initial hidden state
         # (Deprecated) Initialize hidden with a transformation from the last state
@@ -295,7 +294,8 @@ class TDSDecoder(nn.Module):
             if best_index.item() == self.labels_map[EOS]:
                 return outputs[:t].transpose(0, 1), torch.tensor([t], dtype=torch.long), attentions[:t].transpose(0, 1)
 
-            y_prev = self.word_piece_embedding(best_index)
+            y_prev = torch_functional.one_hot(best_index, self.vocab_dim).type(torch.float32)
+            # y_prev = self.word_piece_embedding(best_index)
 
         return outputs.transpose(0, 1), torch.tensor([MAX_LEN], dtype=torch.long), attentions.transpose(0, 1)
 
