@@ -137,7 +137,7 @@ class TDSEncoder(nn.Module):
 
 @serializable
 class TDSDecoder(nn.Module):
-    labels:  str
+    labels: str
     input_dim: int = 1024
     embedding_dim: int = 512
     key_dim: int = 512
@@ -214,7 +214,7 @@ class TDSDecoder(nn.Module):
         sampled_tensor[sampled_tensor < self.sampling_prob] = 0
         sampled_tensor = sampled_tensor.type(dtype=torch.long)
 
-        sampled_tokens = torch.randint(high=len(self.labels[:])-2, low=0, size=y_labels.size()).type(dtype=torch.long)
+        sampled_tokens = torch.randint(high=len(self.labels[:]) - 2, low=0, size=y_labels.size()).type(dtype=torch.long)
         ones = torch.ones(y_labels.shape).type(dtype=torch.long)
 
         if CUDA_ENABLED:
@@ -222,7 +222,7 @@ class TDSDecoder(nn.Module):
             sampled_tokens = sampled_tokens.cuda()
             ones = ones.cuda()
 
-        y_sampled = sampled_tensor * sampled_tokens + (ones-sampled_tensor) * y_labels
+        y_sampled = sampled_tensor * sampled_tokens + (ones - sampled_tensor) * y_labels
         return y_sampled
 
     @staticmethod
