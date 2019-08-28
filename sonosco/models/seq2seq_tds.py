@@ -188,13 +188,11 @@ class TDSDecoder(nn.Module):
         # split into keys and values
         # keys [B,T,K], values [B,T,V]
         keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
-        mask = self.__create_mask(keys, encoding_lens)
-        keys = keys * mask
 
         hidden = hidden.unsqueeze(0)
 
         if y_labels is not None and y_lens is not None:
-            return self.__forward_train(keys, values, hidden, y_labels, y_lens)
+            return self.__forward_train(keys, values, hidden, encoding_lens, y_labels, y_lens)
         else:
             return self.__forward_inference(keys, values, hidden)
 
@@ -237,12 +235,15 @@ class TDSDecoder(nn.Module):
             mask[b, :l] = 1
         return mask
 
-    def __forward_train(self, keys, values, hidden, y_labels, y_lens):
+    def __forward_train(self, keys, values, hidden, encoding_lens, y_labels, y_lens):
         y_sampled = self._random_sampling(y_labels)
         y_embed = self.word_piece_embedding(y_sampled)
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens, hidden)
         queries = queries.transpose(0, 1)
+
+        mask = self.__create_mask(keys, encoding_lens)
+        keys = keys * mask
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
         # TODO: add encoding_lens for attention calculation
