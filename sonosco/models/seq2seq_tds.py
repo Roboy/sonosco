@@ -188,12 +188,15 @@ class TDSDecoder(nn.Module):
         # split into keys and values
         # keys [B,T,K], values [B,T,V]
         keys, values = torch.split(encoding, [self.key_dim, self.value_dim], dim=-1)
+        mask = self.__create_mask(keys, encoding_lens)
+        keys = keys * mask
+
         hidden = hidden.unsqueeze(0)
 
         if y_labels is not None and y_lens is not None:
-            return self.__forward_train(keys, values, encoding_lens, hidden, y_labels, y_lens)
+            return self.__forward_train(keys, values, hidden, y_labels, y_lens)
         else:
-            return self.__forward_inference(keys, values, encoding_lens, hidden)
+            return self.__forward_inference(keys, values, hidden)
 
     def _random_sampling(self, y_labels):
         '''
@@ -210,8 +213,8 @@ class TDSDecoder(nn.Module):
         :return: tensor of tokens, partially groundtruth partially sampled
         '''
         sampled_tensor = torch.randn(size=y_labels.size())
-        sampled_tensor[sampled_tensor>self.sampling_prob] = 1
-        sampled_tensor[sampled_tensor<self.sampling_prob] = 0
+        sampled_tensor[sampled_tensor > self.sampling_prob] = 1
+        sampled_tensor[sampled_tensor < self.sampling_prob] = 0
         sampled_tensor = sampled_tensor.type(dtype=torch.long)
 
         sampled_tokens = torch.randint(high=len(self.labels[:])-2, low=0, size=y_labels.size()).type(dtype=torch.long)
@@ -226,11 +229,15 @@ class TDSDecoder(nn.Module):
         return y_sampled
 
     @staticmethod
-    def __create_mask(inp, pad_idx):
-        mask = (inp != pad_idx).permute(1, 0, 2)
+    def __create_mask(inp, lens):
+        # e.g. lens [100, 80, 75, 60] and inp has shape [4, 100, 1610]
+        # mask: [[..],[1^{80},0^20],[..],[..]]
+        mask = torch.zeros_like(inp)
+        for b, l in enumerate(lens):
+            mask[b, :l] = 1
         return mask
 
-    def __forward_train(self, keys, values, encoding_lens, hidden, y_labels, y_lens):
+    def __forward_train(self, keys, values, hidden, y_labels, y_lens):
         y_sampled = self._random_sampling(y_labels)
         y_embed = self.word_piece_embedding(y_sampled)
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
@@ -239,8 +246,7 @@ class TDSDecoder(nn.Module):
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
         # TODO: add encoding_lens for attention calculation
-        mask = self.__create_mask(keys, self.labels_map[PADDING_VALUE])
-        summaries, scores = self.attention(queries, keys, values, mask)
+        summaries, scores = self.attention(queries, keys, values)
 
         outputs = self.output_mlp(torch.cat([summaries, queries], dim=-1))
 
@@ -248,7 +254,7 @@ class TDSDecoder(nn.Module):
 
         return probs, y_lens
 
-    def __forward_inference(self, keys, values, encoding_lens, hidden):
+    def __forward_inference(self, keys, values, hidden):
         batch_size = keys.shape[0]
         assert batch_size == 1
 
@@ -262,7 +268,6 @@ class TDSDecoder(nn.Module):
 
         outputs = torch.zeros(MAX_LEN, batch_size, self.vocab_dim)
         attentions = torch.zeros(MAX_LEN, batch_size, keys.shape[1])
-        mask = self.__create_mask(keys, self.labels_map[PADDING_VALUE])
 
         if CUDA_ENABLED:
             outputs = outputs.cuda()
@@ -273,7 +278,7 @@ class TDSDecoder(nn.Module):
             # query [bs, time, features]
             query, hidden = self.rnn.forward_one_step(y_prev.unsqueeze(1), hidden)
             # import pdb; pdb.set_trace()
-            summaries, score = self.attention(query, keys, values, mask)
+            summaries, score = self.attention(query, keys, values)
             summary = summaries.squeeze(1)
             output = self.output_mlp(torch.cat([summary, query.squeeze(1)], dim=-1))
 
