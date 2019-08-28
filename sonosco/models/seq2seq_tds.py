@@ -218,9 +218,9 @@ class TDSDecoder(nn.Module):
         ones = torch.ones(y_labels.shape).type(dtype=torch.long)
 
         if CUDA_ENABLED:
-            sampled_tensor.cuda()
-            sampled_tokens.cuda()
-            ones.cuda()
+            sampled_tensor = sampled_tensor.cuda()
+            sampled_tokens = sampled_tokens.cuda()
+            ones = ones.cuda()
 
         y_sampled = sampled_tensor * sampled_tokens + (ones-sampled_tensor) * y_labels
         return y_sampled
