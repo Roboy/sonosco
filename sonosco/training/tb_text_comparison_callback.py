@@ -23,10 +23,14 @@ class TbTextComparisonCallback(AbstractCallback):
                  performance_measures,
                  context,
                  validation: bool = False):
+        if step == 0 or step % context.val_step > 0:
+            return
 
         model = context.model
         decoder = context.decoder
-        batch_x, batch_y, input_lens, target_lens = next(iter(context.val_data_loader))
+        batch = next(iter(context.val_data_loader))
+        batch = context._recursive_to_cuda(batch)
+        batch_x, batch_y, input_lens, target_lens = batch
 
         # unflatten targets
         split_targets = []

@@ -145,7 +145,6 @@ class ModelTrainer:
     def _train_on_batch(self, batch):
         """ Compute loss depending on settings, compute gradients and apply optimization step. """
         # evaluate loss
-        batch = self._recursive_to_cuda(batch)
         batch_x, batch_y, input_lengths, target_lengths = batch
 
         if self.custom_model_eval:
