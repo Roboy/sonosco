@@ -36,7 +36,6 @@ class TbTeacherForcingTextComparisonCallback(AbstractCallback):
         split_targets = torch.split(batch_y, target_lens.tolist())
         model_output, lens, loss = model(batch_x, input_lens, split_targets)
 
-        # import pdb; pdb.set_trace()
         transcriptions, decoded_offsets = decoder.decode(model_output, lens)
         groundtruths = decoder.convert_to_strings(split_targets)
 

@@ -26,7 +26,6 @@ train:
 
   decoder:
     input_dim: 1024
-    embedding_dim: 32
     key_dim: 512
     value_dim: 512
     rnn_hidden_dim: 512
