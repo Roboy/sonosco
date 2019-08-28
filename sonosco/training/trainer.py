@@ -145,7 +145,9 @@ class ModelTrainer:
     def _train_on_batch(self, batch):
         """ Compute loss depending on settings, compute gradients and apply optimization step. """
         # evaluate loss
+        batch = self._recursive_to_cuda(batch)
         batch_x, batch_y, input_lengths, target_lengths = batch
+
         if self.custom_model_eval:
             loss, model_output = self.loss(batch, self.model)
         else:
@@ -203,7 +205,7 @@ class ModelTrainer:
         """
         for metric in self.metrics:
             if self.custom_model_eval:
-                LOGGER.info(f"Compute metric: {metric.__name__}")
+                LOGGER.info(f"Compute metric {prefix}: {metric.__name__}")
                 # TODO: this should be done somehow in a more abstract way
                 if metric.__name__ == 'word_error_rate' or metric.__name__ == 'character_error_rate':
                     metric_result = metric(y_pred, batch, self.decoder)
