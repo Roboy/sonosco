@@ -23,7 +23,7 @@ class TbTextComparisonCallback(AbstractCallback):
                  performance_measures,
                  context,
                  validation: bool = False):
-        if step == 0 or step % context.val_step > 0:
+        if step == 0 or step % context.test_step > 0:
             return
 
         model = context.model

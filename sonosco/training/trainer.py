@@ -47,7 +47,7 @@ class ModelTrainer:
     metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = field(default_factory=list)
     callbacks: List[AbstractCallback] = field(default_factory=list)
     _current_epoch: int = 0
-    val_step: int = 50
+    test_step: int = 50
 
     def __post_init__(self):
         self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.lr)
@@ -125,7 +125,7 @@ class ModelTrainer:
                 running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
                 # evaluate validation set at end of epoch
-                if self.val_data_loader and step > 0 and step % self.val_step == 0:  # and step == (len(self.train_data_loader) - 1):
+                if self.val_data_loader and step == (len(self.train_data_loader) - 1):
                     self._compute_validation_error(running_metrics)
 
                 # print current loss and metrics and provide it to callbacks
