@@ -246,7 +246,6 @@ class TDSDecoder(nn.Module):
         keys = keys * mask
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
-        # TODO: add encoding_lens for attention calculation
         summaries, scores = self.attention(queries, keys, values)
 
         outputs = self.output_mlp(torch.cat([summaries, queries], dim=-1))
