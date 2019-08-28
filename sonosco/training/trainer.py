@@ -15,7 +15,8 @@ from sonosco.model.serialization import serializable
 LOGGER = logging.getLogger(__name__)
 
 
-@serializable(enforced_serializable=['model'])
+# @serializable(enforced_serializable=['model'])
+@dataclass
 class ModelTrainer:
     """
     This class handles the training of a pytorch model. It provides convenience

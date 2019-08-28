@@ -87,7 +87,7 @@ class TDSEncoder(nn.Module):
 
         # Initialize parameters
         self.subsample_factor = subsample_factor
-        self.reset_parameters()
+        # self.reset_parameters()
 
     def reset_parameters(self):
         """Initialize parameters with uniform distribution."""
