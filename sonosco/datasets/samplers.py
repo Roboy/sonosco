@@ -15,6 +15,7 @@ class BucketingSampler(Sampler):
         self.bins = [ids[i:i + batch_size] for i in range(0, len(ids), batch_size)]
 
     def __iter__(self):
+        self.shuffle()
         for ids in self.bins:
             np.random.shuffle(ids)
             yield ids
@@ -22,5 +23,5 @@ class BucketingSampler(Sampler):
     def __len__(self):
         return len(self.bins)
 
-    def shuffle(self, epoch):
+    def shuffle(self):
         np.random.shuffle(self.bins)
