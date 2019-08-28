@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import numpy as np
+from sonosco.config.global_settings import CUDA_ENABLED
 
 SOFT_WINDOW_SIGMA = 4.0
 
@@ -31,6 +32,8 @@ class DotAttention(nn.Module):
 
         if soft_window_enabled:
             soft_window = (1. / (2. * SOFT_WINDOW_SIGMA ** 2)) * (xv - (scores.shape[1] / scores.shape[2] * yv))
+            if CUDA_ENABLED:
+                soft_window = soft_window.cuda()
             scores = self.softmax(scores.mul_(self.scale) - soft_window)
         else:
             scores = self.softmax(scores.mul_(self.scale))
