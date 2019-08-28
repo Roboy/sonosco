@@ -13,6 +13,8 @@ from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.losses import cross_entropy_loss
 from sonosco.training.tb_text_comparison_callback import TbTextComparisonCallback
+from sonosco.training.disable_soft_window_attention import DisableSoftWindowAttention
+from sonosco.training.tb_teacher_forcing_text_comparison_callback import TbTeacherForcingTextComparisonCallback
 from sonosco.config.global_settings import CUDA_ENABLED
 
 LOGGER = logging.getLogger(SONOSCO)
@@ -39,9 +41,12 @@ def main(config_path):
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
                            metrics=[word_error_rate, character_error_rate],
-                           callbacks=[TbTextComparisonCallback(log_dir=experiment.plots_path)],
                            decoder=GreedyDecoder(config["decoder"]['labels']),
-                           device=device)
+                           device=device, test_step=config["test_step"])
+
+    trainer.add_callback(TbTextComparisonCallback(log_dir=experiment.plots_path))
+    trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
+    trainer.add_callback(DisableSoftWindowAttention())
 
     # Setup experiment with a model trainer
     experiment.setup_model_trainer(trainer, checkpoints=True, tensorboard=True)

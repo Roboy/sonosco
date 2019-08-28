@@ -93,8 +93,9 @@ class TDSEncoder(nn.Module):
         LOGGER.debug('===== Initialize %s =====' % self.__class__.__name__)
         for n, p in self.named_parameters():
             if p.dim() == 1:
-                nn.init.constant_(p, val=0)  # bias
-                LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'constant', 0))
+                pass
+            #     nn.init.constant_(p, val=0)  # bias
+            #     LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'constant', 0))
             elif p.dim() == 2:
                 fan_in = p.size(1)
                 nn.init.uniform_(p, a=-math.sqrt(4 / fan_in), b=math.sqrt(4 / fan_in))  # linear weight
@@ -146,6 +147,7 @@ class TDSDecoder(nn.Module):
     rnn_type_str: str = "gru"
     attention_type: str = "dot"
     sampling_prob: float = 0
+    soft_window_enabled: bool = True
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
@@ -245,7 +247,7 @@ class TDSDecoder(nn.Module):
         keys = keys * mask
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
-        summaries, scores = self.attention(queries, keys, values)
+        summaries, scores = self.attention(queries, keys, values, self.soft_window_enabled)
 
         outputs = self.output_mlp(torch.cat([summaries, queries], dim=-1))
 
@@ -277,7 +279,7 @@ class TDSDecoder(nn.Module):
             # query [bs, time, features]
             query, hidden = self.rnn.forward_one_step(y_prev.unsqueeze(1), hidden)
             # import pdb; pdb.set_trace()
-            summaries, score = self.attention(query, keys, values)
+            summaries, score = self.attention(query, keys, values, self.soft_window_enabled)
             summary = summaries.squeeze(1)
             output = self.output_mlp(torch.cat([summary, query.squeeze(1)], dim=-1))
 

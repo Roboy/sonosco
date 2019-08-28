@@ -53,4 +53,4 @@ class TbTextComparisonCallback(AbstractCallback):
         for transcription, groundtruth in zip(transcriptions, groundtruths):
             comparison = f"Transcription: {transcription[0]}. Groundtruth: {groundtruth}"
             LOGGER.info(comparison)
-            self.writer.add_text("text_comparison", comparison, step)
+            self.writer.add_text("inference_text_comparison", comparison, step)
