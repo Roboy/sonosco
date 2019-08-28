@@ -3,10 +3,9 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as torch_functional
-import numpy as np
 
 from collections import OrderedDict
-from typing import List, Tuple, Dict, Any
+from typing import List, Dict
 from dataclasses import field
 
 from sonosco.model.serialization import serializable
