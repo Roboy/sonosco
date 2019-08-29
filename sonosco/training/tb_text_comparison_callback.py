@@ -28,7 +28,7 @@ class TbTextComparisonCallback(AbstractCallback):
 
         model = context.model
         decoder = context.decoder
-        batch = next(iter(context.val_data_loader))
+        batch = next(iter(context.train_data_loader))
         batch = context._recursive_to_cuda(batch)
         batch_x, batch_y, input_lens, target_lens = batch
 
