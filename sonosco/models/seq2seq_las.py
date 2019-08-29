@@ -210,17 +210,17 @@ class Decoder(nn.Module):
         y_all = torch.stack(y_all, dim=1)  # N x To x C
         # **********Cross Entropy Loss
         # F.cross_entropy = NLL(log_softmax(input), target))
-
         y_all = y_all.view(batch_size * output_length, self.vocab_size)
-        return y_all, IGNORE_ID
-
+        ce_loss = F.cross_entropy(y_all, ys_out_pad.view(-1),
+                                  ignore_index=IGNORE_ID,
+                                  reduction='elementwise_mean')
         # TODO: should minus 1 here ?
         # ce_loss *= (np.mean([len(y) for y in ys_in]) - 1)
         # print("ys_in\n", ys_in)
         # temp = [len(x) for x in ys_in]
         # print(temp)
         # print(np.mean(temp) - 1)
-        # return ce_loss
+        return ce_loss
 
         # *********step decode
         # decoder_outputs = []

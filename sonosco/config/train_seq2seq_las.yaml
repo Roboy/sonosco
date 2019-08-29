@@ -42,7 +42,7 @@ train:
   labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
 
   encoder:
-    input_size: 240
+    input_size: 161
     hidden_size: 256
     num_layers: 3
     dropout: 0.2

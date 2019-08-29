@@ -11,7 +11,7 @@ from sonosco.datasets import create_data_loaders
 from sonosco.decoders import GreedyDecoder
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
-from sonosco.training.losses import cross_entropy_loss, torch_cross_entropy_loss
+from sonosco.training.losses import cross_entropy_loss
 from sonosco.training.tb_text_comparison_callback import TbTextComparisonCallback
 from sonosco.training.disable_soft_window_attention import DisableSoftWindowAttention
 from sonosco.training.tb_teacher_forcing_text_comparison_callback import TbTeacherForcingTextComparisonCallback
@@ -47,12 +47,12 @@ def main(config_path):
     train_loader, val_loader = create_data_loaders(**config)
 
     # Create model trainer
-    trainer = ModelTrainer(model, loss=torch_cross_entropy_loss, epochs=config["max_epochs"],
+    trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
                            lr=config["learning_rate"], weight_decay=config['weight_decay'],
                            metrics=[word_error_rate, character_error_rate],
                            decoder=GreedyDecoder(config['labels']),
-                           device=device, test_step=config["test_step"])
+                           device=device, test_step=config["test_step"], custom_model_eval=True)
 
     trainer.add_callback(TbTextComparisonCallback(log_dir=experiment.plots_path))
     trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
