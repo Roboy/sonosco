@@ -25,6 +25,7 @@ class ModelCheckpoint(AbstractCallback):
 
     def __call__(self, epoch, step, performance_measures, context):
         if step == (len(context.train_data_loader) - 1):
+            LOGGER.info(f"Saving model checkpoint after epoch {epoch}.")
             self._save_checkpoint(context.model, path.join(self.output_path, f"model_epoch_{epoch}.pt"))
 
         if 'val_loss' not in performance_measures:
