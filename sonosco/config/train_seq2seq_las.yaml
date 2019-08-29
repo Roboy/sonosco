@@ -3,29 +3,26 @@ train:
 
 
   # Training config
-  epochs=20
-  half_lr=1
-  early_stop=0
-  max_norm=5
-  batch_size=32
-  maxlen_in=800
-  maxlen_out=150
+#  epochs=20
+#  half_lr=1
+#  early_stop=0
+#  max_norm=5
+#  batch_size=32
+#  maxlen_in=800
+#  maxlen_out=150
   # optimizer
-  optimizer=adam
-  lr=1e-3
-  momentum=0
-  l2=1e-5
+#  l2=1e-5
   # logging and visualize
-  checkpoint=0
-  continue_from=""
-  print_freq=10
-  visdom=0
-  visdom_id="LAS Training"
+#  checkpoint=0
+#  continue_from=""
+#  print_freq=10
+#  visdom=0
+#  visdom_id="LAS Training"
 
   # Decode config
-  beam_size=30
-  nbest=1
-  decode_max_len=100
+#  beam_size=30
+#  nbest=1
+#  decode_max_len=100
 
 
   experiment_path: null
@@ -45,32 +42,25 @@ train:
   labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
 
   encoder:
-    einput: 240
-    ehidden: 256
-    elayer: 3
-    edropout: 0.2
-    ebidirectional: True
-    etype: lstm
+    input_size: 240
+    hidden_size: 256
+    num_layers: 3
+    dropout: 0.2
+    bidirectional: True
+    rnn_type: "lstm"
 
   decoder:
-    dembed: 512
-    dhidden: 512
-    dlayer: 1
-    dbidirectional: True
-    input_dim: 1024
-    embedding_dim: 32
-    key_dim: 512
-    value_dim: 512
-    rnn_hidden_dim: 512
-    rnn_type_str: "gru"
-    attention_type: "dot"
-    labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
-    sampling_prob: 0.3
+    embedding_dim: 512
+    hidden_size: 512
+    num_layers: 1
+    bidirectional_encoder: True
+    encoder_hidden_size: 256
 
   batch_size: 4 # Batch size for training
   max_epochs: 1 # Number of training epochs
-  learning_rate: 3.0e-4 # Initial learning rate
-  momentum: 0.9 # Momentum
+  learning_rate: 1.0e-3 # Initial learning rate
+  weight_decay: 1.0e-5
+  momentum: 0 # Momentum
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch

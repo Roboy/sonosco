@@ -48,9 +48,10 @@ class ModelTrainer:
     callbacks: List[AbstractCallback] = field(default_factory=list)
     _current_epoch: int = 0
     test_step: int = 50
+    weight_decay: int = 50
 
     def __post_init__(self):
-        self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.lr)
+        self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         self._stop_training = False  # used stop training externally
 
     def set_metrics(self, metrics):

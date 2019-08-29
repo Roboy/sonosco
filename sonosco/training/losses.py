@@ -1,4 +1,5 @@
 import torch
+import torch.nn.functional as F
 
 
 def cross_entropy_loss(batch, model):
@@ -8,3 +9,10 @@ def cross_entropy_loss(batch, model):
     batch_y = torch.split(batch_y, target_lengths.tolist())
     model_output, lens, loss = model(batch_x, input_lengths, batch_y)
     return loss, (model_output, lens)
+
+
+def torch_cross_entropy_loss(model_out, batch):
+    model, ignore_id = model_out
+    return F.cross_entropy(model_out, batch.view(-1),
+                           ignore_index=ignore_id,
+                           reduction='elementwise_mean')
