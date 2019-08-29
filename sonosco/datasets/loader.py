@@ -59,10 +59,10 @@ def create_data_loaders(**kwargs):
     LOGGER.info("Validation data loader created.")
 
     # create validation loader
-    test_dataset = AudioDataset(processor, manifest_filepath=kwargs["test_manifest"])
-    LOGGER.info(f"Test dataset containing {len(test_dataset)} samples is created")
-    sampler = BucketingSampler(test_dataset, batch_size=kwargs["batch_size"])
-    test_loader = AudioDataLoader(dataset=test_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler)
-    LOGGER.info("Test data loader created.")
+    # test_dataset = AudioDataset(processor, manifest_filepath=kwargs["test_manifest"])
+    # LOGGER.info(f"Test dataset containing {len(test_dataset)} samples is created")
+    # sampler = BucketingSampler(test_dataset, batch_size=kwargs["batch_size"])
+    # test_loader = AudioDataLoader(dataset=test_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler)
+    # LOGGER.info("Test data loader created.")
 
-    return train_loader, val_loader, test_loader
+    return train_loader, val_loader, train_loader
