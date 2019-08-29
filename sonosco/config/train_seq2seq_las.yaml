@@ -20,9 +20,7 @@ train:
 #  visdom_id="LAS Training"
 
   # Decode config
-#  beam_size=30
-#  nbest=1
-#  decode_max_len=100
+
 
 
   experiment_path: null
@@ -54,6 +52,11 @@ train:
     hidden_size: 512
     num_layers: 1
     bidirectional_encoder: True
+
+  recognizer:
+    beam_size: 5
+    nbest: 1
+    decode_max_len: 100
 
   batch_size: 4 # Batch size for training
   max_epochs: 1 # Number of training epochs

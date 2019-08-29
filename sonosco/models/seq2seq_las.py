@@ -32,6 +32,7 @@ class Seq2Seq(nn.Module):
     encoder_args: Dict[str, str] = field(default_factory=dict)
     decoder_args: Dict[str, str] = field(default_factory=dict)
 
+
     def __post_init__(self):
         super(Seq2Seq, self).__init__()
         self.encoder = Encoder(**self.encoder_args)
@@ -264,12 +265,12 @@ class Decoder(nn.Module):
             nbest_hyps:
         """
         # search params
-        beam = args.beam_size
-        nbest = args.nbest
-        if args.decode_max_len == 0:
+        beam = args['beam_size']
+        nbest = args['nbest']
+        if args['decode_max_len'] == 0:
             maxlen = encoder_outputs.size(0)
         else:
-            maxlen = args.decode_max_len
+            maxlen = args['decode_max_len']
 
         # *********Init decoder rnn
         h_list = [self.zero_state(encoder_outputs.unsqueeze(0))]
@@ -351,15 +352,15 @@ class Decoder(nn.Module):
                     remained_hyps.append(hyp)
 
             hyps = remained_hyps
-            if len(hyps) > 0:
-                print('remeined hypothes: ' + str(len(hyps)))
-            else:
-                print('no hypothesis. Finish decoding.')
-                break
-
-            for hyp in hyps:
-                print('hypo: ' + ''.join([char_list[int(x)]
-                                          for x in hyp['yseq'][1:]]))
+            # if len(hyps) > 0:
+            #     print('remeined hypothes: ' + str(len(hyps)))
+            # else:
+            #     print('no hypothesis. Finish decoding.')
+            #     break
+            #
+            # for hyp in hyps:
+            #     print('hypo: ' + ''.join([char_list[int(x)]
+            #                               for x in hyp['yseq'][1:]]))
         # end for i in range(maxlen)
         nbest_hyps = sorted(ended_hyps, key=lambda x: x['score'], reverse=True)[
                      :min(len(ended_hyps), nbest)]
