@@ -11,6 +11,7 @@ from random import random
 from .trainer import ModelTrainer
 from .model_checkpoint import ModelCheckpoint
 from .tensorboard_callback import TensorBoardCallback
+from sonosco.model.serializer import ModelSerializer
 
 from time import time
 
@@ -56,6 +57,8 @@ class Experiment:
 
         self._exclude_dirs = exclude_dirs
         self._exclude_files = exclude_files
+
+        self._serializer = ModelSerializer()
 
         self._init_directories()
         self._copy_sourcecode()
@@ -139,14 +142,17 @@ class Experiment:
 
         # TODO: add serialization after training is finished
         self.__trainer.start_training()
+        self._serializer.serialize_model(self.__trainer.model, os.path.join(self.checkpoints_path, 'model_no_callback'))
+        LOGGER.info(f'Model serialization done')
 
     def stop(self):
         """
-        Starts model trainer.
+        Stops model trainer.
         """
         if self.__trainer is None:
             raise ValueError("Model trainer is None.")
         self.__trainer.stop_training()
+        self._serializer.serialize_model(self.__trainer.model, os.path.join(self.checkpoints_path, 'model_no_callback'))
 
     @staticmethod
     def add_file(folder_path, filename, content):
