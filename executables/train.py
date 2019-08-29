@@ -40,11 +40,12 @@ def main(config_path):
     model.to(device)
 
     # Create data loaders
-    train_loader, val_loader = create_data_loaders(**config)
+    train_loader, val_loader, test_loader = create_data_loaders(**config)
 
     # Create model trainer
     trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
                            train_data_loader=train_loader, val_data_loader=val_loader,
+                           test_data_loader=test_loader,
                            lr=config["learning_rate"], custom_model_eval=True,
                            metrics=[word_error_rate, character_error_rate],
                            decoder=GreedyDecoder(config["decoder"]['labels']),

@@ -38,6 +38,7 @@ class ModelTrainer:
     epochs: int
     train_data_loader: DataLoader
     val_data_loader: DataLoader = None
+    test_data_loader: DataLoader = None
     decoder: Decoder = None
     optimizer_class: type = torch.optim.Adam
     lr: float = 1e-4
