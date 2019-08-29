@@ -1,6 +1,7 @@
 import logging
 import click
 import torch
+from sonosco.model.deserializer import ModelDeserializer
 
 from sonosco.models.seq2seq_tds import TDSSeq2Seq
 from sonosco.common.constants import SONOSCO
@@ -30,7 +31,12 @@ def main(config_path):
     device = torch.device("cuda" if CUDA_ENABLED else "cpu")
 
     # Create model
-    model = TDSSeq2Seq(config["encoder"], config["decoder"])
+
+    loader = ModelDeserializer()
+    if config.get('checkpoint_path'):
+        model = loader.deserialize_model(TDSSeq2Seq, config["checkpoint_path"])
+    else:
+        model = TDSSeq2Seq(config["encoder"], config["decoder"])
     model.to(device)
 
     # Create data loaders
@@ -47,7 +53,6 @@ def main(config_path):
     trainer.add_callback(TbTextComparisonCallback(log_dir=experiment.plots_path))
     trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
     trainer.add_callback(DisableSoftWindowAttention())
-
     # Setup experiment with a model trainer
     experiment.setup_model_trainer(trainer, checkpoints=True, tensorboard=True)
 
