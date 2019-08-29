@@ -2,13 +2,13 @@ import logging
 import click
 import torch
 
-from sonosco.models.seq2seq_tds import TDSSeq2Seq
+from sonosco.models.seq2seq_las import Seq2Seq
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
 from sonosco.common.path_utils import parse_yaml
 from sonosco.training import Experiment, ModelTrainer
 from sonosco.datasets import create_data_loaders
-from sonosco.decoders import GreedyDecoder, BeamCTCDecoder
+from sonosco.decoders import GreedyDecoder
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.losses import cross_entropy_loss
@@ -29,8 +29,11 @@ def main(config_path):
 
     device = torch.device("cuda" if CUDA_ENABLED else "cpu")
 
+    char_list, sos_id, eos_id = process_dict(args.dict)
+    vocab_size = len(char_list)
+
     # Create model
-    model = TDSSeq2Seq(config["encoder"], config["decoder"])
+    model = Seq2Seq(config["encoder"], config["decoder"])
     model.to(device)
 
     # Create data loaders

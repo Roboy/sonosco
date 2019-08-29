@@ -1,4 +1,33 @@
 train:
+
+
+
+  # Training config
+  epochs=20
+  half_lr=1
+  early_stop=0
+  max_norm=5
+  batch_size=32
+  maxlen_in=800
+  maxlen_out=150
+  # optimizer
+  optimizer=adam
+  lr=1e-3
+  momentum=0
+  l2=1e-5
+  # logging and visualize
+  checkpoint=0
+  continue_from=""
+  print_freq=10
+  visdom=0
+  visdom_id="LAS Training"
+
+  # Decode config
+  beam_size=30
+  nbest=1
+  decode_max_len=100
+
+
   experiment_path: null
   experiment_name: 'default' # experiment name
 
@@ -16,14 +45,18 @@ train:
   labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
 
   encoder:
-    input_dim: 161 # Number of frequencies in mel-scale filter
-    in_channel: 1 # Initial number of channels
-    channels: [10, 10, 14, 14, 14, 18, 18, 18, 18, 18, 18] # TDS blocks, whenever the number changes a sub-sampling layer is inserted
-    kernel_sizes: [21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
-    dropout: 0.2
-    bottleneck_dim: 1024
+    einput: 240
+    ehidden: 256
+    elayer: 3
+    edropout: 0.2
+    ebidirectional: True
+    etype: lstm
 
   decoder:
+    dembed: 512
+    dhidden: 512
+    dlayer: 1
+    dbidirectional: True
     input_dim: 1024
     embedding_dim: 32
     key_dim: 512

@@ -2,8 +2,8 @@ train:
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
-  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_short.csv'
+  train_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
+  val_manifest: '/Users/yuriy/temp/data/libri_speech/libri_val_clean_manifest.csv'
   log_dir: 'logs' # Location for log files
   checkpoint_dir: 'checkpoints' # Default location to save/load models
 
@@ -13,6 +13,7 @@ train:
   window_size: 0.02 # Window size for spectrogram in seconds
   window_stride: 0.01 # Window stride for spectrogram in seconds
   window: 'hamming' # Window type for spectrogram generation
+  normalize: False # Normalize input data
   labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
 
   encoder:
@@ -25,23 +26,23 @@ train:
 
   decoder:
     input_dim: 1024
-    embedding_dim: 32
     key_dim: 512
     value_dim: 512
     rnn_hidden_dim: 512
     rnn_type_str: "gru"
     attention_type: "dot"
     labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
-    sampling_prob: 0.3
+    sampling_prob: 0.05
+    soft_window_enabled: True # is disabled after 3 epochs
 
-  batch_size: 4 # Batch size for training
+  batch_size: 8 # Batch size for training
   max_epochs: 1 # Number of training epochs
   learning_rate: 3.0e-4 # Initial learning rate
   momentum: 0.9 # Momentum
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
-  test_step: 1 # after how many batches validation should be performed
+  test_step: 1
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs

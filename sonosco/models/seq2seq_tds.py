@@ -17,6 +17,7 @@ from sonosco.common.utils import labels_to_dict
 
 LOGGER = logging.getLogger(__name__)
 EOS = '$'
+SOS = '#'
 PADDING_VALUE = '%'
 MAX_LEN = 100
 
@@ -93,8 +94,9 @@ class TDSEncoder(nn.Module):
         LOGGER.debug('===== Initialize %s =====' % self.__class__.__name__)
         for n, p in self.named_parameters():
             if p.dim() == 1:
-                nn.init.constant_(p, val=0)  # bias
-                LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'constant', 0))
+                pass
+            #     nn.init.constant_(p, val=0)  # bias
+            #     LOGGER.debug('Initialize %s with %s / %.3f' % (n, 'constant', 0))
             elif p.dim() == 2:
                 fan_in = p.size(1)
                 nn.init.uniform_(p, a=-math.sqrt(4 / fan_in), b=math.sqrt(4 / fan_in))  # linear weight
@@ -139,13 +141,13 @@ class TDSEncoder(nn.Module):
 class TDSDecoder(nn.Module):
     labels: str
     input_dim: int = 1024
-    embedding_dim: int = 512
     key_dim: int = 512
     value_dim: int = 512
     rnn_hidden_dim: int = 512
     rnn_type_str: str = "gru"
     attention_type: str = "dot"
     sampling_prob: float = 0
+    soft_window_enabled: bool = True
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
@@ -157,13 +159,13 @@ class TDSDecoder(nn.Module):
             self.labels = self.labels + EOS + PADDING_VALUE
 
         self.labels_map = labels_to_dict(self.labels)
-        self.vocab_dim = len(self.labels)
+        self.vocab_dim = len(self.labels) - 1
 
         self.rnn_type = supported_rnns[self.rnn_type_str]
 
-        self.word_piece_embedding = nn.Embedding(self.vocab_dim, self.embedding_dim)
+        # self.word_piece_embedding = nn.Embedding(self.vocab_dim, self.embedding_dim)
 
-        self.rnn = BatchRNN(input_size=self.embedding_dim, hidden_size=self.rnn_hidden_dim,
+        self.rnn = BatchRNN(input_size=self.vocab_dim, hidden_size=self.rnn_hidden_dim,
                             rnn_type=self.rnn_type, batch_norm=False)
 
         self.attention = DotAttention(self.key_dim)
@@ -179,7 +181,7 @@ class TDSDecoder(nn.Module):
 
         :param encoding: [B,T,E]
         :param encoding_lens: len(encoding_lens)=B
-        :param hidden: [B,1,H]
+        :param hidden: [B,H]
         :param y_labels: [B,T,Y]
         :param y_lens: len(y_lens)=B
         :return: probabilities and lengths
@@ -236,7 +238,8 @@ class TDSDecoder(nn.Module):
 
     def __forward_train(self, keys, values, hidden, encoding_lens, y_labels, y_lens):
         y_sampled = self._random_sampling(y_labels)
-        y_embed = self.word_piece_embedding(y_sampled)
+        # y_embed = self.word_piece_embedding(y_sampled)
+        y_embed = torch_functional.one_hot(y_sampled, self.vocab_dim).type(torch.float32)
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens, hidden)
         queries = queries.transpose(0, 1)
@@ -245,7 +248,7 @@ class TDSDecoder(nn.Module):
         keys = keys * mask
 
         # summaries [B,T_dec,V], scores [B,T_dec,T_enc]
-        summaries, scores = self.attention(queries, keys, values)
+        summaries, scores = self.attention(queries, keys, values, self.soft_window_enabled)
 
         outputs = self.output_mlp(torch.cat([summaries, queries], dim=-1))
 
@@ -259,7 +262,8 @@ class TDSDecoder(nn.Module):
 
         w = next(self.parameters())
         eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.long)
-        y_prev = self.word_piece_embedding(eos)
+        # y_prev = self.word_piece_embedding(eos)
+        y_prev = torch_functional.one_hot(eos, self.vocab_dim).type(torch.float32)
 
         # Now we pass the initial hidden state
         # (Deprecated) Initialize hidden with a transformation from the last state
@@ -276,8 +280,7 @@ class TDSDecoder(nn.Module):
         for t in range(MAX_LEN):
             # query [bs, time, features]
             query, hidden = self.rnn.forward_one_step(y_prev.unsqueeze(1), hidden)
-            # import pdb; pdb.set_trace()
-            summaries, score = self.attention(query, keys, values)
+            summaries, score = self.attention(query, keys, values, self.soft_window_enabled)
             summary = summaries.squeeze(1)
             output = self.output_mlp(torch.cat([summary, query.squeeze(1)], dim=-1))
 
@@ -291,7 +294,8 @@ class TDSDecoder(nn.Module):
             if best_index.item() == self.labels_map[EOS]:
                 return outputs[:t].transpose(0, 1), torch.tensor([t], dtype=torch.long), attentions[:t].transpose(0, 1)
 
-            y_prev = self.word_piece_embedding(best_index)
+            y_prev = torch_functional.one_hot(best_index, self.vocab_dim).type(torch.float32)
+            # y_prev = self.word_piece_embedding(best_index)
 
         return outputs.transpose(0, 1), torch.tensor([MAX_LEN], dtype=torch.long), attentions.transpose(0, 1)
 
@@ -310,6 +314,7 @@ class TDSSeq2Seq(nn.Module):
     def forward(self, xs, xlens, y_labels=None):
         y_in, y_out = list(), list()
         w = next(self.parameters())
+        # sos = w.new_zeros(1).fill_(self.decoder.labels_map[SOS]).type(torch.int32)
         eos = w.new_zeros(1).fill_(self.decoder.labels_map[EOS]).type(torch.int32)
 
         encoding, encoding_lens, hidden = self.encoder(xs, xlens)
