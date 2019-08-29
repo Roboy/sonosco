@@ -148,6 +148,7 @@ class TDSDecoder(nn.Module):
     attention_type: str = "dot"
     sampling_prob: float = 0
     soft_window_enabled: bool = True
+    embedding_dim: int = 512
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
@@ -163,9 +164,9 @@ class TDSDecoder(nn.Module):
 
         self.rnn_type = supported_rnns[self.rnn_type_str]
 
-        # self.word_piece_embedding = nn.Embedding(self.vocab_dim, self.embedding_dim)
+        self.word_piece_embedding = nn.Embedding(self.vocab_dim, self.embedding_dim)
 
-        self.rnn = BatchRNN(input_size=self.vocab_dim, hidden_size=self.rnn_hidden_dim,
+        self.rnn = BatchRNN(input_size=self.embedding_dim, hidden_size=self.rnn_hidden_dim,
                             rnn_type=self.rnn_type, batch_norm=False)
 
         self.attention = DotAttention(self.key_dim)
@@ -238,8 +239,8 @@ class TDSDecoder(nn.Module):
 
     def __forward_train(self, keys, values, hidden, encoding_lens, y_labels, y_lens):
         y_sampled = self._random_sampling(y_labels)
-        # y_embed = self.word_piece_embedding(y_sampled)
-        y_embed = torch_functional.one_hot(y_sampled, self.vocab_dim).type(torch.float32)
+        y_embed = self.word_piece_embedding(y_sampled)
+        # y_embed = torch_functional.one_hot(y_sampled, self.vocab_dim).type(torch.float32)
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens, hidden)
         queries = queries.transpose(0, 1)
@@ -262,8 +263,8 @@ class TDSDecoder(nn.Module):
 
         w = next(self.parameters())
         eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.long)
-        # y_prev = self.word_piece_embedding(eos)
-        y_prev = torch_functional.one_hot(eos, self.vocab_dim).type(torch.float32)
+        y_prev = self.word_piece_embedding(eos)
+        # y_prev = torch_functional.one_hot(eos, self.vocab_dim).type(torch.float32)
 
         # Now we pass the initial hidden state
         # (Deprecated) Initialize hidden with a transformation from the last state
@@ -294,8 +295,8 @@ class TDSDecoder(nn.Module):
             if best_index.item() == self.labels_map[EOS]:
                 return outputs[:t].transpose(0, 1), torch.tensor([t], dtype=torch.long), attentions[:t].transpose(0, 1)
 
-            y_prev = torch_functional.one_hot(best_index, self.vocab_dim).type(torch.float32)
-            # y_prev = self.word_piece_embedding(best_index)
+            # y_prev = torch_functional.one_hot(best_index, self.vocab_dim).type(torch.float32)
+            y_prev = self.word_piece_embedding(best_index)
 
         return outputs.transpose(0, 1), torch.tensor([MAX_LEN], dtype=torch.long), attentions.transpose(0, 1)
 

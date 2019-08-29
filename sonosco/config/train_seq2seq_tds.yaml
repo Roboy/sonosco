@@ -5,7 +5,7 @@ train:
   train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
   val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_short.csv'
   log_dir: 'logs' # Location for log files
-  checkpoint_path: 'checkpoints' # Default location to save/load models
+#  checkpoint_path: 'checkpoints' # Default location to save/load models
 
   load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 
@@ -25,7 +25,7 @@ train:
 
   decoder:
     input_dim: 1024
-    embedding_dim: 32
+#    embedding_dim: 32
     key_dim: 512
     value_dim: 512
     rnn_hidden_dim: 512
