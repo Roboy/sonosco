@@ -45,6 +45,7 @@ class DotAttention(nn.Module):
 
         return summaries, scores
 
+
 class DotProductAttention(nn.Module):
     r"""Dot product attention.
     Given a set of vector values, and a vector query, attention is a technique
