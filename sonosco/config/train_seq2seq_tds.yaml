@@ -26,7 +26,7 @@ train:
 
   decoder:
     input_dim: 1024
-#    embedding_dim: 32
+    embedding_dim: 32
     key_dim: 512
     value_dim: 512
     rnn_hidden_dim: 512
@@ -35,14 +35,14 @@ train:
     labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
     sampling_prob: 0.3
 
-  batch_size: 4 # Batch size for training
+  batch_size: 32 # Batch size for training
   max_epochs: 1 # Number of training epochs
   learning_rate: 3.0e-4 # Initial learning rate
   momentum: 0.9 # Momentum
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
-  test_step: 1 # after how many batches validation should be performed
+  test_step: 25 # after how many batches validation should be performed
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs
