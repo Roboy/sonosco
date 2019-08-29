@@ -121,13 +121,12 @@ class Decoder(nn.Module):
     eos_id: int  # End of Sentence
     hidden_size: int
     num_layers: int
-    encoder_hidden_size: int  # must be equal now
     bidirectional_encoder: bool = True  # useless now
 
     # Components
     def __post_init__(self):
         super(Decoder, self).__init__()
-
+        self.encoder_hidden_size = self.hidden_size
         self.embedding = nn.Embedding(self.vocab_size, self.embedding_dim)
         self.rnn = nn.ModuleList()
 
@@ -167,10 +166,11 @@ class Decoder(nn.Module):
         sos = ys[0].new([self.sos_id])
         ys_in = [torch.cat([sos, y], dim=0) for y in ys]
         ys_out = [torch.cat([y, eos], dim=0) for y in ys]
+        y_lens = [y.size(0) for y in ys_in]
         # padding for ys with -1
         # pys: utt x olen
-        ys_in_pad = pad_list(ys_in, self.eos_id)
-        ys_out_pad = pad_list(ys_out, IGNORE_ID)
+        ys_in_pad = pad_list(ys_in, self.eos_id).type(torch.long)
+        ys_out_pad = pad_list(ys_out, IGNORE_ID).type(torch.long)
         # print("ys_in_pad", ys_in_pad.size())
         assert ys_in_pad.size() == ys_out_pad.size()
         batch_size = ys_in_pad.size(0)
@@ -208,6 +208,7 @@ class Decoder(nn.Module):
             y_all.append(predicted_y_t)
 
         y_all = torch.stack(y_all, dim=1)  # N x To x C
+        model_out = y_all
         # **********Cross Entropy Loss
         # F.cross_entropy = NLL(log_softmax(input), target))
         y_all = y_all.view(batch_size * output_length, self.vocab_size)
@@ -220,7 +221,7 @@ class Decoder(nn.Module):
         # temp = [len(x) for x in ys_in]
         # print(temp)
         # print(np.mean(temp) - 1)
-        return ce_loss
+        return model_out, y_lens, ce_loss
 
         # *********step decode
         # decoder_outputs = []

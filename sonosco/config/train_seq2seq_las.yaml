@@ -54,7 +54,6 @@ train:
     hidden_size: 512
     num_layers: 1
     bidirectional_encoder: True
-    encoder_hidden_size: 256
 
   batch_size: 4 # Batch size for training
   max_epochs: 1 # Number of training epochs
