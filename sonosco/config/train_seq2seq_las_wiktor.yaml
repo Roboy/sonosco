@@ -1,0 +1,94 @@
+train:
+
+
+
+  # Training config
+#  epochs=20
+#  half_lr=1
+#  early_stop=0
+#  max_norm=5
+#  batch_size=32
+#  maxlen_in=800
+#  maxlen_out=150
+  # optimizer
+#  l2=1e-5
+  # logging and visualize
+#  checkpoint=0
+#  continue_from=""
+#  print_freq=10
+#  visdom=0
+#  visdom_id="LAS Training"
+
+  # Decode config
+
+
+
+  experiment_path: null
+  experiment_name: 'default' # experiment name
+
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_1.csv'
+  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_1.csv'
+  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_1.csv'
+  log_dir: 'logs' # Location for log files
+  checkpoint_path: 'checkpoints' # Default location to save/load models
+
+  load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
+
+  sample_rate: 16000 # Sample rate
+  window_size: 0.02 # Window size for spectrogram in seconds
+  window_stride: 0.01 # Window stride for spectrogram in seconds
+  window: 'hamming' # Window type for spectrogram generation
+  labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
+
+  encoder:
+    input_size: 161
+    hidden_size: 256
+    num_layers: 3
+    dropout: 0.2
+    bidirectional: True
+    rnn_type: "lstm"
+
+  decoder:
+    embedding_dim: 512
+    hidden_size: 512
+    num_layers: 1
+    bidirectional_encoder: True
+
+  recognizer:
+    beam_size: 5
+    nbest: 1
+    decode_max_len: 100
+
+  batch_size: 4 # Batch size for training
+  max_epochs: 1 # Number of training epochs
+  learning_rate: 1.0e-3 # Initial learning rate
+  weight_decay: 1.0e-5
+  momentum: 0 # Momentum
+  max_norm: 800 # Norm cutoff to prevent explosion of gradients
+  learning_anneal: 1.1n # Annealing applied to learning rate every epoch
+  sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
+  test_step: 1 # after how many batches validation should be performed
+
+  checkpoint: True # Enables checkpoint saving of model
+  checkpoint_per_epoch: 1 # Save checkpoint per x epochs
+  silent: False # Turn on progress tracking per iteration
+  verbose: False # Turn on verbose progress tracking
+  continue: False # Continue training with a pre-trained model
+  finetune: False # Finetune a pre-trained model
+
+  num_data_workers: 8 # Number of workers used in data-loading
+  augment: False # Use random tempo and gain perturbations
+  shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
+
+  seed: 123456 # Seed to generators
+  cuda: True # Use cuda to train model
+  half_precision: True # Uses half precision to train a model
+  apex: True # Uses mixed precision to train a model
+  static_loss_scaling: False # Static loss scale for mixed precision
+  dynamic_loss_scaling: True # Use dynamic loss scaling for mixed precision
+
+  dist_url: 'tcp://127.0.0.1:1550' # URL used to set up distributed training
+  dist_backend: 'nccl' # Distributed backend
+  world_size: 1 # Number of distributed processes
+  rank: 0 # The rank of the current process
+  gpu_rank: 0 # If using distributed parallel for multi_gpu, sets the GPU for the process
