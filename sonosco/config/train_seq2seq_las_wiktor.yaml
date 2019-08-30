@@ -26,9 +26,9 @@ train:
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
-  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
-  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_short.csv'
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_1.csv'
+  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_1.csv'
+  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_1.csv'
   log_dir: 'logs' # Location for log files
   checkpoint_path: 'checkpoints' # Default location to save/load models
 
