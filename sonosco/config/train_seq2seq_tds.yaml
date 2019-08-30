@@ -42,6 +42,7 @@ train:
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
+  # TODO: should be relative to batch size
   test_step: 1 # after how many batches validation should be performed
 
   checkpoint: True # Enables checkpoint saving of model
