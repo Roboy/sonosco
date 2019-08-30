@@ -101,7 +101,7 @@ class ModelEvaluator:
         self.metrics.append(metric)
 
     def start_evaluation(self, tb_path: str = None, log_path: str = None):
-        LOGGER.info(f'start evaluation')
+        LOGGER.info(f'Start Evaluation')
         self.model.eval() #evaluation mode
         mean_dict = {metric.__name__: [] for metric in self.metrics}
 
@@ -119,10 +119,12 @@ class ModelEvaluator:
         if self._evaluation_done == False:
             self.start_evaluation()
         file_to_dump = os.path.join(output_path, 'evaluation.json')
+        LOGGER.info(f'dump evaluation results to {file_to_dump}')
         with open(file_to_dump, 'w') as fp:
             json.dump(self.eval_dict, fp)
 
     def dump_to_tensorboard(self, log_path):
+        LOGGER.info(f'Log evaluations in tensorboard.')
         writer = SummaryWriter(log_dir=log_path)
         for key, value in self.eval_dict:
             writer.add_scalar(key, value)
