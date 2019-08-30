@@ -2,9 +2,9 @@ train:
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
-  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
-  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_short.csv'
+  train_manifest: '/media/wagram/860EVO/datasets/1000_train_local.csv'
+  test_manifest: '/media/wagram/860EVO/datasets/all_test_local.csv'
+  val_manifest: '/media/wagram/860EVO/datasets/100_val_local.csv'
   log_dir: 'logs' # Location for log files
 #  checkpoint_path: 'checkpoints' # Default location to save/load models
 
@@ -35,8 +35,8 @@ train:
     labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
     sampling_prob: 0.3
 
-  batch_size: 32 # Batch size for training
-  max_epochs: 1 # Number of training epochs
+  batch_size: 16 # Batch size for training
+  max_epochs: 1000 # Number of training epochs
   learning_rate: 3.0e-4 # Initial learning rate
   momentum: 0.9 # Momentum
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
@@ -51,7 +51,7 @@ train:
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 
-  num_data_workers: 8 # Number of workers used in data-loading
+  num_data_workers: 4 # Number of workers used in data-loading
   augment: False # Use random tempo and gain perturbations
   shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
 
