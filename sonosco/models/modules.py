@@ -3,7 +3,7 @@ import logging
 import torch.nn as nn
 import torch.nn.functional as functional
 
-from config.global_settings import DROPOUT
+from sonosco.config.global_settings import DROPOUT
 
 LOGGER = logging.getLogger(__name__)
 
