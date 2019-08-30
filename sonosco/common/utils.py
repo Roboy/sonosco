@@ -15,11 +15,11 @@ def setup_logging(logger: logging.Logger, filename=None, verbosity=False):
         add_log_file(filename, logger)
 
     # Somehow stream handler is already setup before this or after at some different place
-    # c_handler = logging.StreamHandler()
-    # c_handler.setLevel(logging.DEBUG) if verbosity else c_handler.setLevel(logging.INFO)
-    # c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # c_handler.setFormatter(c_format)
-    # logger.addHandler(c_handler)
+    c_handler = logging.StreamHandler()
+    c_handler.setLevel(logging.DEBUG) if verbosity else c_handler.setLevel(logging.INFO)
+    c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    c_handler.setFormatter(c_format)
+    logger.addHandler(c_handler)
 
 
 def add_log_file(filename: str, logger: logging.Logger):

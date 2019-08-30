@@ -26,14 +26,14 @@ train:
 
   decoder:
     input_dim: 1024
-    embedding_dim: 32
+#    embedding_dim: 32
     key_dim: 512
     value_dim: 512
     rnn_hidden_dim: 512
     rnn_type_str: "gru"
     attention_type: "dot"
     labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
-    sampling_prob: 0.3
+    sampling_prob: 0.01
 
   batch_size: 16 # Batch size for training
   max_epochs: 1000 # Number of training epochs
@@ -42,7 +42,8 @@ train:
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
-  test_step: 25 # after how many batches validation should be performed
+  # TODO: should be relative to batch size
+  test_step: 1 # after how many batches validation should be performed
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs
