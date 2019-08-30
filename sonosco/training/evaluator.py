@@ -2,14 +2,15 @@ import logging
 import torch
 import torch.nn
 import torch.optim.optimizer
-import click
 import math
 import os
 import json
+import numpy as np
 
 from dataclasses import field, dataclass
 from torch.utils.data import RandomSampler
 from collections import defaultdict
+from sonosco.common.constants import SONOSCO
 
 
 from typing import Callable, Union, Tuple, List, Any
@@ -20,12 +21,6 @@ from torch.utils.tensorboard import SummaryWriter
 
 LOGGER = logging.getLogger(__name__)
 
-
-@click.command()
-@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_tds.yaml",
-              type=click.STRING, help="Path to train configurations.")
-
-
 @dataclass
 class ModelEvaluator:
     model: torch.nn.Module
@@ -33,19 +28,19 @@ class ModelEvaluator:
     bootstrap_size: int
     num_bootstraps: int
     decoder: Decoder = None
+    device: torch.device = None
     metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = field(default_factory=list)
     _current_bootstrap_step: int = None
     _eval_dict: dict = field(default_factory=dict)
 
     def __post_init__(self):
-        self._setup_replacement_sampler_in_dataloader()
+        self._check_replacement_sampler_in_dataloader()
         self._evaluation_done = False
 
-    def _setup_replacement_sampler_in_dataloader(self):
-        self.data_loader.batch_sampler = None
-        random_sampler = RandomSampler(data_source=self.data_loader.dataset, replacement=True,
-                                       num_samples=self.bootstrap_size)
-        self.data_loader.sampler = random_sampler
+    def _check_replacement_sampler_in_dataloader(self):
+        if not (isinstance(self.data_loader.sampler,RandomSampler) or isinstance(self.data_loader.batch_sampler,RandomSampler)):
+            LOGGER.info(f'No random sampler in dataloader.')
+            assert()
 
     def _bootstrap_step(self, mean_dict):
         torch.no_grad()
@@ -53,9 +48,13 @@ class ModelEvaluator:
 
         for sample_step in range(self.bootstrap_size):
             batch_x, batch_y, input_lengths, target_lengths = next(iter(self.data_loader))
+
             batch = (batch_x, batch_y, input_lengths, target_lengths)
             batch = self._recursive_to_cuda(batch)  # move to GPU
-            loss, model_output, grad_norm = self._train_on_batch(batch)
+            batch_x, batch_y, input_lengths, target_lengths = batch
+
+            model_output = self.model(batch_x, input_lengths)
+
             self._compute_running_metrics(model_output, batch, running_metrics)
 
         self._fill_mean_dict(running_metrics, mean_dict)
@@ -80,14 +79,14 @@ class ModelEvaluator:
 
     def _fill_mean_dict(self, running_metrics, mean_dict):
         for key, value in running_metrics.items():
-            mean = sum(value) / len(value)
+            mean = np.mean(value)
             mean_dict[key].append(mean)
 
-    def _compute_mean_variance(self):
+    def _compute_mean_variance(self, mean_dict):
         self.eval_dict = defaultdict()
-        for key, value in self._mean_dict:
-            tmp_mean = sum(value)/len(value)
-            tmp_variance = math.sqrt(sum([(mean - tmp_mean)**2 for mean in value])/ len(value)-1)
+        for key, value in mean_dict.items():
+            tmp_mean = np.mean(value)
+            tmp_variance =np.var(value)
             self.eval_dict[key + '_mean'] = tmp_mean
             self.eval_dict[key + '_variance'] = tmp_variance
 
@@ -101,7 +100,8 @@ class ModelEvaluator:
     def add_metric(self, metric):
         self.metrics.append(metric)
 
-    def start_evaluation(self):
+    def start_evaluation(self, tb_path: str = None, log_path: str = None):
+        LOGGER.info(f'start evaluation')
         self.model.eval() #evaluation mode
         mean_dict = {metric.__name__: [] for metric in self.metrics}
 
@@ -110,19 +110,41 @@ class ModelEvaluator:
             self._bootstrap_step(mean_dict)
         self._compute_mean_variance(mean_dict)
         self._evaluation_done = True
+        if tb_path is not None:
+            self.dump_to_tensorboard(tb_path)
+        if log_path is not None:
+            self.dump_evaluation(log_path)
 
     def dump_evaluation(self, output_path):
         if self._evaluation_done == False:
-            LOGGER.info(f'Evaluation was not done yet. Starting evaluation')
             self.start_evaluation()
-            file_to_dump = os.path.join(output_path, 'evaluation.json')
-            with open(file_to_dump, 'w') as fp:
-                json.dump(self.eval_dict, fp)
+        file_to_dump = os.path.join(output_path, 'evaluation.json')
+        with open(file_to_dump, 'w') as fp:
+            json.dump(self.eval_dict, fp)
 
     def dump_to_tensorboard(self, log_path):
         writer = SummaryWriter(log_dir=log_path)
         for key, value in self.eval_dict:
             writer.add_scalar(key, value)
+
+    def _recursive_to_cuda(self, tensors):
+        """
+        Recursively iterates nested lists in depth-first order and transfers all tensors
+        to specified cuda device.
+        Parameters:
+            tensors (list or Tensor): list of tensors or tensor tuples, can be nested
+        """
+        if self.device is None:  # keep on cpu
+            return tensors
+
+        if type(tensors) != list and type(tensors) != tuple:  # not only for torch.Tensor
+            return tensors.to(device=self.device)
+
+        cuda_tensors = list()
+        for i in range(len(tensors)):
+            cuda_tensors.append(self._recursive_to_cuda(tensors[i]))
+        return cuda_tensors
+
 
 
 
