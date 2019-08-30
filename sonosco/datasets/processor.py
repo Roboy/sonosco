@@ -103,7 +103,8 @@ class AudioDataProcessor:
         with open(transcript_path, 'r', encoding='utf8') as transcript_file:
             transcript = transcript_file.read().replace('\n', '')
         # TODO: Is it fast enough?
-        transcript = list(filter(None, [self.labels_map.get(x) for x in list(transcript)]))
+        transcript = list(filter(lambda el: el is not None,
+                                 [self.labels_map.get(x) for x in list(transcript)]))
         return transcript
 
     def parse_audio_for_inference(self, audio_path):

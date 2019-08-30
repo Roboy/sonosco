@@ -148,6 +148,7 @@ class TDSDecoder(nn.Module):
     attention_type: str = "dot"
     sampling_prob: float = 0
     soft_window_enabled: bool = True
+    embedding_dim: int = 512
 
     def __post_init__(self):
         assert self.input_dim == self.key_dim + self.value_dim
