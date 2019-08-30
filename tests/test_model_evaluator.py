@@ -24,9 +24,9 @@ LOGGER = logging.getLogger(SONOSCO)
 def evaluate_deepspeech():
     setup_logging(LOGGER)
     path_to_model_checkpoint = '/Users/florianlay/roboy/sonosco/pretrained/deepspeech_final.pth'
-    config_path = "../sonosco/config/train_seq2seq_tds_yuriy.yaml"
+    config_path = "../sonosco/config/bootstrap_deepspeech.yaml"
 
-    config = parse_yaml(config_path)["train"]
+    config = parse_yaml(config_path)
 
     experiment = Experiment.create(config, LOGGER)
 
@@ -47,9 +47,9 @@ def evaluate_deepspeech():
     metrics = [word_error_rate, character_error_rate]
     evaluator = ModelEvaluator(model,
                                test_loader,
-                               2,
-                               2,
-                               decoder=GreedyDecoder(config["decoder"]['labels']),
+                               config['bootstrap_size'],
+                               config['num_bootstraps'],
+                               decoder=GreedyDecoder(config['labels']),
                                device=device,
                                metrics = metrics)
 
