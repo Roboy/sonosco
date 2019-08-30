@@ -1,0 +1,19 @@
+experiment_path: null
+experiment_name: 'default'
+
+path_to_model_ckpt: '/Users/florianlay/roboy/sonosco/pretrained/deepspeech_final.pth'
+
+sample_rate: 16000 # Sample rate
+window_size: 0.02 # Window size for spectrogram in seconds
+window_stride: 0.01 # Window stride for spectrogram in seconds
+window: 'hamming' # Window type for spectrogram generation
+normalize: False # Normalize input data
+
+labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
+
+test_manifest: '/Users/florianlay/temp/data/an4/an4_val_manifest.csv'
+
+num_data_workers: 8 # Number of workers used in data-loading
+
+bootstrap_size: 3
+num_bootstraps: 6
