@@ -2,7 +2,7 @@ train:
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/media/wagram/860EVO/datasets/1000_train_local.csv'
+  train_manifest: '/media/wagram/860EVO/datasets/all_train_local.csv'
   test_manifest: '/media/wagram/860EVO/datasets/all_test_local.csv'
   val_manifest: '/media/wagram/860EVO/datasets/100_val_local.csv'
   log_dir: 'logs' # Location for log files
@@ -43,7 +43,7 @@ train:
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
   # TODO: should be relative to batch size
-  test_step: 1 # after how many batches validation should be performed
+  test_step: 50 # after how many batches validation should be performed
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs
@@ -52,7 +52,7 @@ train:
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 
-  num_data_workers: 4 # Number of workers used in data-loading
+  num_data_workers: 1 # Number of workers used in data-loading
   augment: False # Use random tempo and gain perturbations
   shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
 

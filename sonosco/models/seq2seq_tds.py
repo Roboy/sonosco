@@ -11,14 +11,15 @@ from dataclasses import field
 from sonosco.model.serialization import serializable
 from .modules import SubsampleBlock, TDSBlock, Linear, BatchRNN, InferenceBatchSoftmax, supported_rnns
 from .attention import DotAttention
-from sonosco.config.global_settings import CUDA_ENABLED
+from sonosco.config.global_settings import CUDA_ENABLED, DEVICE
 from sonosco.common.utils import labels_to_dict
 
 
 LOGGER = logging.getLogger(__name__)
+
 EOS = '$'
 SOS = '#'
-PADDING_VALUE = '%'
+PADDING_VALUE = -1
 MAX_LEN = 100
 
 
@@ -156,11 +157,11 @@ class TDSDecoder(nn.Module):
 
         super().__init__()
 
-        if EOS not in self.labels and PADDING_VALUE not in self.labels:
-            self.labels = self.labels + EOS + PADDING_VALUE
+        if EOS not in self.labels:
+            self.labels = self.labels + EOS
 
         self.labels_map = labels_to_dict(self.labels)
-        self.vocab_dim = len(self.labels) - 1
+        self.vocab_dim = len(self.labels)
 
         self.rnn_type = supported_rnns[self.rnn_type_str]
 
@@ -240,7 +241,7 @@ class TDSDecoder(nn.Module):
     def __forward_train(self, keys, values, hidden, encoding_lens, y_labels, y_lens):
         y_sampled = self._random_sampling(y_labels)
         # y_embed = self.word_piece_embedding(y_sampled)
-        y_embed = torch_functional.one_hot(y_sampled, self.vocab_dim).type(torch.float32)
+        y_embed = self._one_hot(y_sampled, self.vocab_dim).type(torch.float32)
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens, hidden)
         queries = queries.transpose(0, 1)
@@ -300,6 +301,24 @@ class TDSDecoder(nn.Module):
 
         return outputs.transpose(0, 1), torch.tensor([MAX_LEN], dtype=torch.long), attentions.transpose(0, 1)
 
+    def _one_hot(self, ys, vocab_dim):
+        """
+        Create one-hot encoding with zeroing out padding.
+        :param tensor: index tensor [B, T]
+        :param vocab_dim: scalar
+        :return: [B, T, vocab_dim]
+        """
+        mask = ys != PADDING_VALUE
+
+        one_hot_ys = []
+        for i, y in enumerate(ys):
+            unpadded_one_hot = torch_functional.one_hot(y[mask[i]], vocab_dim)
+            padded_one_hot = torch.cat([unpadded_one_hot,
+                                        torch.zeros(((~mask[i]).sum(), vocab_dim), device=DEVICE, dtype=torch.long)])
+            one_hot_ys.append(padded_one_hot)
+
+        return torch.stack(one_hot_ys)
+
 
 @serializable(model=True)
 class TDSSeq2Seq(nn.Module):
@@ -329,8 +348,17 @@ class TDSSeq2Seq(nn.Module):
 
             y_lens = [y.size(0) for y in y_in]
 
-            y_in_labels = torch.nn.utils.rnn.pad_sequence(y_in, batch_first=True).type(torch.LongTensor)
-            y_out_labels = torch.nn.utils.rnn.pad_sequence(y_out, batch_first=True).type(torch.LongTensor)
+            y_in_labels = torch.nn.utils.rnn.pad_sequence(
+                y_in,
+                batch_first=True,
+                padding_value=PADDING_VALUE
+            ).type(torch.LongTensor)
+
+            y_out_labels = torch.nn.utils.rnn.pad_sequence(
+                y_out,
+                batch_first=True,
+                padding_value=PADDING_VALUE
+            ).type(torch.LongTensor)
 
             if CUDA_ENABLED:
                 y_in_labels = y_in_labels.cuda()
@@ -338,7 +366,7 @@ class TDSSeq2Seq(nn.Module):
 
             probs, y_lens = self.decoder(encoding, encoding_lens, initial_decoder_hidden, y_in_labels, y_lens)
             loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1),
-                                                  ignore_index=self.decoder.labels_map[PADDING_VALUE])
+                                                  ignore_index=PADDING_VALUE)
             return probs, y_lens, loss
         else:
             # Perform inference only for batch_size=1
