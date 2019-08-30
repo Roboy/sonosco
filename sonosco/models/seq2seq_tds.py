@@ -20,7 +20,7 @@ LOGGER = logging.getLogger(__name__)
 EOS = '$'
 SOS = '#'
 PADDING_VALUE = -1
-MAX_LEN = 100
+MAX_LEN = 200
 
 
 @serializable
@@ -157,17 +157,17 @@ class TDSDecoder(nn.Module):
 
         super().__init__()
 
-        if EOS not in self.labels:
-            self.labels = self.labels + EOS
+        if EOS not in self.labels and SOS not in self.labels:
+            self.labels = self.labels + EOS + SOS
 
         self.labels_map = labels_to_dict(self.labels)
         self.vocab_dim = len(self.labels)
 
         self.rnn_type = supported_rnns[self.rnn_type_str]
 
-        # self.word_piece_embedding = nn.Embedding(self.vocab_dim, self.embedding_dim)
+        self.word_piece_embedding = nn.Embedding(self.vocab_dim, self.embedding_dim)
 
-        self.rnn = BatchRNN(input_size=self.vocab_dim, hidden_size=self.rnn_hidden_dim,
+        self.rnn = BatchRNN(input_size=self.embedding_dim, hidden_size=self.rnn_hidden_dim,
                             rnn_type=self.rnn_type, batch_norm=False)
 
         self.attention = DotAttention(self.key_dim)
@@ -199,36 +199,6 @@ class TDSDecoder(nn.Module):
         else:
             return self.__forward_inference(keys, values, hidden)
 
-    def _random_sampling(self, y_labels):
-        '''
-        Randomly sample tokens given a specified probability, in order to bring
-        training closer to inference.
-
-        pseudo:
-        1. sample U random numbers c from uniform distribution (0,1) [B, T, c]
-        2. create vector of 1 and 0 with c > specified probability [B, T, 1 or 0]
-        3. Sample vector Z of tokens (uniform distribution over tokens excl. eos) [B,T,token]
-        4. Calc: Y_hat = R o Z + (1-R) o Y (Y being teacher forced tokens)
-
-        :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
-        :return: tensor of tokens, partially groundtruth partially sampled
-        '''
-        sampled_tensor = torch.randn(size=y_labels.size())
-        sampled_tensor[sampled_tensor > self.sampling_prob] = 1
-        sampled_tensor[sampled_tensor < self.sampling_prob] = 0
-        sampled_tensor = sampled_tensor.type(dtype=torch.long)
-
-        sampled_tokens = torch.randint(high=len(self.labels[:]) - 2, low=0, size=y_labels.size()).type(dtype=torch.long)
-        ones = torch.ones(y_labels.shape).type(dtype=torch.long)
-
-        if CUDA_ENABLED:
-            sampled_tensor = sampled_tensor.cuda()
-            sampled_tokens = sampled_tokens.cuda()
-            ones = ones.cuda()
-
-        y_sampled = sampled_tensor * sampled_tokens + (ones - sampled_tensor) * y_labels
-        return y_sampled
-
     @staticmethod
     def __create_mask(inp, lens):
         # e.g. lens [100, 80, 75, 60] and inp has shape [4, 100, 1610]
@@ -241,7 +211,8 @@ class TDSDecoder(nn.Module):
     def __forward_train(self, keys, values, hidden, encoding_lens, y_labels, y_lens):
         y_sampled = self._random_sampling(y_labels)
         # y_embed = self.word_piece_embedding(y_sampled)
-        y_embed = self._one_hot(y_sampled, self.vocab_dim).type(torch.float32)
+        y_embed = self._embed(y_sampled).type(torch.float32)
+
         y_embed = y_embed.transpose(0, 1).contiguous()  # TxBxD
         queries = self.rnn(y_embed, y_lens, hidden)
         queries = queries.transpose(0, 1)
@@ -264,8 +235,8 @@ class TDSDecoder(nn.Module):
 
         w = next(self.parameters())
         eos = w.new_zeros(1).fill_(self.labels_map[EOS]).type(torch.long)
-        # y_prev = self.word_piece_embedding(eos)
-        y_prev = torch_functional.one_hot(eos, self.vocab_dim).type(torch.float32)
+        y_prev = self.word_piece_embedding(eos)
+        # y_prev = torch_functional.one_hot(eos, self.vocab_dim).type(torch.float32)
 
         # Now we pass the initial hidden state
         # (Deprecated) Initialize hidden with a transformation from the last state
@@ -296,12 +267,42 @@ class TDSDecoder(nn.Module):
             if best_index.item() == self.labels_map[EOS]:
                 return outputs[:t].transpose(0, 1), torch.tensor([t], dtype=torch.long), attentions[:t].transpose(0, 1)
 
-            y_prev = torch_functional.one_hot(best_index, self.vocab_dim).type(torch.float32)
-            # y_prev = self.word_piece_embedding(best_index)
+            # y_prev = torch_functional.one_hot(best_index, self.vocab_dim).type(torch.float32)
+            y_prev = self.word_piece_embedding(best_index)
 
         return outputs.transpose(0, 1), torch.tensor([MAX_LEN], dtype=torch.long), attentions.transpose(0, 1)
 
-    def _one_hot(self, ys, vocab_dim):
+    def _random_sampling(self, y_labels):
+        '''
+        Randomly sample tokens given a specified probability, in order to bring
+        training closer to inference.
+
+        pseudo:
+        1. sample U random numbers c from uniform distribution (0,1) [B, T, c]
+        2. create vector of 1 and 0 with c > specified probability [B, T, 1 or 0]
+        3. Sample vector Z of tokens (uniform distribution over tokens excl. eos) [B,T,token]
+        4. Calc: Y_hat = R o Z + (1-R) o Y (Y being teacher forced tokens)
+
+        :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
+        :return: tensor of tokens, partially groundtruth partially sampled
+        '''
+        sampled_tensor = torch.randn(size=y_labels.size())
+        sampled_tensor[sampled_tensor > self.sampling_prob] = 1
+        sampled_tensor[sampled_tensor < self.sampling_prob] = 0
+        sampled_tensor = sampled_tensor.type(dtype=torch.long)
+
+        sampled_tokens = torch.randint(high=len(self.labels) - 2, low=0, size=y_labels.size()).type(dtype=torch.long)
+        ones = torch.ones(y_labels.shape).type(dtype=torch.long)
+
+        if CUDA_ENABLED:
+            sampled_tensor = sampled_tensor.cuda()
+            sampled_tokens = sampled_tokens.cuda()
+            ones = ones.cuda()
+
+        y_sampled = sampled_tensor * sampled_tokens + (ones - sampled_tensor) * y_labels
+        return y_sampled
+
+    def _one_hot(self, ys):
         """
         Create one-hot encoding with zeroing out padding.
         :param tensor: index tensor [B, T]
@@ -312,12 +313,30 @@ class TDSDecoder(nn.Module):
 
         one_hot_ys = []
         for i, y in enumerate(ys):
-            unpadded_one_hot = torch_functional.one_hot(y[mask[i]], vocab_dim)
+            unpadded_one_hot = torch_functional.one_hot(y[mask[i]], self.vocab_dim)
             padded_one_hot = torch.cat([unpadded_one_hot,
-                                        torch.zeros(((~mask[i]).sum(), vocab_dim), device=DEVICE, dtype=torch.long)])
+                                        torch.zeros(((~mask[i]).sum(), self.vocab_dim), device=DEVICE, dtype=torch.long)])
             one_hot_ys.append(padded_one_hot)
 
         return torch.stack(one_hot_ys)
+
+    def _embed(self, ys):
+        """
+        Create one-hot encoding with zeroing out padding.
+        :param tensor: index tensor [B, T]
+        :param vocab_dim: scalar
+        :return: [B, T, vocab_dim]
+        """
+        mask = ys != PADDING_VALUE
+
+        embed_ys = []
+        for i, y in enumerate(ys):
+            unpadded_embed = self.word_piece_embedding(y[mask[i]])
+            padded_embed = torch.cat([unpadded_embed,
+                                      torch.zeros(((~mask[i]).sum(), self.embedding_dim), device=DEVICE)])
+            embed_ys.append(padded_embed)
+
+        return torch.stack(embed_ys)
 
 
 @serializable(model=True)
@@ -334,7 +353,7 @@ class TDSSeq2Seq(nn.Module):
     def forward(self, xs, xlens, y_labels=None):
         y_in, y_out = list(), list()
         w = next(self.parameters())
-        # sos = w.new_zeros(1).fill_(self.decoder.labels_map[SOS]).type(torch.int32)
+        sos = w.new_zeros(1).fill_(self.decoder.labels_map[SOS]).type(torch.int32)
         eos = w.new_zeros(1).fill_(self.decoder.labels_map[EOS]).type(torch.int32)
 
         encoding, encoding_lens, hidden = self.encoder(xs, xlens)
@@ -343,7 +362,7 @@ class TDSSeq2Seq(nn.Module):
 
         if y_labels is not None:
             for y in y_labels:
-                y_in.append(torch.cat([eos, y], dim=0))
+                y_in.append(torch.cat([sos, y], dim=0))
                 y_out.append(torch.cat([y, eos], dim=0))
 
             y_lens = [y.size(0) for y in y_in]
@@ -365,6 +384,7 @@ class TDSSeq2Seq(nn.Module):
                 y_out_labels = y_out_labels.cuda()
 
             probs, y_lens = self.decoder(encoding, encoding_lens, initial_decoder_hidden, y_in_labels, y_lens)
+            #import pdb; pdb.set_trace()
             loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1),
                                                   ignore_index=PADDING_VALUE)
             return probs, y_lens, loss

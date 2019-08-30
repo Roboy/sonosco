@@ -235,7 +235,7 @@ class ModelTrainer:
         performance_dict = defaultdict()
         for key, value in running_metrics.items():
             if 'val_' not in key:
-                performance_dict[key] = value / (train_step + 1.)
+                performance_dict[key] = value / (train_step / self.test_step + 1.)
             else:
                 performance_dict[key] = value  # validation metrics, already normalized
 

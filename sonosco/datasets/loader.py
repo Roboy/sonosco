@@ -49,21 +49,24 @@ def create_data_loaders(**kwargs):
     train_dataset = AudioDataset(processor, manifest_filepath=kwargs["train_manifest"])
     LOGGER.info(f"Training dataset containing {len(train_dataset)} samples is created")
     sampler = BucketingSampler(train_dataset, batch_size=kwargs["batch_size"])
-    train_loader = AudioDataLoader(dataset=train_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler, pin_memory=False)
+    train_loader = AudioDataLoader(dataset=train_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler,
+                                   pin_memory=True)
     LOGGER.info("Training data loader created.")
 
     # create validation loader
     val_dataset = AudioDataset(processor, manifest_filepath=kwargs["val_manifest"])
     LOGGER.info(f"Validation dataset containing {len(val_dataset)} samples is created")
     sampler = BucketingSampler(val_dataset, batch_size=kwargs["batch_size"])
-    val_loader = AudioDataLoader(dataset=val_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler, pin_memory=False)
+    val_loader = AudioDataLoader(dataset=val_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler,
+                                 pin_memory=True)
     LOGGER.info("Validation data loader created.")
 
     # create validation loader
     test_dataset = AudioDataset(processor, manifest_filepath=kwargs["test_manifest"])
     LOGGER.info(f"Test dataset containing {len(test_dataset)} samples is created")
     sampler = BucketingSampler(test_dataset, batch_size=kwargs["batch_size"])
-    test_loader = AudioDataLoader(dataset=test_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler, pin_memory=False)
+    test_loader = AudioDataLoader(dataset=test_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler,
+                                  pin_memory=True)
     LOGGER.info("Test data loader created.")
 
     return train_loader, val_loader, test_loader
