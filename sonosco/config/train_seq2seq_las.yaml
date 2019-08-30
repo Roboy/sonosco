@@ -26,8 +26,9 @@ train:
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest.csv'
-  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_short.csv'
+  train_manifest: '/media/wagram/860EVO/datasets/all_train_local.csv'
+  test_manifest: '/media/wagram/860EVO/datasets/1000_train_local.csv'
+  val_manifest: '/media/wagram/860EVO/datasets/all_val_local.csv'
   log_dir: 'logs' # Location for log files
   checkpoint_path: 'checkpoints' # Default location to save/load models
 
@@ -50,7 +51,7 @@ train:
   decoder:
     embedding_dim: 512
     hidden_size: 512
-    num_layers: 1
+    num_layers: 2
     bidirectional_encoder: True
 
   recognizer:
@@ -58,15 +59,16 @@ train:
     nbest: 1
     decode_max_len: 100
 
-  batch_size: 4 # Batch size for training
-  max_epochs: 1 # Number of training epochs
+  batch_size: 32
+  # Batch size for training
+  max_epochs: 20 # Number of training epochs
   learning_rate: 1.0e-3 # Initial learning rate
   weight_decay: 1.0e-5
   momentum: 0 # Momentum
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
-  test_step: 1 # after how many batches validation should be performed
+  test_step: 1000 # after how many batches validation should be performed
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs
@@ -75,7 +77,7 @@ train:
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 
-  num_data_workers: 8 # Number of workers used in data-loading
+  num_data_workers: 4 # Number of workers used in data-loading
   augment: False # Use random tempo and gain perturbations
   shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
 

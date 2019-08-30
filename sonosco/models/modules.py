@@ -3,6 +3,7 @@ import logging
 import torch.nn as nn
 import torch.nn.functional as functional
 
+from sonosco.config.global_settings import DROPOUT
 
 LOGGER = logging.getLogger(__name__)
 
@@ -159,7 +160,8 @@ class TDSBlock(nn.Module):
         residual = xs
         xs = self.conv2d(xs)
         xs = torch.relu(xs)
-        # self.dropout1(xs)
+        if DROPOUT:
+            xs = self.dropout1(xs)
 
         xs = xs + residual  # `[B, out_ch, T, feat_dim]`
 
@@ -173,9 +175,11 @@ class TDSBlock(nn.Module):
         residual = xs
         xs = self.conv1d_1(xs)
         xs = torch.relu(xs)
-        # self.dropout2_1(xs)
+        if DROPOUT:
+            xs = self.dropout2_1(xs)
         xs = self.conv1d_2(xs)
-        # self.dropout2_2(xs)
+        if DROPOUT:
+            xs = self.dropout2_2(xs)
         xs = xs + residual  # `[B, out_ch * feat_dim, T, 1]`
 
         # layer normalization
@@ -209,7 +213,8 @@ class SubsampleBlock(nn.Module):
 
         xs = self.conv1d(xs)
         xs = torch.relu(xs)
-        # xs = self.dropout(xs)
+        if DROPOUT:
+            xs = self.dropout(xs)
 
         # layer normalization
         bs, out_ch, time, feat_dim = xs.size()
@@ -246,5 +251,6 @@ class Linear(nn.Module):
         Returns:
             xs (FloatTensor):
         """
-        # return self.dropout(self.fc(xs))
+        if DROPOUT:
+            return self.dropout(self.fc(xs))
         return self.fc(xs)
