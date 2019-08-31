@@ -54,6 +54,7 @@ class ModelTrainer:
     def __post_init__(self):
         self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         self._stop_training = False  # used stop training externally
+        self.performance_measures = {}
 
     def set_metrics(self, metrics):
         """
@@ -122,18 +123,22 @@ class ModelTrainer:
 
             with torch.no_grad():
                 # compute metrics
-                LOGGER.info("Compute Metrics")
-                self._compute_running_metrics(model_output, batch, running_metrics)
-                running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
                 # evaluate validation set at end of epoch
                 if self.val_data_loader and step == (len(self.train_data_loader) - 1):
                     self._compute_validation_error(running_metrics)
 
-                # print current loss and metrics and provide it to callbacks
-                performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
-                self._print_step_info(epoch, step, performance_measures)
-                self._apply_callbacks(epoch, step, performance_measures)
+                if step % self.test_step == 0:
+                    LOGGER.info("Compute Metrics")
+                    self._compute_running_metrics(model_output, batch, running_metrics)
+                    running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
+
+                    # print current loss and metrics and provide it to callbacks
+                    self.performance_measures = self._construct_performance_dict(step, running_batch_loss,
+                                                                                 running_metrics)
+
+                self._print_step_info(epoch, step)
+                self._apply_callbacks(epoch, step)
 
     def _comp_gradients(self):
         """ Compute the gradient norm for all model parameters. """
@@ -230,31 +235,32 @@ class ModelTrainer:
         performance_dict = defaultdict()
         for key, value in running_metrics.items():
             if 'val_' not in key:
-                performance_dict[key] = value / (train_step + 1.)
+                performance_dict[key] = value / (train_step / self.test_step + 1.)
             else:
                 performance_dict[key] = value  # validation metrics, already normalized
 
         performance_dict['loss'] = running_batch_loss / (train_step + 1.)
         return performance_dict
 
-    def _apply_callbacks(self, epoch, step, performance_measures):
+    def _apply_callbacks(self, epoch, step):
         """ Call all registered callbacks with current batch information. """
         for callback in self.callbacks:
-            callback(epoch, step, performance_measures, self)
+            callback(epoch, step, self.performance_measures, self)
 
     def _close_callbacks(self):
         """ Signal callbacks training is finished. """
         for callback in self.callbacks:
             callback.close()
 
-    def _print_step_info(self, epoch, step, performance_measures):
+    def _print_step_info(self, epoch, step):
         """ Print running averages for loss and metrics during training. """
         output_message = "epoch {}   batch {}/{}".format(epoch, step, len(self.train_data_loader) - 1)
-        delim = "   "
-        for metric_name in sorted(list(performance_measures.keys())):
-            if metric_name == 'gradient_norm':
-                continue
-            output_message += delim + "{}: {:.6f}".format(metric_name, performance_measures[metric_name])
+        if step % self.test_step == 0:
+            delim = "   "
+            for metric_name in sorted(list(self.performance_measures.keys())):
+                if metric_name == 'gradient_norm':
+                    continue
+                output_message += delim + "{}: {:.6f}".format(metric_name, self.performance_measures[metric_name])
         LOGGER.info(output_message)
 
     def _recursive_to_cuda(self, tensors):
@@ -268,7 +274,7 @@ class ModelTrainer:
             return tensors
 
         if type(tensors) != list and type(tensors) != tuple:  # not only for torch.Tensor
-            return tensors.to(device=self.device)
+            return tensors.to(device=self.device, non_blocking=False)
 
         cuda_tensors = list()
         for i in range(len(tensors)):

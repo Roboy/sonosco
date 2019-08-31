@@ -1,3 +1,5 @@
+#!/usr/bin/python3.7
+
 import logging
 import click
 import torch
@@ -16,7 +18,7 @@ from sonosco.training.disable_soft_window_attention import DisableSoftWindowAtte
 from sonosco.training.tb_teacher_forcing_text_comparison_callback import TbTeacherForcingTextComparisonCallback
 from sonosco.config.global_settings import CUDA_ENABLED
 from sonosco.training.las_text_comparison_callback import LasTextComparisonCallback
-
+from sonosco.model.deserializer import ModelDeserializer
 
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -40,8 +42,13 @@ def main(config_path):
     config["decoder"]["sos_id"] = char_list.index(SOS)
     config["decoder"]["eos_id"] = char_list.index(EOS)
 
-    # Create model
-    model = Seq2Seq(config["encoder"], config["decoder"])
+    # Create mode
+    if config.get('checkpoint_path'):
+        LOGGER.info(f"Loading model from checkpoint: {config['checkpoint_path']}")
+        loader = ModelDeserializer()
+        model = loader.deserialize_model(Seq2Seq, config["checkpoint_path"])
+    else:
+        model = Seq2Seq(config["encoder"], config["decoder"])
     model.to(device)
 
     # Create data loaders
@@ -49,8 +56,7 @@ def main(config_path):
 
     # Create model trainer
     trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
-                           train_data_loader=train_loader, val_data_loader=val_loader,
-                           test_data_loader=test_loader,
+                           train_data_loader=train_loader, val_data_loader=val_loader, test_data_loader=test_loader,
                            lr=config["learning_rate"], weight_decay=config['weight_decay'],
                            metrics=[word_error_rate, character_error_rate],
                            decoder=GreedyDecoder(config['labels']),
@@ -60,7 +66,7 @@ def main(config_path):
                                                    log_dir=experiment.plots_path,
                                                    args=config['recognizer']))
     trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
-    trainer.add_callback(DisableSoftWindowAttention())
+    # trainer.add_callback(DisableSoftWindowAttention())
 
     # Setup experiment with a model trainer
     experiment.setup_model_trainer(trainer, checkpoints=True, tensorboard=True)

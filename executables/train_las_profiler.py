@@ -206,7 +206,7 @@ def cpu_time_total(autograd_prof):
     return sum([event.cpu_time_total for event in autograd_prof.function_events])
 
 
-def train(config_path="../sonosco/config/train_seq2seq_las.yaml"):
+def train(config_path="./sonosco/config/train_seq2seq_las.yaml"):
     config = parse_yaml(config_path)["train"]
     experiment = Experiment.create(config, LOGGER)
 
@@ -270,11 +270,11 @@ def main():
 
     if torch.cuda.is_available():
         torch.cuda.init()
-    cprofile_prof = run_cprofile(code)
+    # cprofile_prof = run_cprofile(code)
     autograd_prof_cpu, autograd_prof_cuda = run_autograd_prof(code)
 
     print(env_summary)
-    print_cprofile_summary(cprofile_prof, cprofile_sortby, cprofile_topk)
+    #print_cprofile_summary(cprofile_prof, cprofile_sortby, cprofile_topk)
 
     if not torch.cuda.is_available():
         print_autograd_prof_summary(autograd_prof_cpu, 'CPU', autograd_prof_sortby, autograd_prof_topk)
