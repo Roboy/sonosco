@@ -9,7 +9,7 @@ import sonosco.common.utils as utils
 
 from random import random
 from .trainer import ModelTrainer
-from .model_checkpoint import ModelCheckpoint
+from .model_checkpoint_apex import ModelCheckpointApex
 from .tensorboard_callback import TensorBoardCallback
 from sonosco.model.serializer import ModelSerializer
 
@@ -128,7 +128,7 @@ class Experiment:
         self.__trainer = trainer
 
         if checkpoints:
-            self.__trainer.add_callback(ModelCheckpoint(output_path=self.checkpoints_path))
+            self.__trainer.add_callback(ModelCheckpointApex(output_path=self.checkpoints_path))
 
         if tensorboard:
             self.__trainer.add_callback(TensorBoardCallback(log_dir=self.plots_path))
