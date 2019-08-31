@@ -28,7 +28,7 @@ PADDING_VALUE = '%'
 
 
 @click.command()
-@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_las.yaml",
+@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_las_wiktor.yaml",
               type=click.STRING, help="Path to train configurations.")
 def main(config_path):
     config = parse_yaml(config_path)["train"]
@@ -46,7 +46,7 @@ def main(config_path):
     if config.get('checkpoint_path'):
         LOGGER.info(f"Loading model from checkpoint: {config['checkpoint_path']}")
         loader = ModelDeserializer()
-        model = loader.deserialize_model(Seq2Seq, config["checkpoint_path"])
+        model = loader.deserialize(Seq2Seq, config["checkpoint_path"])
     else:
         model = Seq2Seq(config["encoder"], config["decoder"])
     model.to(device)

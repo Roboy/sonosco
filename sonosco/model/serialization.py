@@ -17,7 +17,8 @@ __iterables = [list, set, tuple, dict]
 # TODO: Some errors might not be found at annotating time (e.g. wrong callable or model not being serializable)
 # Thus it would be good to run "dry" serialization before user runs it after training.
 
-def serializable(_cls: type = None, *, model=False, enforced_serializable: list = None) -> object:
+def serializable(_cls: type = None, *, model=False, enforced_serializable: list = None,
+                 skip_fields: list = None) -> object:
     """
 
     Returns the same class as passed in, but with __init__ and __serialize__ methods.
@@ -42,9 +43,12 @@ def serializable(_cls: type = None, *, model=False, enforced_serializable: list 
     if enforced_serializable is None:
         enforced_serializable = []
 
+    if skip_fields is None:
+        skip_fields = []
+
     def wrap(cls):
         cls = _process_class(cls, init=True, repr=False, eq=False, order=False, unsafe_hash=False, frozen=False)
-        _set_new_attribute(cls, '__serialize__', __add_serialize(cls, model, enforced_serializable))
+        _set_new_attribute(cls, '__serialize__', __add_serialize(cls, model, enforced_serializable, skip_fields))
         return cls
 
     # See if we're being called as @serializable or @serializable().
@@ -68,7 +72,7 @@ def is_serializable(obj: object) -> bool:
     return hasattr(obj, '__serialize__')
 
 
-def __add_serialize(cls: type, model: bool, enforced_serializable: list) -> object:
+def __add_serialize(cls: type, model: bool, enforced_serializable: list, skip_fields: list) -> object:
     """
     Adds __serialize__ method.
     Args:
@@ -77,7 +81,7 @@ def __add_serialize(cls: type, model: bool, enforced_serializable: list) -> obje
     Returns (object): __serialize__ method body
 
     """
-    fields_to_serialize = fields(cls)
+    fields_to_serialize = list(filter(lambda el: el.name not in skip_fields, fields(cls)))
     sonosco_self = '__sonosco_self__' if 'self' in fields_to_serialize else 'self'
     serialize_body = __create_serialize_body(fields_to_serialize, model, enforced_serializable)
     return _create_fn('__serialize__', [sonosco_self], serialize_body, return_type=dict)

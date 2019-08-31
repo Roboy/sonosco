@@ -35,7 +35,7 @@ def main(config_path):
     loader = ModelDeserializer()
     if config.get('checkpoint_path'):
         LOGGER.info("Starting from checkpoint")
-        model = loader.deserialize_model(TDSSeq2Seq, config["checkpoint_path"])
+        model = loader.deserialize(TDSSeq2Seq, config["checkpoint_path"])
     else:
         model = TDSSeq2Seq(config["encoder"], config["decoder"])
 

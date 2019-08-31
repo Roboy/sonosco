@@ -44,7 +44,9 @@ class ModelDeserializer:
         """
         return torch.load(path, map_location=lambda storage, loc: storage)
 
-    def deserialize_model_from_path(self, cls_path: str, path: str) -> nn.Module:
+    def deserialize_from_path(self, cls_path: str,
+                              path: str,
+                              external_args: Dict[str, object] = None) -> nn.Module:
         """
         Loads the model from pickle file.
 
@@ -53,13 +55,16 @@ class ModelDeserializer:
         Args:
             cls_path (str): name of the class of the model
             path (str): path to pickle-serialized model or model parameters
+            external_args (dict): additional arguments to override serialized or provide custom ones
 
         Returns (nn.Module): Loaded model
 
         """
-        return self.deserialize_model(get_class_by_name(cls_path), path)
+        return self.deserialize(get_class_by_name(cls_path), path, external_args)
 
-    def deserialize_model(self, cls: type, path: str) -> nn.Module:
+    def deserialize(self, cls: type,
+                    path: str,
+                    external_args: Dict[str, object] = None) -> nn.Module:
         """
         Loads the model from pickle file.
 
@@ -68,32 +73,41 @@ class ModelDeserializer:
         Args:
             cls (type): class object of the model
             path (str): path to pickle-serialized model or model parameters
+            external_args (dict): additional arguments to override serialized or provide custom ones
 
         Returns (nn.Module): Loaded model
 
         """
         package = self.deserialize_model_parameters(path)
         caller_module = inspect.getmodule(inspect.stack()[1][0])
-        return ModelDeserializer.__deserialize_model(cls, package, caller_module)
+        return ModelDeserializer.__deserialize(cls, package, caller_module, external_args)
 
     @staticmethod
-    def __deserialize_model(cls: type, package: Dict[str, Any], caller_module: object) -> nn.Module:
+    def __deserialize(cls: type, package: Dict[str, Any],
+                      caller_module: object,
+                      external_args: Dict[str, object] = None) -> nn.Module:
+
+        if external_args is None:
+            external_args = {}
         constructor_args_names = get_constructor_args(cls)
         serialized_args_names = set(package.keys())
         serialized_args_names.discard('state_dict')
 
         args_to_apply = constructor_args_names & serialized_args_names
+        extra_args_names = set(external_args.keys())
 
-        not_in_constructor = serialized_args_names - constructor_args_names
+        not_in_constructor = (serialized_args_names | extra_args_names) - constructor_args_names
         if not_in_constructor:
             LOGGER.warning(
-                f"Following fields were deserialized "
+                f"Following fields were found "
                 f"but could not be found in constructor of provided class {not_in_constructor}")
-        not_in_package = constructor_args_names - serialized_args_names
+        not_in_package = constructor_args_names - (serialized_args_names | extra_args_names)
         if not_in_package:
             LOGGER.warning(
                 f"Following fields exist in class constructor "
-                f"but could not be found in serialized package {not_in_package}")
+                f"but could not be found in provided arguments {not_in_package}")
+
+        args_to_apply = args_to_apply - extra_args_names
 
         kwargs = {}
 
@@ -105,8 +119,8 @@ class ModelDeserializer:
             if is_serialized_dataclass(serialized_val):
                 clazz = ModelDeserializer.__create_class_object(
                     f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}", caller_module)
-                kwargs[arg] = ModelDeserializer.__deserialize_model(clazz, serialized_val[SERIALIZED_FIELD],
-                                                                    caller_module)
+                kwargs[arg] = ModelDeserializer.__deserialize(clazz, serialized_val[SERIALIZED_FIELD],
+                                                              caller_module)
             # TODO: This now also catches functions
             elif is_serialized_type(serialized_val):
                 kwargs[arg] = ModelDeserializer.__create_class_object(
@@ -114,7 +128,7 @@ class ModelDeserializer:
 
             elif is_serialized_collection_of_serializables(serialized_val):
                 kwargs[arg] = [
-                    ModelDeserializer.__deserialize_model(
+                    ModelDeserializer.__deserialize(
                         ModelDeserializer.__create_class_object(
                             f"{val[CLASS_MODULE_FIELD]}.{val[CLASS_NAME_FIELD]}",
                             caller_module),
@@ -139,7 +153,7 @@ class ModelDeserializer:
             else:
                 raise_unsupported_data_type()
 
-        obj = cls(**kwargs)
+        obj = cls(**{**kwargs, **external_args})
         if package.get('state_dict'):
             obj.load_state_dict(package['state_dict'])
         return obj

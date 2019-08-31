@@ -24,7 +24,7 @@ class MockedNestedClass:
     yetAnotherSerializableClass: YetAnotherSerializableClass = YetAnotherSerializableClass(some_stuff="XDDDD")
 
 
-@serializable(model=True)
+@serializable(model=True, skip_fields=['labels'])
 class MockModel(nn.Module):
     mockedNestedClass: MockedNestedClass
     rnn_type: type = nn.LSTM
@@ -89,7 +89,8 @@ def test_model_serialization():
     loader = ModelDeserializer()
 
     model = MockModel(rnn_type=rnn_type,
-                      labels=labels, rnn_hid_size=rnn_hid_size,
+                      labels=labels,
+                      rnn_hid_size=rnn_hid_size,
                       nb_layers=nb_layers,
                       audio_conf=audio_conf,
                       bidirectional=bidirectional,
@@ -103,7 +104,13 @@ def test_model_serialization():
     saver.serialize_model(model, model_path)
 
     # deserialize
-    deserialized_model = loader.deserialize_model(MockModel, model_path)
+    deserialized_model = loader.deserialize(MockModel,
+                                            model_path,
+                                            external_args={
+                                                'labels': 'XD12',
+                                                'version': '1.0.1'
+                                            }
+                                            )
 
     os.remove(model_path)
 
@@ -117,15 +124,16 @@ def test_model_serialization():
     assert deserialized_model.state_dict()['conv.seq_module.0.weight'][0][0][0][5] == \
            model.state_dict()['conv.seq_module.0.weight'][0][0][0][5]
     assert deserialized_model.rnn_type == rnn_type
-    assert deserialized_model.labels == labels
+    assert deserialized_model.labels == 'XD12'
     assert deserialized_model.rnn_hid_size == rnn_hid_size
     assert deserialized_model.nb_layers == nb_layers
     assert deserialized_model.audio_conf == audio_conf
     assert deserialized_model.bidirectional == bidirectional
-    assert deserialized_model.version == version
+    assert deserialized_model.version == '1.0.1'
     assert deserialized_model.mockedNestedClass.some_int == 42
     assert deserialized_model.mockedNestedClass.some_collection == ['the', 'future', 'is', 'here']
     assert deserialized_model.mockedNestedClass.yetAnotherSerializableClass.some_stuff == "old man"
+
 
 @serializable
 class CallableClass(ABC):
@@ -178,7 +186,7 @@ def test_model_serialization2():
     saver.serialize_model(testClass, model_path)
 
     # deserialize
-    deserialized_class = loader.deserialize_model(TestClass, model_path)
+    deserialized_class = loader.deserialize(TestClass, model_path)
 
     os.remove(model_path)
 
@@ -195,3 +203,6 @@ def test_model_serialization2():
     assert deserialized_class.serializable_list[0]() == "some other stuff"
     assert deserialized_class.serializable_list[1].__class__ == SubClass2
     assert deserialized_class.serializable_list[1]() == "Calling class2"
+
+
+test_model_serialization()
