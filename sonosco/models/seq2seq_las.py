@@ -25,7 +25,7 @@ def pad_list(xs, pad_value):
     return pad
 
 
-@serializable
+@serializable(model=True)
 class Seq2Seq(nn.Module):
     """Sequence-to-Sequence architecture with configurable encoder and decoder.
     """

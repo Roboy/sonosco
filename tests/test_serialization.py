@@ -109,6 +109,7 @@ def test_model_serialization():
 
     # test attributes
 
+    assert len(deserialized_model.state_dict()) == len(model.state_dict())
     assert deserialized_model.rnn_type == rnn_type
     assert deserialized_model.labels == labels
     assert deserialized_model.rnn_hid_size == rnn_hid_size
@@ -177,7 +178,7 @@ def test_model_serialization2():
     os.remove(model_path)
 
     # test attributes
-    
+
     assert deserialized_class.some_int == 5
     assert deserialized_class.some_collection == []
     assert deserialized_class.some_method == some_method_other
