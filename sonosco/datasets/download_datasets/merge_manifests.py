@@ -3,7 +3,7 @@ import click
 import io
 import logging
 import sonosco.common.path_utils as path_utils
-from sonosco.datasets.download_datasets.data_utils import order_and_prune_files
+from sonosco.datasets.download_datasets.create_manifest import order_and_prune_files
 from sonosco.common.utils import setup_logging
 from sonosco.common.constants import *
 from tqdm import tqdm
@@ -12,10 +12,11 @@ LOGGER = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option("--merge-dir", default="temp/data", type=str, help="Directory to the folders, all the manifest are stored in.")
-@click.option("--min-duration", default=1, type=int, help="Prunes any samples shorter than the min duration.")
-@click.option("--max-duration", default=15, type=int, help="Prunes any samples longer than the max duration")
-@click.option("--output-path", default="temp/data/manifests/combined_manifest.csv", type=str, help="Output path to merged manifest")
+@click.option("--merge-dir", default="temp/data", type=str, help="Directory to the folder , all the manifest are stored in.")
+@click.option("--min-duration", default=None, type=int, help="If provided, prunes any samples shorter than the min duration.")
+@click.option("--max-duration", default=None, type=int, help="If provided, prunes any samples longer than the max duration")
+@click.option("--output-path", default="temp/data/manifests/combined_manifest.csv", type=str, help="Output path, to store manifest.")
+
 def main(merge_dir, min_duration, max_duration, output_path):
     global LOGGER
     LOGGER = logging.getLogger(SONOSCO)

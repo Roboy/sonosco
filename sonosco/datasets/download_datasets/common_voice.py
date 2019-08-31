@@ -8,7 +8,7 @@ import sonosco.common.audio_tools as audio_tools
 import sonosco.common.path_utils as path_utils
 
 from multiprocessing.pool import ThreadPool
-from sonosco.datasets.download_datasets.data_utils import create_manifest
+from sonosco.datasets.download_datasets.create_manifest import create_manifest
 from sonosco.common.utils import setup_logging
 from sonosco.common.constants import *
 

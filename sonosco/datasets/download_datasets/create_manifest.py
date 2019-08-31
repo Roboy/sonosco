@@ -4,23 +4,32 @@ import os
 import logging
 import torch.distributed as dist
 import sonosco.common.audio_tools as audio_tools
+from sonosco.common.utils import setup_logging
+import click
 
 from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
 
+@click.command()
+@click.option("--data-path", default="temp/data", type=str, help="Directory to the folder , that contains .wav and .txt files.")
+@click.option("--output-file", default="temp/data/manifest.csv", type=str, help="Path consisting of path and filename (.csv) where manifest gets stored to.")
+@click.option("--min-duration", default=None, type=int, help="Prunes any samples longer than the max duration")
+@click.option("--max-duration", default=None, type=int, help="If provided, prunes any samples longer than the max duration")
 
-def create_manifest(data_path, output_path, min_duration=None, max_duration=None):
+def create_manifest(data_path, output_file, min_duration=None, max_duration=None):
+    setup_logging(LOGGER)
     LOGGER.info(f"Creating a manifest for path: {data_path}")
     file_paths = [os.path.join(dirpath, f)
                   for dirpath, dirnames, files in os.walk(data_path)
                   for f in fnmatch.filter(files, '*.wav')]
     LOGGER.info(f"Found {len(file_paths)} .wav files")
     file_paths = order_and_prune_files(file_paths, min_duration, max_duration)
-    with io.FileIO(output_path, "w") as file:
+    with io.FileIO(output_file, "w") as file:
         for wav_path in tqdm(file_paths, total=len(file_paths)):
             transcript_path = wav_path.replace('/wav/', '/txt/').replace('.wav', '.txt')
-            sample = f"{os.path.abspath(wav_path)},{os.path.abspath(transcript_path)}\n"
+            duration = audio_tools.get_duration(wav_path)
+            sample = f"{os.path.abspath(wav_path)},{os.path.abspath(transcript_path)},{duration}\n"
             file.write(sample.encode('utf-8'))
 
 
@@ -42,3 +51,6 @@ def reduce_tensor(tensor, world_size):
     dist.all_reduce(rt, op=dist.reduce_op.SUM)
     rt /= world_size
     return rt
+
+if __name__=="__main__":
+    create_manifest()
