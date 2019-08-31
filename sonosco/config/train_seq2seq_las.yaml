@@ -75,7 +75,7 @@ train:
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 
-  num_data_workers: 8 # Number of workers used in data-loading
+  num_data_workers: 12 # Number of workers used in data-loading
   augment: False # Use random tempo and gain perturbations
   shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
 
