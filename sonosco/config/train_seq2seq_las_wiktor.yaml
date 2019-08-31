@@ -1,12 +1,36 @@
 train:
+
+
+
+  # Training config
+#  epochs=20
+#  half_lr=1
+#  early_stop=0
+#  max_norm=5
+#  batch_size=32
+#  maxlen_in=800
+#  maxlen_out=150
+  # optimizer
+#  l2=1e-5
+  # logging and visualize
+#  checkpoint=0
+#  continue_from=""
+#  print_freq=10
+#  visdom=0
+#  visdom_id="LAS Training"
+
+  # Decode config
+
+
+
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/media/wagram/860EVO/datasets/1000_train_local.csv'
-  test_manifest: '/media/wagram/860EVO/datasets/1000_train_local.csv'
-  val_manifest: '/media/wagram/860EVO/datasets/100_val_local.csv'
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_1.csv'
+  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_1.csv'
+  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_1.csv'
   log_dir: 'logs' # Location for log files
-#  checkpoint_path: 'checkpoints' # Default location to save/load models
+  checkpoint_path: 'checkpoints' # Default location to save/load models
 
   load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 
@@ -17,35 +41,33 @@ train:
   labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
 
   encoder:
-    input_dim: 161 # Number of frequencies in mel-scale filter
-    in_channel: 1 # Initial number of channels
-    channels: [10, 10, 14, 14, 14, 18, 18, 18, 18, 18, 18] # TDS blocks, whenever the number changes a sub-sampling layer is inserted
-    kernel_sizes: [21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
+    input_size: 161
+    hidden_size: 256
+    num_layers: 3
     dropout: 0.2
-    bottleneck_dim: 1024
+    bidirectional: True
+    rnn_type: "lstm"
 
   decoder:
-    input_dim: 1024
-    embedding_dim: 5
-    key_dim: 512
-    value_dim: 512
-    rnn_hidden_dim: 512
-    rnn_type_str: "gru"
-    attention_type: "dot"
-    labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
-    sampling_prob: 0.01
-    soft_window_enabled: True
+    embedding_dim: 512
+    hidden_size: 512
+    num_layers: 1
+    bidirectional_encoder: True
 
-  batch_size: 16 # Batch size for training
-  max_epochs: 1000 # Number of training epochs
-  learning_rate: 5.0e-4 # Initial learning rate
+  recognizer:
+    beam_size: 5
+    nbest: 1
+    decode_max_len: 100
+
+  batch_size: 4 # Batch size for training
+  max_epochs: 1 # Number of training epochs
+  learning_rate: 1.0e-3 # Initial learning rate
   weight_decay: 1.0e-5
-  momentum: 0.9 # Momentum
+  momentum: 0 # Momentum
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
-  # TODO: should be relative to batch size
-  test_step: 20 # after how many batches validation should be performed
+  test_step: 1 # after how many batches validation should be performed
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs
@@ -54,7 +76,7 @@ train:
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 
-  num_data_workers: 4 # Number of workers used in data-loading
+  num_data_workers: 8 # Number of workers used in data-loading
   augment: False # Use random tempo and gain perturbations
   shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
 

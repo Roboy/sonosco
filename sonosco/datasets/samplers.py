@@ -15,7 +15,7 @@ class BucketingSampler(Sampler):
         self.bins = [ids[i:i + batch_size] for i in range(0, len(ids), batch_size)]
 
     def __iter__(self):
-        self.shuffle()
+        # self.shuffle()
         for ids in self.bins:
             yield ids
 
