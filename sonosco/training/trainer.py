@@ -274,7 +274,7 @@ class ModelTrainer:
             return tensors
 
         if type(tensors) != list and type(tensors) != tuple:  # not only for torch.Tensor
-            return tensors.to(device=self.device, non_blocking=True)
+            return tensors.to(device=self.device, non_blocking=False)
 
         cuda_tensors = list()
         for i in range(len(tensors)):

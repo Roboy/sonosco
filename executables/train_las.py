@@ -18,7 +18,7 @@ from sonosco.training.disable_soft_window_attention import DisableSoftWindowAtte
 from sonosco.training.tb_teacher_forcing_text_comparison_callback import TbTeacherForcingTextComparisonCallback
 from sonosco.config.global_settings import CUDA_ENABLED
 from sonosco.training.las_text_comparison_callback import LasTextComparisonCallback
-
+from sonosco.model.deserializer import ModelDeserializer
 
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -42,8 +42,13 @@ def main(config_path):
     config["decoder"]["sos_id"] = char_list.index(SOS)
     config["decoder"]["eos_id"] = char_list.index(EOS)
 
-    # Create model
-    model = Seq2Seq(config["encoder"], config["decoder"])
+    # Create mode
+    if config.get('checkpoint_path'):
+        LOGGER.info(f"Loading model from checkpoint: {config['checkpoint_path']}")
+        loader = ModelDeserializer()
+        model = loader.deserialize_model(Seq2Seq, config["checkpoint_path"])
+    else:
+        model = Seq2Seq(config["encoder"], config["decoder"])
     model.to(device)
 
     # Create data loaders
