@@ -101,7 +101,7 @@ def test_model_serialization():
                           yetAnotherSerializableClass=YetAnotherSerializableClass(some_stuff="old man")))
 
     # serialize
-    saver.serialize_model(model, model_path)
+    saver.serialize(model, model_path)
 
     # deserialize
     deserialized_model = loader.deserialize(MockModel,
@@ -183,7 +183,7 @@ def test_model_serialization2():
         serializable_list=[SubClass1("some other stuff"), SubClass2()])
 
     # serialize
-    saver.serialize_model(testClass, model_path)
+    saver.serialize(testClass, model_path)
 
     # deserialize
     deserialized_class = loader.deserialize(TestClass, model_path)
@@ -204,5 +204,3 @@ def test_model_serialization2():
     assert deserialized_class.serializable_list[1].__class__ == SubClass2
     assert deserialized_class.serializable_list[1]() == "Calling class2"
 
-
-test_model_serialization()

@@ -2,13 +2,15 @@ import logging
 import sys
 import os.path as path
 
+from sonosco.model.serialization import serializable
+
 from .abstract_callback import AbstractCallback
 from sonosco.model.serializer import ModelSerializer
-
 
 LOGGER = logging.getLogger(__name__)
 
 
+@serializable
 class ModelCheckpoint(AbstractCallback):
     """
     Saves the model and optimizer state at the point with lowest validation error throughout training.
@@ -16,10 +18,10 @@ class ModelCheckpoint(AbstractCallback):
         output_path (string): path to directory where the checkpoint will be saved to
         model_name (string): name of the checkpoint file
     """
+    output_path: str
+    model_name: str = 'model_checkpoint.pt'
 
-    def __init__(self, output_path, model_name='model_checkpoint.pt'):
-        self.output_path = output_path
-        self.model_name = model_name
+    def __post_init__(self):
         self.best_val_score = sys.float_info.max
         self.serializer = ModelSerializer()
 
@@ -38,5 +40,5 @@ class ModelCheckpoint(AbstractCallback):
     def _save_checkpoint(self, model, output_path):
         LOGGER.info("Saving model at checkpoint.")
         model.eval()
-        self.serializer.serialize_model(model=model, path=output_path)
+        self.serializer.serialize(obj=model, path=output_path)
         model.train()

@@ -109,7 +109,7 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool, e
     for c in callables:
         body_lines.append(f"if isinstance(self.{c.name}, FunctionType):")
         body_lines.append(f"    {c.name} = {{")
-        __encode_type_serialization(body_lines, c)
+        __encode_type_serialization(body_lines, c.name)
         body_lines.append(f"}}")
         body_lines.append(f"elif is_serializable(self.{c.name}):")
         body_lines.append(f"    {c.name} = {{")
@@ -122,11 +122,11 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool, e
         body_lines.append(f"for el in self.{field.name}:")
         body_lines.append(f"    if isinstance(el, FunctionType):")
         body_lines.append(f"        tmp = {{")
-        __encode_type_serialization(body_lines, c)
+        __encode_type_serialization(body_lines, "el", False)
         body_lines.append(f"        }}")
         body_lines.append(f"    elif is_serializable(el):")
         body_lines.append(f"        tmp = {{")
-        __encode_serializable_serialization(body_lines, c)
+        __encode_serializable_serialization(body_lines, field)
         body_lines.append(f"        }}")
         body_lines.append(f"    else: raise TypeError(\"Callable must be a function or @serializable class for now\")")
         body_lines.append(f"    {field.name}.append(tmp)")
@@ -157,7 +157,7 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool, e
             body_lines.append(f"'{field.name}': {field.name},")
         elif __is_type(field.type):
             body_lines.append(f"'{field.name}': {{")
-            __encode_type_serialization(body_lines, field)
+            __encode_type_serialization(body_lines, field.name)
             body_lines.append("},")
         else:
             __throw_unsupported_data_type(field)
@@ -167,9 +167,10 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool, e
     return body_lines
 
 
-def __encode_type_serialization(body_lines, field):
-    body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"self.{field.name}.__name__"))
-    body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"self.{field.name}.__module__"))
+def __encode_type_serialization(body_lines, name, with_self=True):
+    s = "self." if with_self else ""
+    body_lines.append(__create_dict_entry(CLASS_NAME_FIELD, f"{s}{name}.__name__"))
+    body_lines.append(__create_dict_entry(CLASS_MODULE_FIELD, f"{s}{name}.__module__"))
 
 
 def __encode_serializable_serialization(body_lines, field):

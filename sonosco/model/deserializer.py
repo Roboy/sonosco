@@ -121,11 +121,13 @@ class ModelDeserializer:
                     f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}", caller_module)
                 kwargs[arg] = ModelDeserializer.__deserialize(clazz, serialized_val[SERIALIZED_FIELD],
                                                               caller_module)
+            # TODO: This has to be handled better, but for now only device is a tuple.
+            elif type(serialized_val) is tuple:
+                kwargs[arg] = torch.device(*serialized_val)
             # TODO: This now also catches functions
             elif is_serialized_type(serialized_val):
                 kwargs[arg] = ModelDeserializer.__create_class_object(
                     f"{serialized_val[CLASS_MODULE_FIELD]}.{serialized_val[CLASS_NAME_FIELD]}", caller_module)
-
             elif is_serialized_collection_of_serializables(serialized_val):
                 kwargs[arg] = [
                     ModelDeserializer.__deserialize(
@@ -145,9 +147,7 @@ class ModelDeserializer:
                     for val in serialized_val]
             elif is_serialized_primitive(serialized_val) or is_serialized_collection(serialized_val):
                 kwargs[arg] = serialized_val
-            # TODO: This has to be handled better, but for now only device is a tuple.
-            elif type(serialized_val) is tuple:
-                kwargs[arg] = torch.device(serialized_val)
+
             elif serialized_val is None:
                 kwargs[arg] = None
             else:

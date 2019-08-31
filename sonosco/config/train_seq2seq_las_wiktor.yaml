@@ -26,8 +26,8 @@ train:
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_4.csv'
-  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_4.csv'
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_10.csv'
+  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_10.csv'
   val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_1.csv'
   log_dir: 'logs' # Location for log files
 #  checkpoint_path: 'checkpoints' # Default location to save/load models
@@ -60,7 +60,7 @@ train:
     decode_max_len: 100
 
   batch_size: 4 # Batch size for training
-  max_epochs: 1 # Number of training epochs
+  max_epochs: 2 # Number of training epochs
   learning_rate: 1.0e-3 # Initial learning rate
   weight_decay: 1.0e-5
   momentum: 0 # Momentum

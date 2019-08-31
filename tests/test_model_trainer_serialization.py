@@ -1,8 +1,9 @@
-#!/usr/bin/python3.7
+
 
 import logging
 import click
 import torch
+from sonosco.model.serializer import ModelSerializer
 
 from sonosco.models.seq2seq_las import Seq2Seq
 from sonosco.common.constants import SONOSCO
@@ -26,11 +27,8 @@ EOS = '$'
 SOS = '#'
 PADDING_VALUE = '%'
 
-
-@click.command()
-@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_las_wiktor.yaml",
-              type=click.STRING, help="Path to train configurations.")
-def main(config_path):
+def test_mode_trainer_serialization():
+    config_path = ""
     config = parse_yaml(config_path)["train"]
     experiment = Experiment.create(config, LOGGER)
 
@@ -61,22 +59,11 @@ def main(config_path):
                            metrics=[word_error_rate, character_error_rate],
                            decoder=GreedyDecoder(config['labels']),
                            device=device, test_step=config["test_step"], custom_model_eval=True)
-
-    trainer.add_callback(LasTextComparisonCallback(labels=char_list,
-                                                   log_dir=experiment.plots_path,
-                                                   args=config['recognizer']))
-    trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
-    trainer.add_callback(DisableSoftWindowAttention())
-
-    # Setup experiment with a model trainer
-
-    experiment.setup_model_trainer(trainer, checkpoints=True, tensorboard=True)
-    try:
-        experiment.start()
-    except KeyboardInterrupt:
-        experiment.stop()
-
-
-if __name__ == '__main__':
-    setup_logging(LOGGER)
-    main()
+    loader = ModelDeserializer()
+    s = ModelSerializer()
+    s.serialize(trainer, '/Users/w.jurasz/ser')
+    trainer = loader.deserialize(ModelTrainer, '/Users/w.jurasz/ser', {
+        'train_data_loader': train_loader,
+        'val_data_loader': val_loader,
+        'test_data_loader': test_loader,
+    })

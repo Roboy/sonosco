@@ -1,6 +1,7 @@
 import logging
 import click
 import torch
+
 from sonosco.model.deserializer import ModelDeserializer
 
 from sonosco.models.seq2seq_tds import TDSSeq2Seq
