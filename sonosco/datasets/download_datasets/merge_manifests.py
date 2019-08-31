@@ -5,6 +5,7 @@ import logging
 import sonosco.common.path_utils as path_utils
 from sonosco.datasets.download_datasets.create_manifest import order_and_prune_files
 from sonosco.common.utils import setup_logging
+import sonosco.common.audio_tools as audio_tools
 from sonosco.common.constants import *
 from tqdm import tqdm
 
@@ -43,7 +44,8 @@ def main(merge_dir, min_duration, max_duration, output_path):
     with io.FileIO(output_path, "w") as file:
         for wav_path in tqdm(file_paths, total=len(file_paths)):
             transcript_path = wav_path.replace('/wav/', '/txt/').replace('.wav', '.txt')
-            sample = os.path.abspath(wav_path) + ',' + os.path.abspath(transcript_path) + '\n'
+            duration = audio_tools.get_duration(wav_path)
+            sample = os.path.abspath(wav_path) + ',' + os.path.abspath(transcript_path) + ',' + duration + '\n'
             file.write(sample.encode('utf-8'))
     LOGGER.info("Final manifest was created!")
 
