@@ -34,39 +34,42 @@ def main(config_path):
     config = parse_yaml(config_path)["train"]
     experiment = Experiment.create(config, LOGGER)
 
-    device = torch.device("cuda" if CUDA_ENABLED else "cpu")
-
-    char_list = config["labels"] + EOS + SOS
-
-    config["decoder"]["vocab_size"] = len(char_list)
-    config["decoder"]["sos_id"] = char_list.index(SOS)
-    config["decoder"]["eos_id"] = char_list.index(EOS)
-
+    train_loader, val_loader, test_loader = create_data_loaders(**config)
     # Create mode
     if config.get('checkpoint_path'):
         LOGGER.info(f"Loading model from checkpoint: {config['checkpoint_path']}")
         loader = ModelDeserializer()
-        model = loader.deserialize(Seq2Seq, config["checkpoint_path"])
+        trainer = loader.deserialize(ModelTrainer, config["checkpoint_path"], {
+            'train_data_loader': train_loader,
+            'val_data_loader': val_loader,
+            'test_data_loader': test_loader,
+        })
     else:
+        device = torch.device("cuda" if CUDA_ENABLED else "cpu")
+
+        char_list = config["labels"] + EOS + SOS
+
+        config["decoder"]["vocab_size"] = len(char_list)
+        config["decoder"]["sos_id"] = char_list.index(SOS)
+        config["decoder"]["eos_id"] = char_list.index(EOS)
         model = Seq2Seq(config["encoder"], config["decoder"])
-    model.to(device)
+        model.to(device)
 
-    # Create data loaders
-    train_loader, val_loader, test_loader = create_data_loaders(**config)
+        # Create data loaders
 
-    # Create model trainer
-    trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
-                           train_data_loader=train_loader, val_data_loader=val_loader, test_data_loader=test_loader,
-                           lr=config["learning_rate"], weight_decay=config['weight_decay'],
-                           metrics=[word_error_rate, character_error_rate],
-                           decoder=GreedyDecoder(config['labels']),
-                           device=device, test_step=config["test_step"], custom_model_eval=True)
+        # Create model trainer
+        trainer = ModelTrainer(model, loss=cross_entropy_loss, epochs=config["max_epochs"],
+                               train_data_loader=train_loader, val_data_loader=val_loader, test_data_loader=test_loader,
+                               lr=config["learning_rate"], weight_decay=config['weight_decay'],
+                               metrics=[word_error_rate, character_error_rate],
+                               decoder=GreedyDecoder(config['labels']),
+                               device=device, test_step=config["test_step"], custom_model_eval=True)
 
-    trainer.add_callback(LasTextComparisonCallback(labels=char_list,
-                                                   log_dir=experiment.plots_path,
-                                                   args=config['recognizer']))
-    trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
-    trainer.add_callback(DisableSoftWindowAttention())
+        trainer.add_callback(LasTextComparisonCallback(labels=char_list,
+                                                       log_dir=experiment.plots_path,
+                                                       args=config['recognizer']))
+        trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
+        trainer.add_callback(DisableSoftWindowAttention())
 
     # Setup experiment with a model trainer
 
