@@ -33,3 +33,4 @@ class EpochEstimationCallback(AbstractCallback):
             delta = int((self.end - self.start))
             total_time = self.total_batch_size/step*delta
             LOGGER.info(f'Model will require ~ {int(total_time/3600)} hours {int(total_time%3600/60)} minutes and {int(total_time%3600 % 60)} seconds for one epoch.')
+            [context.callbacks.remove(callback) for callback in context.callbacks if isinstance(callback, EpochEstimationCallback)]
