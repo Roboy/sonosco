@@ -28,9 +28,8 @@ SOS = '#'
 PADDING_VALUE = '%'
 
 def test_mode_trainer_serialization():
-    config_path = ""
+    config_path = "model_trainer_config_test.yaml"
     config = parse_yaml(config_path)["train"]
-    experiment = Experiment.create(config, LOGGER)
 
     device = torch.device("cuda" if CUDA_ENABLED else "cpu")
 
@@ -62,8 +61,9 @@ def test_mode_trainer_serialization():
     loader = ModelDeserializer()
     s = ModelSerializer()
     s.serialize(trainer, '/Users/w.jurasz/ser')
-    trainer = loader.deserialize(ModelTrainer, '/Users/w.jurasz/ser', {
+    trainer_deserialized = loader.deserialize(ModelTrainer, '/Users/w.jurasz/ser', {
         'train_data_loader': train_loader,
         'val_data_loader': val_loader,
         'test_data_loader': test_loader,
     })
+    assert trainer_deserialized is not None
