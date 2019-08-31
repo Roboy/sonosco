@@ -6,7 +6,7 @@ train:
   test_manifest: '/home/roboy/sonosco/datasets/all_sh_train_manifest.csv'
   val_manifest: '/home/roboy/sonosco/datasets/all_sh_val_manifest.csv'
   log_dir: 'logs' # Location for log files
-  checkpoint_path: '/home/roboy/sonosco/sonosco/experiments/2019-08-30_22:41:00_default/checkpoints/model_no_callback' # Default location to save/load models
+  # checkpoint_path: '/home/roboy/sonosco/sonosco/experiments/2019-08-30_22:41:00_default/checkpoints/model_no_callback' # Default location to save/load models
 
   load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 
@@ -45,6 +45,7 @@ train:
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
   test_step: 1000 # after how many batches validation should be performed
+  normalize: True
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs

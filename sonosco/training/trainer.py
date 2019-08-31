@@ -134,8 +134,7 @@ class ModelTrainer:
                     running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
                     # print current loss and metrics and provide it to callbacks
-                    self.performance_measures = self._construct_performance_dict(step, running_batch_loss,
-                                                                                 running_metrics)
+                    self.performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
 
                 self._print_step_info(epoch, step)
                 self._apply_callbacks(epoch, step)
