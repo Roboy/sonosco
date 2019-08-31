@@ -26,11 +26,11 @@ train:
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_1.csv'
-  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_1.csv'
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_4.csv'
+  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_4.csv'
   val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_1.csv'
   log_dir: 'logs' # Location for log files
-  checkpoint_path: 'checkpoints' # Default location to save/load models
+#  checkpoint_path: 'checkpoints' # Default location to save/load models
 
   load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 
@@ -43,7 +43,7 @@ train:
   encoder:
     input_size: 161
     hidden_size: 256
-    num_layers: 3
+    num_layers: 1
     dropout: 0.2
     bidirectional: True
     rnn_type: "lstm"

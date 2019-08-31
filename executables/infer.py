@@ -25,7 +25,7 @@ def main(config_path, audio_path, plot):
     device = torch.device("cuda" if CUDA_ENABLED else "cpu")
 
     loader = ModelDeserializer()
-    model = loader.deserialize_model(TDSSeq2Seq, config["model_checkpoint_path"])
+    model = loader.deserialize(TDSSeq2Seq, config["model_checkpoint_path"])
     model.to(device)
     model.eval()
 
