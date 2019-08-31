@@ -23,6 +23,18 @@ LOGGER = logging.getLogger(__name__)
 
 @dataclass
 class ModelEvaluator:
+    """
+    This class handles the the evaluation of a pytorch model. It provides convenience
+    functionality to add metrics and calculates mean and variance of these metrics
+    using the bootstrapping method.
+    Args:
+        model (nn.Module): model to be evaluated
+        data_loader (utils.data.DataLoader): test data, needs to have a random sampler as batch_sampler or smapler
+        bootstrap_size (int): number of samples that are contained in one bo
+        num_bootstraps (int): number of boostraps to compute
+        decoder (sonosco.decoders.decoder, optional): decoder to decode model output in order to calculate wer and cer
+        metrics (list of metrics, optional): metrics that are supposed to be evaluated (need to be functions that get model_output, batch (and decoder)
+    """
     model: torch.nn.Module
     data_loader: DataLoader
     bootstrap_size: int
@@ -38,11 +50,17 @@ class ModelEvaluator:
         self._evaluation_done = False
 
     def _check_replacement_sampler_in_dataloader(self):
+        '''
+        check if provided dataloader contains a randomsampler
+        '''
         if not (isinstance(self.data_loader.sampler,RandomSampler) or isinstance(self.data_loader.batch_sampler,RandomSampler)):
             LOGGER.info(f'No random sampler in dataloader.')
             assert()
 
     def _bootstrap_step(self, mean_dict):
+        '''
+        computes metrics for all steps in one bootstrap step
+        '''
         torch.no_grad()
         running_metrics = {metric.__name__: [] for metric in self.metrics}
 
@@ -78,11 +96,17 @@ class ModelEvaluator:
             running_metrics[metric.__name__].append(metric_result)
 
     def _fill_mean_dict(self, running_metrics, mean_dict):
+        '''
+        calculates the mean and saves it in a dictionary
+        '''
         for key, value in running_metrics.items():
             mean = np.mean(value)
             mean_dict[key].append(mean)
 
     def _compute_mean_variance(self, mean_dict):
+        '''
+        compute mean and variance of each list in the dictionary
+        '''
         self.eval_dict = defaultdict()
         for key, value in mean_dict.items():
             tmp_mean = np.mean(value)
@@ -101,6 +125,11 @@ class ModelEvaluator:
         self.metrics.append(metric)
 
     def start_evaluation(self, tb_path: str = None, log_path: str = None):
+        '''
+        start model evaluation for all metrics
+        :param tb_path: (str, oiptional) - path to log directory to store tb logs , if provided, tensorboard logs are written
+        :param log_path: (str, optional) - path to log directory, if provided, evaluation results will be dumped in json format
+        '''
         LOGGER.info(f'Start Evaluation')
         self.model.eval() #evaluation mode
         mean_dict = {metric.__name__: [] for metric in self.metrics}
@@ -116,6 +145,9 @@ class ModelEvaluator:
             self.dump_evaluation(log_path)
 
     def dump_evaluation(self, output_path):
+        '''
+        dump evaluation dict to output path
+        '''
         if self._evaluation_done == False:
             self.start_evaluation()
         file_to_dump = os.path.join(output_path, 'evaluation.json')
@@ -124,6 +156,9 @@ class ModelEvaluator:
             json.dump(self.eval_dict, fp)
 
     def dump_to_tensorboard(self, log_path):
+        '''
+        write tensorboard logs for evaluation results to log_path
+        '''
         LOGGER.info(f'Log evaluations in tensorboard.')
         writer = SummaryWriter(log_dir=log_path)
         for key, value in self.eval_dict:
