@@ -3,6 +3,8 @@ import torch
 import torch.nn
 
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import RandomSampler
+
 from .dataset import AudioDataProcessor, AudioDataset
 from .samplers import BucketingSampler
 
@@ -48,8 +50,9 @@ def create_data_loaders(**kwargs):
     # create train loader
     train_dataset = AudioDataset(processor, manifest_filepath=kwargs["train_manifest"])
     LOGGER.info(f"Training dataset containing {len(train_dataset)} samples is created")
-    sampler = BucketingSampler(train_dataset, batch_size=kwargs["batch_size"])
-    train_loader = AudioDataLoader(dataset=train_dataset, num_workers=kwargs["num_data_workers"], batch_sampler=sampler,
+    # sampler = BucketingSampler(train_dataset, batch_size=kwargs["batch_size"])
+    sampler = RandomSampler(train_dataset)
+    train_loader = AudioDataLoader(dataset=train_dataset, num_workers=kwargs["num_data_workers"], sampler=sampler, batch_sampler=None, batch_size=kwargs["batch_size"],
                                    pin_memory=True)
     LOGGER.info("Training data loader created.")
 

@@ -7,6 +7,8 @@ from collections import defaultdict
 from dataclasses import field, dataclass
 from typing import Callable, Union, Tuple, List, Any
 
+from apex import amp
+
 from sonosco.decoders.decoder import Decoder
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
@@ -53,6 +55,7 @@ class ModelTrainer:
 
     def __post_init__(self):
         self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        self.model, self.optimizer = amp.initialize(self.model, self.optimizer, opt_level="O1")
         self._stop_training = False  # used stop training externally
         self.performance_measures = {}
 
@@ -161,7 +164,8 @@ class ModelTrainer:
             loss = self.loss(model_output, batch_y)
 
         self.optimizer.zero_grad()  # reset gradients
-        loss.backward()  # backpropagation
+        with amp.scale_loss(loss, self.optimizer) as scaled_loss:
+            scaled_loss.backward()  # backpropagation
 
         # gradient clipping
         if self.clip_grads is not None:

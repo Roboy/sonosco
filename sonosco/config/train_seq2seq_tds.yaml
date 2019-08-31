@@ -1,6 +1,6 @@
 train:
   experiment_path: null
-  experiment_name: 'default' # experiment name
+  experiment_name: 'tds' # experiment name
 
   train_manifest: '/media/wagram/860EVO/datasets/1000_train_local.csv'
   test_manifest: '/media/wagram/860EVO/datasets/1000_train_local.csv'
@@ -45,7 +45,7 @@ train:
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
   # TODO: should be relative to batch size
-  test_step: 20 # after how many batches validation should be performed
+  test_step: 500 # after how many batches validation should be performed
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs
