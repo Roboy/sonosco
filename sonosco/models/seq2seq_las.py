@@ -25,13 +25,12 @@ def pad_list(xs, pad_value):
     return pad
 
 
-@serializable
+@serializable(model=True)
 class Seq2Seq(nn.Module):
     """Sequence-to-Sequence architecture with configurable encoder and decoder.
     """
     encoder_args: Dict[str, str] = field(default_factory=dict)
     decoder_args: Dict[str, str] = field(default_factory=dict)
-
 
     def __post_init__(self):
         super(Seq2Seq, self).__init__()

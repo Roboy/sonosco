@@ -125,17 +125,17 @@ class ModelTrainer:
                 # compute metrics
 
                 # evaluate validation set at end of epoch
+
                 if self.val_data_loader and step == (len(self.train_data_loader) - 1):
                     self._compute_validation_error(running_metrics)
 
-                if step % self.test_step == 0:
+                if step % self.test_step == 0 or (self.val_data_loader and step == (len(self.train_data_loader) - 1)):
                     LOGGER.info("Compute Metrics")
                     self._compute_running_metrics(model_output, batch, running_metrics)
                     running_metrics['gradient_norm'] += grad_norm  # add grad norm to metrics
 
                     # print current loss and metrics and provide it to callbacks
-                    self.performance_measures = self._construct_performance_dict(step, running_batch_loss,
-                                                                                 running_metrics)
+                    self.performance_measures = self._construct_performance_dict(step, running_batch_loss, running_metrics)
 
                 self._print_step_info(epoch, step)
                 self._apply_callbacks(epoch, step)

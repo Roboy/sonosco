@@ -17,7 +17,6 @@ class BucketingSampler(Sampler):
     def __iter__(self):
         # self.shuffle()
         for ids in self.bins:
-            np.random.shuffle(ids)
             yield ids
 
     def __len__(self):

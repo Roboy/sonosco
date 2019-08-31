@@ -109,6 +109,13 @@ def test_model_serialization():
 
     # test attributes
 
+    assert len(deserialized_model.state_dict()) == len(model.state_dict())
+    assert deserialized_model.state_dict()['conv.seq_module.0.weight'][0][0][0][0] == \
+           model.state_dict()['conv.seq_module.0.weight'][0][0][0][0]
+    assert deserialized_model.state_dict()['conv.seq_module.0.weight'][0][0][0][1] == \
+           model.state_dict()['conv.seq_module.0.weight'][0][0][0][1]
+    assert deserialized_model.state_dict()['conv.seq_module.0.weight'][0][0][0][5] == \
+           model.state_dict()['conv.seq_module.0.weight'][0][0][0][5]
     assert deserialized_model.rnn_type == rnn_type
     assert deserialized_model.labels == labels
     assert deserialized_model.rnn_hid_size == rnn_hid_size
@@ -119,7 +126,6 @@ def test_model_serialization():
     assert deserialized_model.mockedNestedClass.some_int == 42
     assert deserialized_model.mockedNestedClass.some_collection == ['the', 'future', 'is', 'here']
     assert deserialized_model.mockedNestedClass.yetAnotherSerializableClass.some_stuff == "old man"
-
 
 @serializable
 class CallableClass(ABC):
@@ -177,7 +183,7 @@ def test_model_serialization2():
     os.remove(model_path)
 
     # test attributes
-    
+
     assert deserialized_class.some_int == 5
     assert deserialized_class.some_collection == []
     assert deserialized_class.some_method == some_method_other
