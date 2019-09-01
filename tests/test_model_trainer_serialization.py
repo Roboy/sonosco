@@ -12,7 +12,7 @@ from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.losses import cross_entropy_loss
 from sonosco.config.global_settings import CUDA_ENABLED
-from sonosco.model.deserializer import ModelDeserializer
+from sonosco.model.deserializer import Deserializer
 
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -35,7 +35,7 @@ def test_mode_trainer_serialization():
     # Create mode
     if config.get('checkpoint_path'):
         LOGGER.info(f"Loading model from checkpoint: {config['checkpoint_path']}")
-        loader = ModelDeserializer()
+        loader = Deserializer()
         model = loader.deserialize(Seq2Seq, config["checkpoint_path"])
     else:
         model = Seq2Seq(config["encoder"], config["decoder"])
@@ -51,12 +51,13 @@ def test_mode_trainer_serialization():
                            metrics=[word_error_rate, character_error_rate],
                            decoder=GreedyDecoder(config['labels']),
                            device=device, test_step=config["test_step"], custom_model_eval=True)
-    loader = ModelDeserializer()
+    loader = Deserializer()
     s = ModelSerializer()
-    s.serialize(trainer, '/Users/w.jurasz/ser')
-    trainer_deserialized = loader.deserialize(ModelTrainer, '/Users/w.jurasz/ser', {
+    s.serialize(trainer, '/Users/w.jurasz/ser', config=config)
+    trainer_deserialized, deserialized_config = loader.deserialize(ModelTrainer, '/Users/w.jurasz/ser', {
         'train_data_loader': train_loader,
         'val_data_loader': val_loader,
         'test_data_loader': test_loader,
-    })
+    }, with_config=True)
     assert trainer_deserialized is not None
+    assert deserialized_config == config

@@ -18,7 +18,7 @@ from sonosco.training.disable_soft_window_attention import DisableSoftWindowAtte
 from sonosco.training.tb_teacher_forcing_text_comparison_callback import TbTeacherForcingTextComparisonCallback
 from sonosco.config.global_settings import CUDA_ENABLED
 from sonosco.training.las_text_comparison_callback import LasTextComparisonCallback
-from sonosco.model.deserializer import ModelDeserializer
+from sonosco.model.deserializer import Deserializer
 
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -38,8 +38,8 @@ def main(config_path):
     # Create mode
     if config.get('checkpoint_path'):
         LOGGER.info(f"Loading model from checkpoint: {config['checkpoint_path']}")
-        loader = ModelDeserializer()
-        trainer = loader.deserialize(ModelTrainer, config["checkpoint_path"], {
+        loader = Deserializer()
+        trainer: ModelTrainer = loader.deserialize(ModelTrainer, config["checkpoint_path"], {
             'train_data_loader': train_loader,
             'val_data_loader': val_loader,
             'test_data_loader': test_loader,

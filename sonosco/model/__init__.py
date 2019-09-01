@@ -1,3 +1,3 @@
-from .deserializer import ModelDeserializer
+from .deserializer import Deserializer
 from .serializer import ModelSerializer
 from .serialization import serializable

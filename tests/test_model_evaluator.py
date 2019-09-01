@@ -5,7 +5,7 @@ import torch
 from sonosco.models.seq2seq_tds import TDSSeq2Seq
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
-from sonosco.model.deserializer import ModelDeserializer
+from sonosco.model.deserializer import Deserializer
 from sonosco.common.path_utils import parse_yaml
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate

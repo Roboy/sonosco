@@ -7,7 +7,7 @@ from torch import nn
 from typing import Dict, List, Union, Callable
 from sonosco.models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
 from sonosco.model.serializer import ModelSerializer
-from sonosco.model.deserializer import ModelDeserializer
+from sonosco.model.deserializer import Deserializer
 from sonosco.model.serialization import serializable
 from abc import ABC, abstractmethod
 
@@ -86,7 +86,7 @@ def test_model_serialization():
     model_path = "model"
 
     saver = ModelSerializer()
-    loader = ModelDeserializer()
+    loader = Deserializer()
 
     model = MockModel(rnn_type=rnn_type,
                       labels=labels,
@@ -177,7 +177,7 @@ def test_model_serialization2():
     # prepare
     model_path = "model"
     saver = ModelSerializer()
-    loader = ModelDeserializer()
+    loader = Deserializer()
     testClass = TestClass(
         some_method=some_method_other,
         serializable_list=[SubClass1("some other stuff"), SubClass2()])
