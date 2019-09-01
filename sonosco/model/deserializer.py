@@ -3,7 +3,6 @@ import logging
 import sys
 import torch
 import deprecation
-import torch.nn as nn
 from typing import Dict, Any
 from functools import reduce
 
@@ -12,6 +11,8 @@ from sonosco.common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, SERIA
 from sonosco.common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \
     is_serialized_collection, is_serialized_type, raise_unsupported_data_type, is_serialized_dataclass, \
     is_serialized_collection_of_serializables, is_serialized_collection_of_callables
+
+# TODO: improve this
 import sonosco  # don't remove, it's for object creation
 
 LOGGER = logging.getLogger(__name__)

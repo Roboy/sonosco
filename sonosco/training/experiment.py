@@ -11,10 +11,9 @@ from random import random
 from .trainer import ModelTrainer
 from .model_checkpoint import ModelCheckpoint
 from .tensorboard_callback import TensorBoardCallback
-from sonosco.model.serializer import ModelSerializer
+from sonosco.model.serializer import Serializer
 
 from time import time
-
 
 LOGGER = logging.getLogger(__name__)
 
@@ -38,9 +37,11 @@ class Experiment:
                  logger: logging.Logger = LOGGER,
                  seed: int = None,
                  experiments_path=None,
+                 config: dict = None,
                  sub_directories=("plots", "logs", "code", "checkpoints"),
                  exclude_dirs=('__pycache__', '.git', 'experiments'),
                  exclude_files=('.pyc',)):
+        self.config = config
         self.name = self._set_experiment_name(experiment_name)
         # Path to current experiment
         self.experiment_path = path.join(self._set_experiments_dir(experiments_path), self.name)
@@ -58,7 +59,7 @@ class Experiment:
         self._exclude_dirs = exclude_dirs
         self._exclude_files = exclude_files
 
-        self._serializer = ModelSerializer()
+        self._serializer = Serializer()
 
         self._init_directories()
         self._copy_sourcecode()
@@ -128,8 +129,7 @@ class Experiment:
         self.__trainer = trainer
 
         if checkpoints:
-            self.__trainer.add_callback(ModelCheckpoint(output_path=self.checkpoints_path))
-
+            self.__trainer.add_callback(ModelCheckpoint(output_path=self.checkpoints_path, config=self.config))
         if tensorboard:
             self.__trainer.add_callback(TensorBoardCallback(log_dir=self.plots_path))
 
@@ -142,7 +142,10 @@ class Experiment:
 
         # TODO: add serialization after training is finished
         self.__trainer.start_training()
-        self._serializer.serialize(self.__trainer, os.path.join(self.checkpoints_path, 'trainer_no_callback'))
+        self._serializer.serialize(self.__trainer, os.path.join(self.checkpoints_path, 'trainer_no_callback'),
+                                   config=self.config)
+        self._serializer.serialize(self.__trainer.model, os.path.join(self.checkpoints_path, 'model_no_callback'),
+                                   config=self.config)
         LOGGER.info(f'Model serialization done')
 
     def stop(self):
@@ -152,7 +155,10 @@ class Experiment:
         if self.__trainer is None:
             raise ValueError("Model trainer is None.")
         self.__trainer.stop_training()
-        self._serializer.serialize(self.__trainer, os.path.join(self.checkpoints_path, 'trainer_no_callback'))
+        self._serializer.serialize(self.__trainer, os.path.join(self.checkpoints_path, 'trainer_no_callback'),
+                                   config=self.config)
+        self._serializer.serialize(self.__trainer.model, os.path.join(self.checkpoints_path, 'model_no_callback'),
+                                   config=self.config)
 
     @staticmethod
     def add_file(folder_path, filename, content):
@@ -171,4 +177,4 @@ class Experiment:
         name = config.get('experiment_name', 'experiment')
         experiment_path = config.get('experiment_path', None)
         seed = config.get('global_seed', None)
-        return Experiment(name, logger, seed, experiment_path)
+        return Experiment(name, logger, seed, experiment_path, config)

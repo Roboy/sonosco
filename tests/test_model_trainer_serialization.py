@@ -1,6 +1,6 @@
 import logging
 import torch
-from sonosco.model.serializer import ModelSerializer
+from sonosco.model.serializer import Serializer
 
 from sonosco.models.seq2seq_las import Seq2Seq
 from sonosco.common.constants import SONOSCO
@@ -52,7 +52,7 @@ def test_mode_trainer_serialization():
                            decoder=GreedyDecoder(config['labels']),
                            device=device, test_step=config["test_step"], custom_model_eval=True)
     loader = Deserializer()
-    s = ModelSerializer()
+    s = Serializer()
     s.serialize(trainer, '/Users/w.jurasz/ser', config=config)
     trainer_deserialized, deserialized_config = loader.deserialize(ModelTrainer, '/Users/w.jurasz/ser', {
         'train_data_loader': train_loader,

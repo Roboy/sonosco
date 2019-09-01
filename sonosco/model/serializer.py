@@ -10,7 +10,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 @serializable
-class ModelSerializer:
+class Serializer:
 
     def __post_init__(self) -> None:
         super().__init__()

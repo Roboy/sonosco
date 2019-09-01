@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-with open("README.md", "r") as fh:
+with open("Long.md", "r") as fh:
     long_description = fh.read()
 
 required = []
@@ -10,7 +10,7 @@ with open("requirements.txt", "r") as freq:
 
 setup(
     name="sonosco",
-    version="0.0.6",
+    version="0.1.0",
     author="Roboy",
     description="Framework for training deep automatic speech recognition models.",
     long_description=long_description,

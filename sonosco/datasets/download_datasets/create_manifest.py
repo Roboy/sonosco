@@ -16,9 +16,11 @@ LOGGER = logging.getLogger(__name__)
 @click.option("--output-file", default="temp/data/manifest.csv", type=str, help="Path consisting of path and filename (.csv) where manifest gets stored to.")
 @click.option("--min-duration", default=None, type=int, help="Prunes any samples longer than the max duration")
 @click.option("--max-duration", default=None, type=int, help="If provided, prunes any samples longer than the max duration")
+def main(*args, **kwargs):
+    setup_logging(LOGGER)
+    create_manifest(*args, **kwargs)
 
 def create_manifest(data_path, output_file, min_duration=None, max_duration=None):
-    setup_logging(LOGGER)
     LOGGER.info(f"Creating a manifest for path: {data_path}")
     file_paths = [os.path.join(dirpath, f)
                   for dirpath, dirnames, files in os.walk(data_path)
@@ -31,7 +33,6 @@ def create_manifest(data_path, output_file, min_duration=None, max_duration=None
             duration = audio_tools.get_duration(wav_path)
             sample = f"{os.path.abspath(wav_path)},{os.path.abspath(transcript_path)},{duration}\n"
             file.write(sample.encode('utf-8'))
-
 
 def order_and_prune_files(file_paths, min_duration, max_duration):
     LOGGER.info("Sorting manifests...")
@@ -53,4 +54,4 @@ def reduce_tensor(tensor, world_size):
     return rt
 
 if __name__=="__main__":
-    create_manifest()
+    main()

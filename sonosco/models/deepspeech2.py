@@ -8,7 +8,7 @@ import logging
 import torch.nn as nn
 
 from collections import OrderedDict
-from .modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax, supported_rnns, supported_rnns_inv
+from sonosco.models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax, supported_rnns, supported_rnns_inv
 
 LOGGER = logging.getLogger(__name__)
 
