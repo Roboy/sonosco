@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 class MicrophoneClient(SonoscoAudioInput):
 
-    def __init__(self, port=10002, host='192.168.0.222', sample_rate=16000, chunk_size=1024):
+    def __init__(self, port=10002, host='192.168.1.138', sample_rate=16000, chunk_size=1024):
         # self.format = pyaudio.paInt16
 
         self.SAMPLE_WIDTH = 2  # pyaudio.get_sample_size(self.format)  # size of each sample
