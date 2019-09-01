@@ -1,7 +1,8 @@
 import logging
 import click
 import torch
-from sonosco.model.deserializer import ModelDeserializer
+
+from sonosco.model.deserializer import Deserializer
 
 from sonosco.models.seq2seq_tds import TDSSeq2Seq
 from sonosco.common.constants import SONOSCO
@@ -32,7 +33,7 @@ def main(config_path):
 
     # Create model
 
-    loader = ModelDeserializer()
+    loader = Deserializer()
     if config.get('checkpoint_path'):
         LOGGER.info("Starting from checkpoint")
         model = loader.deserialize(TDSSeq2Seq, config["checkpoint_path"])

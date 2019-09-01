@@ -124,13 +124,11 @@ class ModelTrainer:
             running_batch_loss += loss.item()
 
             with torch.no_grad():
-                # compute metrics
-
                 # evaluate validation set at end of epoch
-
                 if self.val_data_loader and step == (len(self.train_data_loader) - 1):
                     self._compute_validation_error(running_metrics)
 
+                # compute metrics
                 if step % self.test_step == 0 or (self.val_data_loader and step == (len(self.train_data_loader) - 1)):
                     LOGGER.info("Compute Metrics")
                     self._compute_running_metrics(model_output, batch, running_metrics)

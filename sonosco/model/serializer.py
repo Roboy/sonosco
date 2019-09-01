@@ -3,14 +3,16 @@ import torch
 import deprecation
 import torch.nn as nn
 
-from sonosco.model.serialization import is_serializable
+from sonosco.common.constants import SONOSCO_CONFIG_SERIALIZE_NAME
+from sonosco.model.serialization import is_serializable, serializable
 
 LOGGER = logging.getLogger(__name__)
 
 
-class ModelSerializer:
+@serializable
+class Serializer:
 
-    def __init__(self) -> None:
+    def __post_init__(self) -> None:
         super().__init__()
 
     @deprecation.deprecated(
@@ -33,7 +35,7 @@ class ModelSerializer:
         """
         torch.save(model, path)
 
-    def serialize_model(self, model: nn.Module, path: str) -> None:
+    def serialize(self, obj: object, path: str, config: dict = None) -> None:
         """
         Saves the model using pickle protocol.
 
@@ -42,13 +44,17 @@ class ModelSerializer:
         Saves dictionary with all the (meta)parameters of the model.
 
         Args:
-            model (nn.Module): model to save
+            obj (nn.Module): model to save
             path (str) : path where to save the model
+            config (dict): optional configuration for the object
         Returns:
 
         """
-        if is_serializable(model):
-            entity_to_save = model.__serialize__()
-            torch.save(entity_to_save, path)
+        if is_serializable(obj):
+            entity_to_save = obj.__serialize__()
+            if config:
+                torch.save({obj.__class__.__name__: entity_to_save, SONOSCO_CONFIG_SERIALIZE_NAME: config}, path)
+            else:
+                torch.save(entity_to_save, path)
         else:
             raise TypeError("Only @serializable class can be serialized")

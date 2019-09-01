@@ -5,9 +5,11 @@ from collections import OrderedDict
 from dataclasses import field, dataclass
 from torch import nn
 from typing import Dict, List, Union, Callable
+
+from models import Seq2Seq
 from sonosco.models.modules import MaskConv, BatchRNN, SequenceWise, InferenceBatchSoftmax
-from sonosco.model.serializer import ModelSerializer
-from sonosco.model.deserializer import ModelDeserializer
+from sonosco.model.serializer import Serializer
+from sonosco.model.deserializer import Deserializer
 from sonosco.model.serialization import serializable
 from abc import ABC, abstractmethod
 
@@ -85,8 +87,8 @@ def test_model_serialization():
 
     model_path = "model"
 
-    saver = ModelSerializer()
-    loader = ModelDeserializer()
+    saver = Serializer()
+    loader = Deserializer()
 
     model = MockModel(rnn_type=rnn_type,
                       labels=labels,
@@ -101,7 +103,7 @@ def test_model_serialization():
                           yetAnotherSerializableClass=YetAnotherSerializableClass(some_stuff="old man")))
 
     # serialize
-    saver.serialize_model(model, model_path)
+    saver.serialize(model, model_path)
 
     # deserialize
     deserialized_model = loader.deserialize(MockModel,
@@ -176,14 +178,14 @@ def some_method_other():
 def test_model_serialization2():
     # prepare
     model_path = "model"
-    saver = ModelSerializer()
-    loader = ModelDeserializer()
+    saver = Serializer()
+    loader = Deserializer()
     testClass = TestClass(
         some_method=some_method_other,
         serializable_list=[SubClass1("some other stuff"), SubClass2()])
 
     # serialize
-    saver.serialize_model(testClass, model_path)
+    saver.serialize(testClass, model_path)
 
     # deserialize
     deserialized_class = loader.deserialize(TestClass, model_path)
@@ -203,6 +205,3 @@ def test_model_serialization2():
     assert deserialized_class.serializable_list[0]() == "some other stuff"
     assert deserialized_class.serializable_list[1].__class__ == SubClass2
     assert deserialized_class.serializable_list[1]() == "Calling class2"
-
-
-test_model_serialization()
