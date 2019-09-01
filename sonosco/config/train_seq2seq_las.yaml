@@ -2,9 +2,9 @@ train:
   experiment_path: null
   experiment_name: 'las' # experiment name
 
-  train_manifest: '/home/roboy/sonosco/datasets/all_sh_train_manifest.csv'
-  test_manifest: '/home/roboy/sonosco/datasets/all_sh_train_manifest.csv'
-  val_manifest: '/home/roboy/sonosco/datasets/all_sh_val_manifest.csv'
+  train_manifest: '/media/wagram/860EVO/datasets/all_train_local.csv'
+  test_manifest: '/media/wagram/860EVO/datasets/all_test_local.csv'
+  val_manifest: '/media/wagram/860EVO/datasets/all_val_local.csv'
   log_dir: 'logs' # Location for log files
   # checkpoint_path: '/home/roboy/sonosco/sonosco/experiments/2019-08-30_22:41:00_default/checkpoints/model_no_callback' # Default location to save/load models
 
@@ -35,7 +35,7 @@ train:
     nbest: 1
     decode_max_len: 100
 
-  batch_size: 64
+  batch_size: 128
   # Batch size for training
   max_epochs: 200 # Number of training epochs
   learning_rate: 1.0e-3 # Initial learning rate
@@ -54,7 +54,7 @@ train:
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 
-  num_data_workers: 12 # Number of workers used in data-loading
+  num_data_workers: 3 # Number of workers used in data-loading
   augment: False # Use random tempo and gain perturbations
   shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
 

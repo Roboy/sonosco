@@ -28,7 +28,7 @@ PADDING_VALUE = '%'
 
 
 @click.command()
-@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_las_wiktor.yaml",
+@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_las.yaml",
               type=click.STRING, help="Path to train configurations.")
 def main(config_path):
     config = parse_yaml(config_path)["train"]
