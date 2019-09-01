@@ -1,36 +1,12 @@
 train:
-
-
-
-  # Training config
-#  epochs=20
-#  half_lr=1
-#  early_stop=0
-#  max_norm=5
-#  batch_size=32
-#  maxlen_in=800
-#  maxlen_out=150
-  # optimizer
-#  l2=1e-5
-  # logging and visualize
-#  checkpoint=0
-#  continue_from=""
-#  print_freq=10
-#  visdom=0
-#  visdom_id="LAS Training"
-
-  # Decode config
-
-
-
   experiment_path: null
   experiment_name: 'default' # experiment name
 
-  train_manifest: '/Users/florianlay/temp/data/an4/an4_train_manifest.csv'
-  test_manifest: '/Users/florianlay/temp/data/an4/an4_train_manifest.csv'
-  val_manifest: '/Users/florianlay/temp/data/an4/an4_val_manifest.csv'
+  train_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
+  test_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
+  val_manifest: '/Users/yuriy/temp/data/libri_speech/libri_val_clean_manifest.csv'
   log_dir: 'logs' # Location for log files
-#  checkpoint_path: 'checkpoints' # Default location to save/load models
+  checkpoint_path: null # Default location to save/load models
 
   load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 
@@ -49,7 +25,7 @@ train:
     rnn_type: "lstm"
 
   decoder:
-    embedding_dim: 512
+    embedding_dim: 128
     hidden_size: 512
     num_layers: 1
     bidirectional_encoder: True
