@@ -3,7 +3,7 @@ import torch
 import deprecation
 import torch.nn as nn
 
-from sonosco.config.global_settings import SONOSCO_CONFIG_SERIALIZE_NAME
+from sonosco.common.constants import SONOSCO_CONFIG_SERIALIZE_NAME
 from sonosco.model.serialization import is_serializable, serializable
 
 LOGGER = logging.getLogger(__name__)

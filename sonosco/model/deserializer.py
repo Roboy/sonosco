@@ -7,7 +7,7 @@ import torch.nn as nn
 from typing import Dict, Any
 from functools import reduce
 
-from sonosco.config.global_settings import SONOSCO_CONFIG_SERIALIZE_NAME
+from sonosco.common.constants import SONOSCO_CONFIG_SERIALIZE_NAME
 from sonosco.common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, SERIALIZED_FIELD
 from sonosco.common.serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \
     is_serialized_collection, is_serialized_type, raise_unsupported_data_type, is_serialized_dataclass, \
