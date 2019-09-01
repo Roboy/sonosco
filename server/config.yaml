@@ -2,19 +2,31 @@ models:
   - id: 'deepspeech2'
     path: '../pretrained/deepspeech_final.pth'
     decoder: 'greedy'
-    name: 'DS2 (Greedy decoder)'
-  - id: 'deepspeech2_beam'
-    path: '../pretrained/deepspeech_final.pth'
-    decoder: 'beam'
-    name: 'DS2 (Beam decoder)'
-  - id: 'deepspeech2_beam_lm'
-    path: '../pretrained/deepspeech_final.pth'
-    decoder: 'beam'
-#    language: '../pretrained/kenlm_bnc_6gram.bin'
-    name: 'DS2 (Beam decoder with LM)'
+    name: 'DeepSpeech2'
+
+  # - id: 'las1'
+  #   path: '../pretrained/las_model_1.pt'
+  #   decoder: 'greedy'
+  #   name: 'LAS_1'
+
+  - id: 'las5'
+    path: '../pretrained/las_model_5.pt'
+    decoder: 'greedy'
+    name: 'LAS_5'
+
   - id: 'microsoft'
     external: True
     name: 'Microsoft'
+
+  # - id: 'deepspeech2_beam'
+  #   path: '../pretrained/deepspeech_final.pth'
+  #   decoder: 'beam'
+  #   name: 'DS2 (Beam decoder)'
+  # - id: 'deepspeech2_beam_lm'
+  #   path: '../pretrained/deepspeech_final.pth'
+  #   decoder: 'beam'
+# #    language: '../pretrained/kenlm_bnc_6gram.bin'
+  #   name: 'DS2 (Beam decoder with LM)'
 
 sample_rate: 16000
 sonosco_home: '~/.sonosco'

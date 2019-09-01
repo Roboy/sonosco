@@ -1,9 +1,7 @@
-from abc import ABC, abstractmethod
+import tempfile
 
-import torch.nn as nn
-from sonosco.datasets import AudioDataProcessor
-from sonosco.model.deserializer import ModelDeserializer
-from sonosco.decoders import GreedyDecoder
+from abc import ABC, abstractmethod
+from sonosco.model.deserializer import Deserializer
 
 
 class SonoscoASR(ABC):
@@ -12,7 +10,13 @@ class SonoscoASR(ABC):
     def __init__(self, model_path: str) -> None:
         super().__init__()
         self.model_path = model_path
-        self.loader = ModelDeserializer()
+        self.loader = Deserializer()
+
+    def infer(self, audio) -> str:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
+            temp_audio_file.write(audio)
+        return self.infer_from_path(temp_audio_file.name)
 
     @abstractmethod
-    def infer(self, sound_bytes): pass
+    def infer_from_path(self, path: str) -> str:
+        pass

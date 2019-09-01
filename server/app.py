@@ -67,8 +67,8 @@ def on_transcribe(wav_bytes, model_ids):
                     future = pool.submit(external_model.recognize, temp_audio_file.name)
 
                 else:
-                    model_config = loaded_models[model_id]
-                    future = pool.submit(transcribe, model_config, temp_audio_file.name, device)
+                    inference = loaded_models[model_id]
+                    future = pool.submit(inference.infer_from_path, temp_audio_file.name)
 
                 output[model_id] = future
 
