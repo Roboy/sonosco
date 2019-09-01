@@ -46,7 +46,7 @@ class GreedyDecoder(Decoder):
             idx = sequence[i].item()
             if idx in self.int_to_char:
                 char = self.int_to_char[idx]
-                if self.blank_index is None or char != self.int_to_char[self.blank_index]:
+                if self.blank_index is None or char != self.int_to_char.get(self.blank_index):
                     # if this char is a repetition and remove_repetitions=true, then skip
                     if remove_repetitions and i != 0 and char == self.int_to_char.get(sequence[i - 1].item()):
                         pass

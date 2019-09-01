@@ -40,7 +40,7 @@ def vad_callback(request, publishers):
             audio = audio_input.request_audio()
             transcription = asr.infer(audio)
             msg = Empty()
-            publishers['ledfreez'].publish(msg)
+            # publishers['ledfreez'].publish(msg)
 
     return transcription
 
