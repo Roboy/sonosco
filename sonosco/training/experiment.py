@@ -15,7 +15,6 @@ from sonosco.model.serializer import Serializer
 
 from time import time
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -143,7 +142,10 @@ class Experiment:
 
         # TODO: add serialization after training is finished
         self.__trainer.start_training()
-        self._serializer.serialize(self.__trainer, os.path.join(self.checkpoints_path, 'trainer_no_callback'))
+        self._serializer.serialize(self.__trainer, os.path.join(self.checkpoints_path, 'trainer_no_callback'),
+                                   config=self.config)
+        self._serializer.serialize(self.__trainer.model, os.path.join(self.checkpoints_path, 'model_no_callback'),
+                                   config=self.config)
         LOGGER.info(f'Model serialization done')
 
     def stop(self):
@@ -153,7 +155,10 @@ class Experiment:
         if self.__trainer is None:
             raise ValueError("Model trainer is None.")
         self.__trainer.stop_training()
-        self._serializer.serialize(self.__trainer, os.path.join(self.checkpoints_path, 'trainer_no_callback'))
+        self._serializer.serialize(self.__trainer, os.path.join(self.checkpoints_path, 'trainer_no_callback'),
+                                   config=self.config)
+        self._serializer.serialize(self.__trainer.model, os.path.join(self.checkpoints_path, 'model_no_callback'),
+                                   config=self.config)
 
     @staticmethod
     def add_file(folder_path, filename, content):
