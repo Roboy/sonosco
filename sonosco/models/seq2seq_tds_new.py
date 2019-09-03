@@ -163,9 +163,18 @@ class Encoder(nn.Module):
 
         # Update xlens
         xlens /= self.subsample_factor
+        xs = xs * self.__create_mask(xs, xlens)
 
         return xs, hidden.unsqueeze(0)
 
+    @staticmethod
+    def __create_mask(inp, lens):
+        # e.g. lens [100, 80, 75, 60] and inp has shape [4, 100, 1610]
+        # mask: [[..],[1^{80},0^20],[..],[..]]
+        mask = torch.zeros_like(inp)
+        for b, l in enumerate(lens):
+            mask[b, :l] = 1
+        return mask
 
 @serializable
 class Decoder(nn.Module):
