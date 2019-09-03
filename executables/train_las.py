@@ -14,8 +14,6 @@ from sonosco.decoders import GreedyDecoder
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.losses import cross_entropy_loss
-from sonosco.training.disable_soft_window_attention import DisableSoftWindowAttention
-from sonosco.training.tb_teacher_forcing_text_comparison_callback import TbTeacherForcingTextComparisonCallback
 from sonosco.config.global_settings import CUDA_ENABLED
 from sonosco.training.las_text_comparison_callback import LasTextComparisonCallback
 from sonosco.model.deserializer import Deserializer
@@ -68,8 +66,7 @@ def main(config_path):
         trainer.add_callback(LasTextComparisonCallback(labels=char_list,
                                                        log_dir=experiment.plots_path,
                                                        args=config['recognizer']))
-        trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
-        trainer.add_callback(DisableSoftWindowAttention())
+        # trainer.add_callback(TbTeacherForcingTextComparisonCallback(log_dir=experiment.plots_path))
 
     # Setup experiment with a model trainer
 
