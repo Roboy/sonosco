@@ -42,23 +42,6 @@ export default {
         console.log('ERROR IN AXIOS', error)
       })
   },
-  sockets: {
-    connect () {
-      // Fired when the socket connects.
-      this.isConnected = true
-      // this.$socket.emit('get_models')
-    },
-
-    disconnect () {
-      this.isConnected = false
-    },
-
-    // Fired when the server sends something on the "transcription" channel.
-    transcription (data) {
-      this.socketMessage = data
-    }
-
-  },
 
   methods: {
     add (modelId) {
