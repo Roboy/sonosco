@@ -4,7 +4,7 @@ import signal
 
 from sonosco.models import DeepSpeech2
 
-from sonosco.models.deepspeech2_inference import DeepSpeech2Inference
+from sonosco.inference.deepspeech2_inference import DeepSpeech2Inference
 from sonosco.ros1.server import SonoscoROS1
 from roboy_cognition_msgs.srv import RecognizeSpeech
 from roboy_control_msgs.msg import ControlLeds
@@ -14,7 +14,7 @@ from mic_client import MicrophoneClient
 
 model_path = "pretrained/deepspeech_final.pth"
 
-asr = DeepSpeech2Inference(DeepSpeech2.load_model(model_path))
+asr = DeepSpeech2Inference(model_path)
 leave = False
 got_a_sentence = False
 
@@ -34,13 +34,12 @@ def vad_callback(request, publishers):
     msg.mode = 2
     msg.duration = 0
     publishers['ledmode'].publish(msg)
-    transcription = ""
     with MicrophoneClient() as audio_input:
-        while not leave:
+        # while not leave:
             audio = audio_input.request_audio()
             transcription = asr.infer(audio)
             msg = Empty()
-            publishers['ledfreez'].publish(msg)
+            # publishers['ledfreez'].publish(msg)
 
     return transcription
 

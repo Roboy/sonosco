@@ -3,12 +3,13 @@ import collections
 from sonosco.common.constants import CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
 from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
 import typing
+from typing import List, Set, Tuple, Dict
 from torch import nn
 import torch
 
 __primitives = {int, float, str, bool}
 # TODO support for dict with Union value type
-__iterables = [list, set, tuple, dict]
+__iterables = [list, set, tuple, dict, List, Set, Tuple, Dict]
 
 
 # TODO: Prevent user from serializing lambdas.
@@ -115,7 +116,7 @@ def __create_serialize_body(fields_to_serialize: typing.Iterable, model: bool, e
         body_lines.append(f"    {c.name} = {{")
         __encode_serializable_serialization(body_lines, c)
         body_lines.append(f"}}")
-        body_lines.append(f"else: raise TypeError(\"Callable must be a function for now\")")
+        body_lines.append(f"else: raise TypeError(f\"Callable must be a function for now: {c.name}\")")
 
     for field in callable_iterables:
         body_lines.append(f"{field.name} = []")
@@ -275,4 +276,6 @@ def __is_callable(obj: any) -> bool:
         objs = list(obj.__args__)
     else:
         objs = [obj]
-    return all([hasattr(obj, '__origin__') and obj.__origin__ == collections.abc.Callable for obj in objs])
+    return all([hasattr(obj, '__origin__') and (
+            obj.__origin__ == collections.abc.Callable or obj.__origin__ == typing.Callable)
+                for obj in objs])
