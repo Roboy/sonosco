@@ -9,7 +9,7 @@ RUN apt update
 RUN apt install ffmpeg iputils-ping -y
 
 RUN git clone https://github.com/Roboy/sonosco.git
-RUN cd sonosco; git checkout develop; pip3 install .
+RUN cd sonosco; git checkout demo; pip3 install -e .
 RUN chmod +x STT_server.py
 RUN chmod +x STT_client.py
 #RUN source ~/melodic_ws/devel/setup.bash

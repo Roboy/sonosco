@@ -34,13 +34,12 @@ def vad_callback(request, publishers):
     msg.mode = 2
     msg.duration = 0
     publishers['ledmode'].publish(msg)
-    transcription = ""
     with MicrophoneClient() as audio_input:
-        while not leave:
+        # while not leave:
             audio = audio_input.request_audio()
             transcription = asr.infer(audio)
             msg = Empty()
-            publishers['ledfreez'].publish(msg)
+            # publishers['ledfreez'].publish(msg)
 
     return transcription
 
