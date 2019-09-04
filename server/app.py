@@ -1,25 +1,22 @@
-import io
-
 import librosa
 import torch
 import json
 import os
-import soundfile as sf
 
-import numpy as np
 import tempfile
 from flask_cors import CORS
 
-from flask import Flask, render_template, make_response, request
+from flask import Flask, render_template, make_response
 from flask_socketio import SocketIO, emit
 from uuid import uuid1
-from utils import get_config, transcribe, create_pseudo_db, create_session_dir
+from utils import get_config, create_pseudo_db, create_session_dir
 from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
 from concurrent.futures import ThreadPoolExecutor
 
 EXTERNAL_MODELS = {"microsoft": None}
+REFERENCE_MODEL_ID_KEY = "reference_id"
 
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 CORS(app)
@@ -45,13 +42,14 @@ def index(path):
 
 @socketio.on('transcribe')
 def on_transcribe(wav_bytes, model_ids):
-    # session_id = request.cookies.get("session_id")
-    # audio_path = os.path.join(session_dir, f"{session_id}.wav")
+    temp_audio_file = None
+
     try:
         with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
             temp_audio_file.write(wav_bytes)
 
         output = dict()
+        reference_model_id = model_ids[0]
 
         with ThreadPoolExecutor(max_workers=len(model_ids)) as pool:
 
@@ -74,12 +72,20 @@ def on_transcribe(wav_bytes, model_ids):
 
             socketio.sleep(0)
 
+        ref_value = None
+
         for model_id in output.keys():
             output[model_id] = output[model_id].result()
+            if model_id == reference_model_id:
+                ref_value = output[model_id]
+
+        output[REFERENCE_MODEL_ID_KEY] = ref_value
 
         emit("transcription", output)
     finally:
-        os.unlink(temp_audio_file.name)
+        if temp_audio_file:
+            os.unlink(temp_audio_file.name)
+
 
 @socketio.on('saveSample')
 def on_save_sample(wav_bytes, transcript, user_id):
@@ -92,8 +98,8 @@ def on_save_sample(wav_bytes, transcript, user_id):
     sample_path = os.path.join(path_to_user_data, str(code))
 
     try_create_directory(sample_path)
-    path_to_wav = os.path.join(sample_path, f"audio.wav")
-    path_to_txt = os.path.join(sample_path, f"transcript.txt")
+    path_to_wav = os.path.join(sample_path, "audio.wav")
+    path_to_txt = os.path.join(sample_path, "transcript.txt")
     try:
         with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
             temp_audio_file.write(wav_bytes)
@@ -106,7 +112,6 @@ def on_save_sample(wav_bytes, transcript, user_id):
             txt_file.write(str(transcript))
 
 
-
 @app.route('/get_models')
 def get_models():
     models = config['models']
@@ -116,5 +121,4 @@ def get_models():
 
 if __name__ == '__main__':
     # socketio.run(app, host='0.0.0.0', certfile='cert.pem', keyfile='key.pem', debug=False)
-
     socketio.run(app, host='0.0.0.0', debug=True)

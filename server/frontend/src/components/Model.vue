@@ -13,6 +13,9 @@
 </template>
 
 <script>
+var jsdiff = require('diff')
+import {bus} from '../main'
+
 export default {
   name: 'Model',
   props: ['name', 'model_id'],
@@ -20,8 +23,18 @@ export default {
     return {
       isConnected: false,
       socketMessage: 'This is a transcription.',
-      recordButtonText: 'Record'
+      recordButtonText: 'Record',
+      refTranscription: 'This is a transcription',
+      targetTranscription: 'This is a transcription'
     }
+  },
+
+  mounted () {
+    bus.$on('updateTranscriptions', this.resetTranscription)
+    bus.$on('updateRefTranscriptions', newRefTranscription => {
+      this.refTranscription = newRefTranscription
+      this.resetTranscription()
+    })
   },
 
   sockets: {
@@ -36,27 +49,45 @@ export default {
 
     // Fired when the server sends something on the "transcription" channel.
     transcription (data) {
-      let transcriptions = data[this.model_id]
-
-      if (Array.isArray(transcriptions)) {
-        if (transcriptions.length === 1) {
-          this.socketMessage = transcriptions[0]
-          return
-        }
-
-        var output = '<ol>'
-
-        for (var i = 0; i < transcriptions.length; i++) {
-          output += '<li>' + transcriptions[i] + '</li>'
-        }
-
-        output += '</ol>'
-
-        this.socketMessage = output
+      this.targetTranscription = data[this.model_id]
+      if (Array.isArray(this.targetTranscription)) {
+        this.targetTranscription = this.targetTranscription[0]
       }
-      else {
-        this.socketMessage = transcriptions
+
+      this.refTranscription = data['reference_id']
+      if (Array.isArray(this.refTranscription)) {
+        this.refTranscription = this.refTranscription[0]
       }
+
+      this.resetTranscription()
+
+      // if (Array.isArray(transcriptions)) {
+      //   if (transcriptions.length === 1) {
+      //     if ($parent.visualComparison) {
+      //       this.socketMessage = this.getTranscriptionFormatted(transcriptions[0], data)
+      //     } else {
+      //       this.socketMessage = data
+      //     }
+      //     return
+      //   }
+      //
+      //   var output = '<ol>'
+      //
+      //   for (var i = 0; i < transcriptions.length; i++) {
+      //     output += '<li>' + transcriptions[i] + '</li>'
+      //   }
+      //
+      //   output += '</ol>'
+      //
+      //   this.socketMessage = output
+      // }
+      // else {
+      //   if ($parent.visualComparison) {
+      //     this.socketMessage = this.getTranscriptionFormatted(transcriptions, data)
+      //   } else {
+      //     this.socketMessage = data
+      //   }
+      // }
     }
   },
 
@@ -64,6 +95,24 @@ export default {
 
     removeMyself () {
       this.$store.commit('removeModel', this.model_id)
+    },
+
+    resetTranscription () {
+      if (this.$parent.visualComparison) {
+        let diff = jsdiff.diffChars(this.refTranscription, this.targetTranscription)
+        let final_transcription = '<span>'
+
+        diff.forEach(function(part) {
+          let color = part.added ? 'green' : part.removed ? 'red' : 'black'
+          final_transcription += '<span style="color:' + color + '">' + part.value + '</span>'
+        })
+
+        final_transcription += '</span>'
+
+        this.socketMessage = final_transcription
+      } else {
+        this.socketMessage = this.targetTranscription
+      }
     }
 
   }
