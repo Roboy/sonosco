@@ -20,6 +20,7 @@ EOS = '$'
 SOS = '#'
 PADDING_VALUE = '%'
 
+
 def test_mode_trainer_serialization():
     config_path = "model_trainer_config_test.yaml"
     config = parse_yaml(config_path)["train"]
@@ -61,3 +62,4 @@ def test_mode_trainer_serialization():
     }, with_config=True)
     assert trainer_deserialized is not None
     assert deserialized_config == config
+
