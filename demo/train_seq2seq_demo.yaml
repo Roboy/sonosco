@@ -2,11 +2,11 @@ train:
   experiment_path: "/Users/w.jurasz/Studies/Roboy/sonosco/demo/experiments"
   experiment_name: 'demo' # experiment name
 
-  train_manifest: '/Users/yuriy/temp/data/libri_speech/libri_val_clean_manifest.csv'
-  test_manifest: '/Users/yuriy/temp/data/libri_speech/libri_val_clean_manifest.csv'
-  val_manifest: '/Users/yuriy/temp/data/libri_speech/libri_val_clean_manifest.csv'
+  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_10.csv'
+  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_10.csv'
+  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_1.csv'
   log_dir: 'logs' # Location for log files
-  checkpoint_path: null # Default location to save/load models
+  checkpoint_path: '/Users/w.jurasz/Studies/Roboy/sonosco/demo/experiments/2019-09-05_19:20:43_demo/checkpoints/trainer_no_callback' # Default location to save/load models
 
   load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 

@@ -12,7 +12,7 @@ models:
   - id: 'las5'
     path: '/ros1/pretrained/las_model_5.pt'
     decoder: 'greedy'
-    name: 'LAS_5'
+    name: 'LAS'
 
   - id: 'microsoft'
     external: True

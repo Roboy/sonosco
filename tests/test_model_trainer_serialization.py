@@ -63,3 +63,4 @@ def test_mode_trainer_serialization():
     assert trainer_deserialized is not None
     assert deserialized_config == config
 
+test_mode_trainer_serialization()
