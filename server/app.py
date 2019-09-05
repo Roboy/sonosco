@@ -30,6 +30,32 @@ loaded_models = load_models(config['models'])
 db_path = create_pseudo_db(config['audio_database_path'])
 session_dir = create_session_dir(config['sonosco_home'])
 
+try:
+    import logging
+    import sys
+    import rospy
+    import ipdb
+
+    import os.path, sys
+
+    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
+
+    from roboy_cognition_msgs.srv import RecognizeSpeech
+
+
+    def stt_client():
+        logging.basicConfig(level=logging.INFO)
+        rospy.wait_for_service("/roboy/cognition/speech/recognition")
+        try:
+            stt = rospy.ServiceProxy("/roboy/cognition/speech/recognition", RecognizeSpeech)
+            resp = stt()
+            logging.info(f"response from stt: {resp.text}")
+            return resp.text
+        except rospy.ServiceException as e:
+            logging.error(f"Service call failed: {e}")
+except:
+    pass
+
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
@@ -48,7 +74,7 @@ def on_transcribe(wav_bytes, model_ids):
         # with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
         #     temp_audio_file.write(wav_bytes)
 
-        with open("/ros1/to_trans.wav") as temp_audio_file:
+        with open("/ros1/to_trans.wav", 'wb') as temp_audio_file:
             temp_audio_file.write(wav_bytes)
 
         output = dict()
@@ -85,9 +111,14 @@ def on_transcribe(wav_bytes, model_ids):
         output[REFERENCE_MODEL_ID_KEY] = ref_value
 
         emit("transcription", output)
+        try:
+            stt_client()
+        except:
+            pass
     finally:
         if temp_audio_file:
-            os.unlink(temp_audio_file.name)
+            pass
+            # os.unlink(temp_audio_file.name)
 
 
 @socketio.on('saveSample')
@@ -112,7 +143,7 @@ def on_save_sample(wav_bytes, transcript, user_id):
         os.unlink(temp_audio_file.name)
 
     with open(path_to_txt, "w") as txt_file:
-            txt_file.write(str(transcript))
+        txt_file.write(str(transcript))
 
 
 @app.route('/get_models')
