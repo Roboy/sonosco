@@ -21,6 +21,7 @@ REFERENCE_MODEL_ID_KEY = "reference_id"
 
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
 app.logger.setLevel(logging.WARNING)
+logging.getLogger('werkzeug').setLevel(logging.WARNING)
 CORS(app)
 socketio = SocketIO(app, ping_timeout=120, ping_interval=60)
 
@@ -158,4 +159,4 @@ def get_models():
 
 if __name__ == '__main__':
     # socketio.run(app, host='0.0.0.0', certfile='cert.pem', keyfile='key.pem', debug=False)
-    socketio.run(app, host='0.0.0.0', debug=True)
+    socketio.run(app, host='0.0.0.0', debug=False)
