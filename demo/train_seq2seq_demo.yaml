@@ -1,6 +1,6 @@
 train:
-  experiment_path: null
-  experiment_name: 'default' # experiment name
+  experiment_path: "/Users/w.jurasz/Studies/Roboy/sonosco/demo/experiments"
+  experiment_name: 'demo' # experiment name
 
   train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_10.csv'
   test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_10.csv'
