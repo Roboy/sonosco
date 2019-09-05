@@ -1,12 +1,15 @@
 train:
   experiment_path: null
-  experiment_name: 'default' # experiment name
+  experiment_name: 'tds' # experiment name
 
-  train_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_10.csv'
-  test_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_train_manifest_10.csv'
-  val_manifest: '/Users/w.jurasz/temp/data/libri_speech/libri_val_manifest_1.csv'
+  # train_manifest: '/home/roboy/sonosco/datasets/all_sh_train_manifest.csv'
+  # test_manifest: '/home/roboy/sonosco/datasets/all_sh_train_manifest.csv'
+  # val_manifest: '/home/roboy/sonosco/datasets/all_sh_val_manifest.csv'
+  train_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
+  test_manifest: '/Users/yuriy/temp/data/libri_speech/libri_val_clean_manifest.csv'
+  val_manifest: '/Users/yuriy/temp/data/libri_speech/libri_val_clean_manifest.csv'
   log_dir: 'logs' # Location for log files
-  checkpoint_path: null # Default location to save/load models
+  # checkpoint_path: '/home/roboy/sonosco/sonosco/experiments/2019-08-30_22:41:00_default/checkpoints/model_no_callback' # Default location to save/load models
 
   load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 
@@ -17,37 +20,35 @@ train:
   labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' " # labels used by the model
 
   encoder:
-    input_size: 161
-    hidden_size: 256
-    num_layers: 1
+    input_dim: 161 # Number of frequencies in mel-scale filter
+    in_channel: 1 # Initial number of channels
+    channels: [10, 10, 14, 14, 14, 18, 18, 18, 18, 18, 18] # TDS blocks, whenever the number changes a sub-sampling layer is inserted
+    kernel_sizes: [21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21]
     dropout: 0.2
-    bidirectional: True
-    rnn_type: "lstm"
+    bottleneck_dim: 512
 
   decoder:
-    embedding_dim: 128
+    embedding_dim: 512
     hidden_size: 512
-    num_layers: 1
+    num_layers: 2
     bidirectional_encoder: True
-    vocab_size: 28
-    sos_id: 27
-    eos_id: 26
-
 
   recognizer:
     beam_size: 5
     nbest: 1
     decode_max_len: 100
 
-  batch_size: 4 # Batch size for training
-  max_epochs: 2 # Number of training epochs
+  batch_size: 64
+  # Batch size for training
+  max_epochs: 200 # Number of training epochs
   learning_rate: 1.0e-3 # Initial learning rate
   weight_decay: 1.0e-5
   momentum: 0 # Momentum
   max_norm: 800 # Norm cutoff to prevent explosion of gradients
   learning_anneal: 1.1n # Annealing applied to learning rate every epoch
   sortaGrad: True # Turn on ordering of dataset on sequence length for the first epoch
-  test_step: 1 # after how many batches validation should be performed
+  test_step: 1000 # after how many batches validation should be performed
+  normalize: True
 
   checkpoint: True # Enables checkpoint saving of model
   checkpoint_per_epoch: 1 # Save checkpoint per x epochs
@@ -56,7 +57,7 @@ train:
   continue: False # Continue training with a pre-trained model
   finetune: False # Finetune a pre-trained model
 
-  num_data_workers: 8 # Number of workers used in data-loading
+  num_data_workers: 12 # Number of workers used in data-loading
   augment: False # Use random tempo and gain perturbations
   shuffle: True # Turn on shuffling and sample from dataset based on sequence length (smallest to largest)
 

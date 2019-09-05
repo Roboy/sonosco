@@ -20,9 +20,10 @@ setup(
     include_package_data=True,
     dependency_links=[],
     classifiers=[
+        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "License :: OSI Approved :: BSD License",
     ],
-    python_requires='>=3.7',
-    install_requires = required
+    python_requires='>=3.6',
+    install_requires=required
 )

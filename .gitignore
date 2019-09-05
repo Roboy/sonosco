@@ -126,7 +126,7 @@ venv.bak/
 [Ss]cripts
 !scripts
 pyvenv.cfg
-.venv
+.venv*
 pip-selfcheck.json
 
 pretrained
