@@ -20,6 +20,7 @@ EXTERNAL_MODELS = {"microsoft": None}
 REFERENCE_MODEL_ID_KEY = "reference_id"
 
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
+app.logger.setLevel(logging.WARNING)
 CORS(app)
 socketio = SocketIO(app, ping_timeout=120, ping_interval=60)
 
