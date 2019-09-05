@@ -13,6 +13,7 @@ class DeepSpeech2Inference(SonoscoASR):
     def __init__(self, model_path):
         super().__init__(model_path)
         self.model = DeepSpeech2.load_model(model_path)
+        self.model.eval()
         self.processor = AudioDataProcessor(**self.model.audio_conf)
         self.decoder = GreedyDecoder(self.model.labels, blank_index=self.model.labels.index('_'))
 

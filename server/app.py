@@ -33,7 +33,8 @@ loaded_models = load_models(config['models'])
 db_path = create_pseudo_db(config['audio_database_path'])
 session_dir = create_session_dir(config['sonosco_home'])
 
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.WARNING, format="ROS RESPONSE: %(message)s")
+
 
 try:
 
@@ -53,7 +54,7 @@ try:
         try:
             stt = rospy.ServiceProxy("/roboy/cognition/speech/recognition", RecognizeSpeech)
             resp = stt()
-            logging.warning(f"response from stt: {resp.text}")
+            logging.warning(f"{resp.text}")
             return resp.text
         except rospy.ServiceException as e:
             logging.error(f"Service call failed: {e}")

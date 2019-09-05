@@ -12,6 +12,7 @@ class LasInference(SonoscoASR):
     def __init__(self, model_path):
         super().__init__(model_path)
         self.model, self.config = self.loader.deserialize(Seq2Seq, model_path, with_config=True)
+        self.model.eval()
         self.processor = AudioDataProcessor(**self.config)
         self.decoder = GreedyDecoder(self.config["labels"])
 
