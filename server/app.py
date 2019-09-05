@@ -45,7 +45,10 @@ def on_transcribe(wav_bytes, model_ids):
     temp_audio_file = None
 
     try:
-        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
+        # with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
+        #     temp_audio_file.write(wav_bytes)
+
+        with open("/ros1/to_trans.wav") as temp_audio_file:
             temp_audio_file.write(wav_bytes)
 
         output = dict()
