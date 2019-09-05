@@ -14,6 +14,7 @@ from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
 from concurrent.futures import ThreadPoolExecutor
+import logging
 
 EXTERNAL_MODELS = {"microsoft": None}
 REFERENCE_MODEL_ID_KEY = "reference_id"
@@ -30,8 +31,10 @@ loaded_models = load_models(config['models'])
 db_path = create_pseudo_db(config['audio_database_path'])
 session_dir = create_session_dir(config['sonosco_home'])
 
+logging.basicConfig(level=logging.WARNING)
+
 try:
-    import logging
+
     import sys
     import rospy
     import ipdb
@@ -44,12 +47,11 @@ try:
 
 
     def stt_client():
-        logging.basicConfig(level=logging.INFO)
         rospy.wait_for_service("/roboy/cognition/speech/recognition")
         try:
             stt = rospy.ServiceProxy("/roboy/cognition/speech/recognition", RecognizeSpeech)
             resp = stt()
-            logging.info(f"response from stt: {resp.text}")
+            logging.warning(f"response from stt: {resp.text}")
             return resp.text
         except rospy.ServiceException as e:
             logging.error(f"Service call failed: {e}")
