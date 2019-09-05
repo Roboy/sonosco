@@ -1,9 +1,10 @@
 #!/usr/bin/python3.7
-
 import logging
 import click
 import torch
+import sys
 
+from collections import defaultdict
 from sonosco.models.seq2seq_las import Seq2Seq
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
@@ -15,7 +16,7 @@ from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.losses import cross_entropy_loss
 from sonosco.config.global_settings import CUDA_ENABLED
-from sonosco.model.deserializer import ModelDeserializer
+from sonosco.model.deserializer import Deserializer
 
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -25,7 +26,7 @@ PADDING_VALUE = '%'
 
 
 @click.command()
-@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_las.yaml",
+@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_las_yuriy.yaml",
               type=click.STRING, help="Path to train configurations.")
 def main(config_path):
     config = parse_yaml(config_path)["train"]
@@ -39,12 +40,13 @@ def main(config_path):
     config["decoder"]["eos_id"] = char_list.index(EOS)
 
     # Create mode
-    if config.get('checkpoint_path'):
-        LOGGER.info(f"Loading model from checkpoint: {config['checkpoint_path']}")
-        loader = ModelDeserializer()
-        model = loader.deserialize(Seq2Seq, config["checkpoint_path"])
-    else:
-        model = Seq2Seq(config["encoder"], config["decoder"])
+    if not config.get('checkpoint_path'):
+        LOGGER.info("No checkpoint path specified")
+        sys.exit(1)
+
+    LOGGER.info(f"Loading model from checkpoint: {config['checkpoint_path']}")
+    loader = Deserializer()
+    model = loader.deserialize(Seq2Seq, config["checkpoint_path"])
     model.to(device)
 
     # Create data loaders
@@ -58,7 +60,7 @@ def main(config_path):
                            decoder=GreedyDecoder(config['labels']),
                            device=device, test_step=config["test_step"], custom_model_eval=True)
 
-    metrics = dict()
+    metrics = defaultdict()
     trainer._compute_validation_error(metrics)
     LOGGER.info(metrics)
 

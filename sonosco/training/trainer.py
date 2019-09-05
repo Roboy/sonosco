@@ -226,7 +226,10 @@ class ModelTrainer:
             if type(metric_result) == torch.Tensor:
                 metric_result = metric_result.item()
 
-            running_metrics[prefix + metric.__name__] += metric_result
+            if prefix + metric.__name__ not in running_metrics:
+                running_metrics[prefix + metric.__name__] = metric_result
+            else:
+                running_metrics[prefix + metric.__name__] += metric_result
 
     def _construct_performance_dict(self, train_step, running_batch_loss, running_metrics):
         """
