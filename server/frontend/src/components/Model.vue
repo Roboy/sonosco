@@ -103,8 +103,8 @@ export default {
         let final_transcription = '<span>'
 
         diff.forEach(function(part) {
-          let color = part.added ? 'green' : part.removed ? 'red' : 'black'
-          final_transcription += '<span style="color:' + color + '">' + part.value + '</span>'
+          let color = part.added ? 'text-decoration:line-through' : part.removed ? 'color:red' : 'color:black'
+          final_transcription += '<span style="' + color + '">' + part.value + '</span>'
         })
 
         final_transcription += '</span>'
