@@ -56,6 +56,26 @@ the transcription server.
 <br>
 <br>
 ____________
+### Quick Start
+
+#### Dockerized inference server
+
+```
+cd server
+
+# Build the docker image
+./build.sh
+
+# Run the built image
+./run.sh
+```
+
+Open http://localhost:5000 in Chrome. You should be able to add models for performing
+transcription by clicking on the plus button. Once the models are added, record your own
+voice by clicking on the record button. You can replay it and transcribe it with the
+corresponding buttons.
+
+____________
 ### High Level Design
 
 
