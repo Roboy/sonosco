@@ -24,36 +24,57 @@ The easiest way to use Sonosco's functionality is via pip:
 ```
 pip install sonosco
 ```
-**Note**: Sonosco requires Python 3.7 or higher. 
+**Note**: Sonosco requires Python 3.6 or higher.
 
 For reliability, we recommend using an environment virtualization tool, like virtualenv or conda.
 
 <br>
 <br>
+
 #### For developers or trying out the transcription server
 
 Clone the repository and install dependencies:
 ```
+# Clone the repo and cd inside it
+git clone https://github.com/Roboy/sonosco.git && cd sonosco
+
 # Create a virtual python environment to not pollute the global setup
-conda create -n 'sonosco' python=3.7
+python -m venv venv
 
-# activate the virtual environment
-conda activate sonosco
-
-# Clone the repo
-git clone https://github.com/Roboy/sonosco.git
+# Activate the virtual environment
+source venv/bin/activate
 
 # Install normal requirements
 pip install -r requirements.txt
 
 # Link your local sonosco clone into your virtual environment
-pip install .
+pip install -e .
 ```
 Now you can check out some of the [Getting Started]() tutorials, to train a model or use 
 the transcription server.
 <br>
 <br>
 <br>
+____________
+### Quick Start
+
+#### Dockerized inference server
+
+```
+cd server
+
+# Build the docker image
+./build.sh
+
+# Run the built image
+./run.sh
+```
+
+Open http://localhost:5000 in Chrome. You should be able to add models for performing
+transcription by clicking on the plus button. Once the models are added, record your own
+voice by clicking on the record button. You can replay it and transcribe it with the
+corresponding buttons.
+
 ____________
 ### High Level Design
 

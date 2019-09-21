@@ -19,8 +19,7 @@ EXTERNAL_MODELS = {"microsoft": None}
 REFERENCE_MODEL_ID_KEY = "reference_id"
 
 app = Flask(__name__, static_folder="./dist/static", template_folder="./dist")
-app.logger.setLevel(logging.WARNING)
-logging.getLogger('werkzeug').setLevel(logging.WARNING)
+app.logger.setLevel(logging.INFO)
 CORS(app)
 socketio = SocketIO(app, ping_timeout=120, ping_interval=60)
 
@@ -31,8 +30,6 @@ loaded_models = load_models(config['models'])
 
 db_path = create_pseudo_db(config['audio_database_path'])
 session_dir = create_session_dir(config['sonosco_home'])
-
-logging.basicConfig(level=logging.WARNING, format="ROS RESPONSE: %(message)s")
 
 
 @app.route('/', defaults={'path': ''})
@@ -49,10 +46,7 @@ def on_transcribe(wav_bytes, model_ids):
     temp_audio_file = None
 
     try:
-        # with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
-        #     temp_audio_file.write(wav_bytes)
-
-        with open("/ros1/to_trans.wav", 'wb') as temp_audio_file:
+        with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
             temp_audio_file.write(wav_bytes)
 
         output = dict()

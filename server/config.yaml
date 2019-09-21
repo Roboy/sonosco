@@ -1,8 +1,8 @@
 models:
-  - id: 'deepspeech2'
-    path: '/ros1/pretrained/deepspeech_final.pth'
-    decoder: 'greedy'
-    name: 'DeepSpeech2'
+  # - id: 'deepspeech2'
+  #   path: '../pretrained/deepspeech_final.pth'
+  #   decoder: 'greedy'
+  #   name: 'DeepSpeech2'
 
   # - id: 'las1'
   #   path: '../pretrained/las_model_1.pt'
@@ -10,7 +10,7 @@ models:
   #   name: 'LAS_1'
 
   - id: 'las5'
-    path: '/ros1/pretrained/las_model_5.pt'
+    path: '../pretrained/las_model_5.pt'
     decoder: 'greedy'
     name: 'LAS'
 
