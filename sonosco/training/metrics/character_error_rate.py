@@ -1,9 +1,24 @@
 import logging
+import torch
+
+from typing import Tuple
 
 LOGGER = logging.getLogger(__name__)
 
 
-def character_error_rate(model_out, batch, decoder):
+# TODO: restructure the code to not use the decoder
+def character_error_rate(model_out: torch.Tensor, batch: Tuple, decoder=None) -> float:
+    """
+    Calculate character error rate based on the model output and groundtruth.
+
+    Args:
+        model_out: model output tensor
+        batch: batch with groundtruth data
+        decoder: decoder
+
+    Returns: character error rate for the given output
+
+    """
     inputs, targets, input_percentages, target_sizes = batch
 
     # unflatten targets

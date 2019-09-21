@@ -9,12 +9,13 @@ import numpy as np
 from dataclasses import field, dataclass
 from torch.utils.data import RandomSampler
 from collections import defaultdict
-from typing import Callable, Union, Tuple, List, Any
+from typing import Callable, Union, Tuple, List, Any, Dict
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from sonosco.decoders.decoder import Decoder
 
 LOGGER = logging.getLogger(__name__)
+
 
 @dataclass
 class ModelEvaluator:
@@ -22,6 +23,7 @@ class ModelEvaluator:
     This class handles the the evaluation of a pytorch model. It provides convenience
     functionality to add metrics and calculates mean and variance of these metrics
     using the bootstrapping method.
+
     Args:
         model (nn.Module): model to be evaluated
         data_loader (utils.data.DataLoader): test data, needs to have a random sampler as batch_sampler or smapler
@@ -38,24 +40,31 @@ class ModelEvaluator:
     device: torch.device = None
     metrics: List[Callable[[torch.Tensor, Any], Union[float, torch.Tensor]]] = field(default_factory=list)
     _current_bootstrap_step: int = None
-    _eval_dict: dict = field(default_factory=dict)
+    _eval_dict: dict = field(default_factory=Dict)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """
+        Post initialization.
+        """
         self._check_replacement_sampler_in_dataloader()
         self._evaluation_done = False
 
-    def _check_replacement_sampler_in_dataloader(self):
-        '''
-        check if provided dataloader contains a randomsampler
-        '''
-        if not (isinstance(self.data_loader.sampler,RandomSampler) or isinstance(self.data_loader.batch_sampler,RandomSampler)):
-            LOGGER.info(f'No random sampler in dataloader.')
-            assert()
+    def _check_replacement_sampler_in_dataloader(self) -> None:
+        """
+        Check if provided dataloader contains a randomsampler.
+        """
+        if not (isinstance(self.data_loader.sampler, RandomSampler)
+                or isinstance(self.data_loader.batch_sampler, RandomSampler)):
+            raise Exception("No random sampler in dataloader.")
 
-    def _bootstrap_step(self, mean_dict):
-        '''
-        computes metrics for all steps in one bootstrap step
-        '''
+    def _bootstrap_step(self, mean_dict: dict) -> None:
+        """
+        Computes metrics for all steps in one bootstrap step.
+
+        Args:
+            mean_dict: dictionary of means
+
+        """
         torch.no_grad()
         running_metrics = {metric.__name__: [] for metric in self.metrics}
 
@@ -75,10 +84,16 @@ class ModelEvaluator:
     def _compute_running_metrics(self,
                                  model_output: torch.Tensor,
                                  batch: Tuple[torch.Tensor, torch.Tensor],
-                                 running_metrics: dict):
+                                 running_metrics: dict) -> None:
         """
         Computes all metrics based on predictions and batches and adds them to the metrics
         dictionary. Allows to prepend a prefix to the metric names in the dictionary.
+
+        Args:
+            model_output: model output tensor
+            batch: training batch
+            running_metrics: running metrics dictionary
+
         """
         for metric in self.metrics:
             if metric.__name__ == 'word_error_rate' or metric.__name__ == 'character_error_rate':
@@ -90,18 +105,27 @@ class ModelEvaluator:
 
             running_metrics[metric.__name__].append(metric_result)
 
-    def _fill_mean_dict(self, running_metrics, mean_dict):
-        '''
-        calculates the mean and saves it in a dictionary
-        '''
+    def _fill_mean_dict(self, running_metrics: Dict, mean_dict: Dict) -> None:
+        """
+        Calculates the mean and saves it in a dictionary.
+
+        Args:
+            running_metrics: running metrics dictionary
+            mean_dict: mean dictionary
+
+        """
         for key, value in running_metrics.items():
             mean = np.mean(value)
             mean_dict[key].append(mean)
 
-    def _compute_mean_variance(self, mean_dict):
-        '''
-        compute mean and variance of each list in the dictionary
-        '''
+    def _compute_mean_variance(self, mean_dict: Dict) -> None:
+        """
+        Compute mean and variance of each list in the dictionary.
+
+        Args:
+            mean_dict: mean dictionary
+
+        """
         self.eval_dict = defaultdict()
         for key, value in mean_dict.items():
             tmp_mean = np.mean(value)
@@ -109,22 +133,36 @@ class ModelEvaluator:
             self.eval_dict[key + '_mean'] = tmp_mean
             self.eval_dict[key + '_variance'] = tmp_variance
 
-    def set_metrics(self, metrics):
+    def set_metrics(self, metrics: List[Callable]) -> None:
         """
         Set metric functions that receive y_pred and y_true. These metrics are used to
         create a statistical evaluation of the model provided
+
+        Args:
+            metrics: list of metric functions
+
         """
         self.metrics = metrics
 
-    def add_metric(self, metric):
+    def add_metric(self, metric: Callable):
+        """
+        Add metric function.
+
+        Args:
+            metric: metric function which receives the groundtruth and prediction of the model
+
+        """
         self.metrics.append(metric)
 
-    def start_evaluation(self, tb_path: str = None, log_path: str = None):
-        '''
-        start model evaluation for all metrics
-        :param tb_path: (str, oiptional) - path to log directory to store tb logs , if provided, tensorboard logs are written
-        :param log_path: (str, optional) - path to log directory, if provided, evaluation results will be dumped in json format
-        '''
+    def start_evaluation(self, tb_path: str = None, log_path: str = None) -> None:
+        """
+        Start model evaluation for all metrics.
+
+        Args:
+            tb_path: (str, optional): path to log directory to store tb logs , if provided, tensorboard logs are written
+            log_path: (str, optional): path to log directory, if provided, evaluation results will be dumped in json format
+
+        """
         LOGGER.info(f'Start Evaluation')
         self.model.eval() #evaluation mode
         mean_dict = {metric.__name__: [] for metric in self.metrics}
@@ -139,32 +177,46 @@ class ModelEvaluator:
         if log_path is not None:
             self.dump_evaluation(log_path)
 
-    def dump_evaluation(self, output_path):
-        '''
-        dump evaluation dict to output path
-        '''
-        if self._evaluation_done == False:
+    def dump_evaluation(self, output_path: str) -> None:
+        """
+        Dump evaluation dict to output path.
+
+        Args:
+            output_path: output path for evaluation results
+
+        """
+        if not self._evaluation_done:
             self.start_evaluation()
+
         file_to_dump = os.path.join(output_path, 'evaluation.json')
         LOGGER.info(f'dump evaluation results to {file_to_dump}')
         with open(file_to_dump, 'w') as fp:
             json.dump(self.eval_dict, fp)
 
-    def dump_to_tensorboard(self, log_path):
-        '''
-        write tensorboard logs for evaluation results to log_path
-        '''
+    def dump_to_tensorboard(self, log_path: str) -> None:
+        """
+        Write tensorboard logs for evaluation results to log_path.
+
+        Args:
+            log_path: logging path
+
+        """
         LOGGER.info(f'Log evaluations in tensorboard.')
         writer = SummaryWriter(log_dir=log_path)
         for key, value in self.eval_dict:
             writer.add_scalar(key, value)
 
-    def _recursive_to_cuda(self, tensors):
+    def _recursive_to_cuda(self, tensors: Union[Tuple[torch.Tensor], torch.Tensor]) \
+            -> Union[List[torch.Tensor], torch.Tensor]:
         """
         Recursively iterates nested lists in depth-first order and transfers all tensors
         to specified cuda device.
-        Parameters:
+
+        Args:
             tensors (list or Tensor): list of tensors or tensor tuples, can be nested
+
+        Returns: list of cuda tensors if cuda is enabled.
+
         """
         if self.device is None:  # keep on cpu
             return tensors

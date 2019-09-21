@@ -72,7 +72,7 @@ cd server
 
 Open http://localhost:5000 in Chrome. You should be able to add models for performing
 transcription by clicking on the plus button. Once the models are added, record your own
-voice by clicking on the record button. You can replay it and transcribe it with the
+voice by clicking on the record button. You can replay and transcribe with the
 corresponding buttons.
 
 ____________

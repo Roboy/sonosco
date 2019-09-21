@@ -1,6 +1,9 @@
+from typing import TypeVar
 from abc import ABC, abstractmethod
-
 from sonosco.serialization import serializable
+
+
+ModelTrainer = TypeVar("ModelTrainer")
 
 
 @serializable
@@ -10,18 +13,20 @@ class AbstractCallback(ABC):
     """
 
     @abstractmethod
-    def __call__(self, epoch : int, step : int, performance_measures : dict, context):
+    def __call__(self, epoch: int, step: int, performance_measures: dict, context: ModelTrainer) -> None:
         """
         Called after every batch by the ModelTrainer.
-        Parameters:
+
+        Args:
             epoch (int): current epoch number
             step (int): current batch number
             performance_measures (dict): losses and metrics based on a running average
             context (ModelTrainer): reference to the calling ModelTrainer, allows to access members
+
         """
         pass
 
-    def close(self):
+    def close(self) -> None:
         """
         Handle cleanup work if necessary. Will be called at the end of the last epoch.
         """

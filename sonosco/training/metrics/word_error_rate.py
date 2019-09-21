@@ -1,9 +1,24 @@
 import logging
+import torch
+
+from typing import Tuple
 
 LOGGER = logging.getLogger(__name__)
 
 
-def word_error_rate(model_out, batch, decoder=None):
+# TODO: restructure the code to not use the decoder
+def word_error_rate(model_out: torch.Tensor, batch: Tuple, decoder=None) -> float:
+    """
+    Calculate word error rate based on the model output and groundtruth.
+
+    Args:
+        model_out: model output tensor
+        batch: batch with groundtruth data
+        decoder: decoder
+
+    Returns: word error rate for the given output
+
+    """
     inputs, targets, input_percentages, target_sizes = batch
 
     # unflatten targets
@@ -26,5 +41,5 @@ def word_error_rate(model_out, batch, decoder=None):
             pass
     del out
 
-    wer *= 100/len(target_strings)
+    wer *= 100.0 / len(target_strings)
     return wer

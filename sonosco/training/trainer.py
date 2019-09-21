@@ -5,7 +5,7 @@ import torch.nn.utils.clip_grad as grads
 
 from collections import defaultdict
 from dataclasses import field
-from typing import Callable, Union, Tuple, List, Any
+from typing import Callable, Union, Tuple, List, Any, Dict
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
 from sonosco.serialization import serializable
@@ -22,6 +22,7 @@ class ModelTrainer:
     """
     This class handles the training of a pytorch model. It provides convenience
     functionality to add metrics and callbacks and is inspired by the keras API.
+
     Args:
         model (nn.Module): model to be trained
         optimizer (optim.Optimizer): optimizer used for training, e.g. torch.optim.Adam
@@ -52,33 +53,57 @@ class ModelTrainer:
     test_step: int = 50
     weight_decay: int = 50
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """
+        Post initialization.
+        """
         self.optimizer = self.optimizer_class(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         self._stop_training = False  # used stop training externally
-        self.performance_measures = {}
+        self.performance_measures = dict()
 
-    def set_metrics(self, metrics):
+    def set_metrics(self, metrics: List[Callable]) -> None:
         """
         Set metric functions that receive y_pred and y_true. Metrics are expected to return
         a basic numeric type like float or int.
+
+        Args:
+            metrics: list of functions which compare groundtruths with predictions.
         """
         self.metrics = metrics
 
-    def add_metric(self, metric):
+    def add_metric(self, metric: Callable) -> None:
+        """
+        Add a metric.
+
+        Args:
+            metric: function which compares groundtruths with predictions.
+        """
         self.metrics.append(metric)
 
-    def set_callbacks(self, callbacks):
+    def set_callbacks(self, callbacks: List[AbstractCallback]) -> None:
         """
         Set callbacks that are callable functionals and receive epoch, step, loss, context.
         Context is a pointer to the ModelTrainer instance. Callbacks are called after each
         processed batch.
+
+        Args:
+            callbacks: list of callback functions which are executed at the end of each batch.
         """
         self.callbacks = callbacks
 
-    def add_callback(self, callback):
+    def add_callback(self, callback: AbstractCallback) -> None:
+        """
+        Add a callback.
+
+        Args:
+            callback: callback function which is executed at the end of each batch.
+        """
         self.callbacks.append(callback)
 
-    def start_training(self):
+    def start_training(self) -> None:
+        """
+        Start model training.
+        """
         self.model.train()  # train mode
         for epoch in range(1, self.epochs + 1):
             self._epoch_step(epoch)
@@ -90,14 +115,16 @@ class ModelTrainer:
 
         self._close_callbacks()
 
-    def stop_training(self):
+    def stop_training(self) -> None:
+        """
+        Stop model training.
+        """
         self._stop_training = True
 
-    def continue_training(self):
-        '''
-        Continue training model.
-        '''
-
+    def continue_training(self) -> None:
+        """
+        Continue model training.
+        """
         self.model.train()
 
         for epoch in range(self._current_epoch, self.epochs + 1):
@@ -109,8 +136,13 @@ class ModelTrainer:
                 break
         self._close_callbacks()
 
-    def _epoch_step(self, epoch):
-        """ Execute one training epoch. """
+    def _epoch_step(self, epoch: int) -> None:
+        """
+        Execute one training epoch.
+
+        Args:
+            epoch: epoch count
+        """
         running_batch_loss = 0
         running_metrics = defaultdict(float)
 
@@ -140,8 +172,10 @@ class ModelTrainer:
                 self._print_step_info(epoch, step)
                 self._apply_callbacks(epoch, step)
 
-    def _comp_gradients(self):
-        """ Compute the gradient norm for all model parameters. """
+    def _comp_gradients(self) -> Union[int, float]:
+        """
+        Compute the gradient norm for all model parameters.
+        """
         grad_sum = 0
         for param in self.model.parameters():
             if param.requires_grad and param.grad is not None:
@@ -149,8 +183,13 @@ class ModelTrainer:
         grad_norm = torch.sqrt(grad_sum).item()
         return grad_norm
 
-    def _train_on_batch(self, batch):
-        """ Compute loss depending on settings, compute gradients and apply optimization step. """
+    def _train_on_batch(self, batch: Tuple) -> Tuple:
+        """
+        Compute loss depending on settings, compute gradients and apply optimization step.
+
+        Args:
+            batch: batch of training data
+        """
         # evaluate loss
         batch_x, batch_y, input_lengths, target_lengths = batch
 
@@ -172,8 +211,13 @@ class ModelTrainer:
         self.optimizer.step()  # apply optimization step
         return loss, model_output, grad_norm
 
-    def _compute_validation_error(self, running_metrics):
-        """ Evaluate the model's validation error. """
+    def _compute_validation_error(self, running_metrics: Dict) -> None:
+        """
+        Evaluate the model's validation error and put it inside of the running_metrics argument.
+
+        Args:
+            running_metrics: running metrics dictionary that will be updated with validation metrics
+        """
         running_val_loss = 0
 
         self.model.eval()
@@ -203,11 +247,17 @@ class ModelTrainer:
     def _compute_running_metrics(self,
                                  y_pred: torch.Tensor,
                                  batch: Tuple[torch.Tensor, torch.Tensor],
-                                 running_metrics: dict,
-                                 prefix: str = ''):
+                                 running_metrics: Dict,
+                                 prefix: str = '') -> None:
         """
-        Computes all metrics based on predictions and batches and adds them to the metrics
+        Compute all metrics based on predictions and batches and add them to the metrics
         dictionary. Allows to prepend a prefix to the metric names in the dictionary.
+
+        Args:
+            y_pred: prediction
+            batch: training sample
+            running_metrics: running metrics
+            prefix: prefix string for prepending in the metrics dictionary
         """
         for metric in self.metrics:
             if self.custom_model_eval:
@@ -230,10 +280,20 @@ class ModelTrainer:
             else:
                 running_metrics[prefix + metric.__name__] += metric_result
 
-    def _construct_performance_dict(self, train_step, running_batch_loss, running_metrics):
+    def _construct_performance_dict(self,
+                                    train_step: int,
+                                    running_batch_loss: int,
+                                    running_metrics: Dict) -> Dict:
         """
         Constructs a combined dictionary of losses and metrics for callbacks based on
         the current running averages.
+
+        Args:
+            train_step: training step
+            running_batch_loss: current loss
+            running_metrics: running metrics
+
+        Returns: Performance dictionary with metrics and loss for both training and validation data.
         """
         performance_dict = defaultdict()
         for key, value in running_metrics.items():
@@ -245,18 +305,28 @@ class ModelTrainer:
         performance_dict['loss'] = running_batch_loss / (train_step + 1.)
         return performance_dict
 
-    def _apply_callbacks(self, epoch, step):
-        """ Call all registered callbacks with current batch information. """
+    def _apply_callbacks(self, epoch: int, step: int) -> None:
+        """
+        Call all registered callbacks with current batch information.
+        """
         for callback in self.callbacks:
             callback(epoch, step, self.performance_measures, self)
 
-    def _close_callbacks(self):
-        """ Signal callbacks training is finished. """
+    def _close_callbacks(self) -> None:
+        """
+        Signal callbacks training is finished.
+        """
         for callback in self.callbacks:
             callback.close()
 
-    def _print_step_info(self, epoch, step):
-        """ Print running averages for loss and metrics during training. """
+    def _print_step_info(self, epoch: int, step: int) -> None:
+        """
+        Print running averages for loss and metrics during training.
+
+        Args:
+            epoch: current epoch
+            step: current step inside of the epoch
+        """
         output_message = "epoch {}   batch {}/{}".format(epoch, step, len(self.train_data_loader) - 1)
         if step % self.test_step == 0:
             delim = "   "
@@ -266,12 +336,16 @@ class ModelTrainer:
                 output_message += delim + "{}: {:.6f}".format(metric_name, self.performance_measures[metric_name])
         LOGGER.info(output_message)
 
-    def _recursive_to_cuda(self, tensors):
+    def _recursive_to_cuda(self, tensors: Union[List[torch.Tensor], torch.Tensor]) \
+            -> Union[List[torch.Tensor], torch.Tensor]:
         """
         Recursively iterates nested lists in depth-first order and transfers all tensors
         to specified cuda device.
-        Parameters:
+
+        Args:
             tensors (list or Tensor): list of tensors or tensor tuples, can be nested
+
+        Returns (list or Tensor): tensors transformed into cuda tensors
         """
         if self.device is None:  # keep on cpu
             return tensors
