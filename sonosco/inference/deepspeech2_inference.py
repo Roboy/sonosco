@@ -4,7 +4,7 @@ import librosa
 from sonosco.inference.asr import SonoscoASR
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
-from sonosco.models.deepspeech2 import DeepSpeech2
+from sonosco.models.deepspeech2_old import DeepSpeech2
 from sonosco.common.global_settings import DEVICE
 
 

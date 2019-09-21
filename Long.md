@@ -1,5 +1,5 @@
 # Roboy Sonosco
-Roboy Sonosco (from Lat. sonus - sound and nōscō - I know, recognize) - a library for Speech Recognition based on Deep Learning models
+Roboy Sonosco (from Lat. sonus - sound and nosco - I know, recognize) - a library for Speech Recognition based on Deep Learning models
 
 ## Installation
 ### Via PIP
@@ -7,7 +7,7 @@ Roboy Sonosco (from Lat. sonus - sound and nōscō - I know, recognize) - a libr
 The easiest way to install ravestate is through pip:
 
 ``
-pip install ravestate
+pip install sonosco 
 ``
 
 

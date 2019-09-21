@@ -10,18 +10,29 @@ SOFT_WINDOW_SIGMA = 4.0
 
 class DotAttention(nn.Module):
 
-    def __init__(self, query_dim):
+    def __init__(self, query_dim: int):
+        """
+        Module for Attention calculation
+        Args:
+            query_dim: Dimension of query
+        """
         super().__init__()
         self.scale = 1.0 / np.sqrt(query_dim)
         self.softmax = nn.Softmax(dim=2)
 
-    def forward(self, queries, keys, values, soft_window_enabled: bool = True):
+    def forward(self, queries: torch.Tensor,
+                keys: torch.Tensor,
+                values: torch.Tensor,
+                soft_window_enabled: bool = True) -> (torch.Tensor, torch.Tensor):
         """
-        :param queries: [B,T_dec,Q] (hidden state, decoder output, etc.)
-        :param keys: [B,T_enc,K] (encoder outputs)
-        :param values: [B,T_enc,V] (encoder outputs)
-        :param mask: [B,T_enc,K] (mask)
-        :return: Tuple[summary vector [B,T_dec,V], scores [B,T_dec,T_enc]
+        Args:
+            queries: [B,T_dec,Q] (hidden state, decoder output, etc.)
+            keys: [B,T_enc,V] (encoder outputs)
+            values: [B,T_enc,K] (mask)
+            soft_window_enabled: flag for soft windows pretraining
+
+        Returns: Tuple[summary vector [B,T_dec,V], scores [B,T_dec,T_enc]
+
         """
         assert queries.size()[-1] == keys.size()[-1]
 
@@ -59,7 +70,7 @@ class DotProductAttention(nn.Module):
         # TODO: move this out of this class?
         # self.linear_out = nn.Linear(dim*2, dim)
 
-    def forward(self, queries, values):
+    def forward(self, queries: torch.Tensor, values: torch.Tensor) -> (torch.Tensor, torch.Tensor):
         """
         Args:
             queries: N x To x H
