@@ -1,16 +1,19 @@
 import logging
+import torch
 
-from sonosco.serialization import serializable
-
-from sonosco.training.abstract_callback import AbstractCallback
+from typing import Dict
 from torch.utils.tensorboard import SummaryWriter
+from ..abstract_callback import AbstractCallback
+from sonosco.serialization import serializable
 
 LOGGER = logging.getLogger(__name__)
 
 
 @serializable
-class TbTextComparisonCallback(AbstractCallback):
+class LasTextComparisonCallback(AbstractCallback):
     log_dir: str
+    labels: str
+    args: Dict[str, str]
     samples: int = 4
 
     def __post_init__(self):
@@ -31,8 +34,8 @@ class TbTextComparisonCallback(AbstractCallback):
         batch = next(iter(context.test_data_loader))
         batch = context._recursive_to_cuda(batch)
         batch_x, batch_y, input_lens, target_lens = batch
+        transcriptions = []
 
-        # unflatten targets
         split_targets = []
         offset = 0
         for size in target_lens:
@@ -41,16 +44,11 @@ class TbTextComparisonCallback(AbstractCallback):
 
         groundtruths = decoder.convert_to_strings(split_targets)
 
-        transcriptions = list()
-
-        for i in range(min(self.samples, batch_x.shape[0])):
-            # import pdb; pdb.set_trace()
-            sample_x, sample_len = batch_x[i].transpose(1, 2), input_lens[i]
-            out, output_lens, attention = model(sample_x, sample_len)
-            decoded_output, decoded_offsets = decoder.decode(out, output_lens)
-            transcriptions.append(decoded_output)
+        for i, el in enumerate(batch_x):
+            transcriptions.append(model.recognize(el[0].transpose(0, 1), input_lens[i:i+1], self.labels, self.args)[0])
 
         for transcription, groundtruth in zip(transcriptions, groundtruths):
-            comparison = f"Transcription: {transcription[0]}. Groundtruth: {groundtruth}"
+            trans = decoder.convert_to_strings(torch.tensor([transcription['yseq']]))
+            comparison = f"Transcription: {trans}. Groundtruth: {groundtruth}"
             LOGGER.info(comparison)
             self.writer.add_text("inference_text_comparison", comparison, step)

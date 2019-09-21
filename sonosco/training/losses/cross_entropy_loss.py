@@ -8,5 +8,3 @@ def cross_entropy_loss(batch, model):
     batch_y = torch.split(batch_y, target_lengths.tolist())
     model_output, lens, loss = model(batch_x, input_lengths, batch_y)
     return loss, (model_output, lens)
-
-

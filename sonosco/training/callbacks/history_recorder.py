@@ -2,7 +2,7 @@ import logging
 import torch
 
 from collections import defaultdict
-from .abstract_callback import AbstractCallback
+from ..abstract_callback import AbstractCallback
 
 
 LOGGER = logging.getLogger(__name__)

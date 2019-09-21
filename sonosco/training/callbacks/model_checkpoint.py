@@ -1,12 +1,10 @@
 import logging
 import sys
 import os.path as path
+
 from typing import Dict
-
-from sonosco.serialization import serializable
-
-from .abstract_callback import AbstractCallback
-from sonosco.serialization import Serializer
+from sonosco.serialization import serializable, Serializer
+from ..abstract_callback import AbstractCallback
 
 LOGGER = logging.getLogger(__name__)
 

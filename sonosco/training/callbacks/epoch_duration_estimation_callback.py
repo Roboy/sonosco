@@ -1,11 +1,8 @@
 import logging
 import time
-import torch
 
 from sonosco.serialization import serializable
-
-from sonosco.training.abstract_callback import AbstractCallback
-from torch.utils.tensorboard import SummaryWriter
+from ..abstract_callback import AbstractCallback
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +25,7 @@ class EpochEstimationCallback(AbstractCallback):
         if step == 0:
             self.start = time.time()
             self.total_batch_size = len(context.train_data_loader)
+
         if step == self.evaluate_at_batch_step:
             self.end = time.time()
             delta = int((self.end - self.start))
