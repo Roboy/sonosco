@@ -16,7 +16,7 @@
 # Modified to support pytorch Tensors
 
 import Levenshtein as Lev
-from sonosco.model.serialization import serializable
+from sonosco.serialization import serializable
 
 from sonosco.common.utils import reverse_labels_to_dict
 

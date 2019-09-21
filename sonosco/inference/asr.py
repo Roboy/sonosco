@@ -1,12 +1,11 @@
 import tempfile
 
 from abc import ABC, abstractmethod
-from sonosco.model.deserializer import Deserializer
+from sonosco.serialization import Deserializer
 
 
 class SonoscoASR(ABC):
 
-    # TODO: add processor
     def __init__(self, model_path: str) -> None:
         super().__init__()
         self.model_path = model_path

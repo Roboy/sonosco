@@ -3,8 +3,6 @@ import logging
 import torch.nn as nn
 import torch.nn.functional as functional
 
-from sonosco.config.global_settings import DROPOUT
-
 LOGGER = logging.getLogger(__name__)
 
 supported_rnns = {
@@ -122,7 +120,7 @@ class TDSBlock(nn.Module):
 
         self.channel = channel
         self.in_freq = in_freq
-
+        self.dropout_prob = dropout
         self.conv2d = nn.Conv2d(in_channels=channel,
                                 out_channels=channel,
                                 kernel_size=(kernel_size, 1),
@@ -160,7 +158,7 @@ class TDSBlock(nn.Module):
         residual = xs
         xs = self.conv2d(xs)
         xs = torch.relu(xs)
-        if DROPOUT:
+        if self.dropout_prob != 0:
             xs = self.dropout1(xs)
 
         xs = xs + residual  # `[B, out_ch, T, feat_dim]`
@@ -175,10 +173,10 @@ class TDSBlock(nn.Module):
         residual = xs
         xs = self.conv1d_1(xs)
         xs = torch.relu(xs)
-        if DROPOUT:
+        if self.dropout_prob != 0:
             xs = self.dropout2_1(xs)
         xs = self.conv1d_2(xs)
-        if DROPOUT:
+        if self.dropout_prob != 0:
             xs = self.dropout2_2(xs)
         xs = xs + residual  # `[B, out_ch * feat_dim, T, 1]`
 
@@ -193,7 +191,7 @@ class TDSBlock(nn.Module):
 class SubsampleBlock(nn.Module):
     def __init__(self, in_channel, out_channel, in_freq, dropout):
         super().__init__()
-
+        self.dropout_prob = dropout
         self.conv1d = nn.Conv2d(in_channels=in_channel,
                                 out_channels=out_channel,
                                 kernel_size=(2, 1),
@@ -213,7 +211,7 @@ class SubsampleBlock(nn.Module):
 
         xs = self.conv1d(xs)
         xs = torch.relu(xs)
-        if DROPOUT:
+        if self.dropout_prob != 0:
             xs = self.dropout(xs)
 
         # layer normalization
@@ -237,7 +235,7 @@ class Linear(nn.Module):
             weight_norm (bool):
         """
         super(Linear, self).__init__()
-
+        self.dropout_prob = dropout
         self.fc = nn.Linear(in_size, out_size, bias=bias)
         self.dropout = nn.Dropout(p=dropout)
 
@@ -251,6 +249,6 @@ class Linear(nn.Module):
         Returns:
             xs (FloatTensor):
         """
-        if DROPOUT:
+        if self.dropout_prob != 0:
             return self.dropout(self.fc(xs))
         return self.fc(xs)

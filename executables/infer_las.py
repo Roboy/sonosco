@@ -9,7 +9,7 @@ from sonosco.models import Seq2Seq
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
 from sonosco.config.global_settings import DEVICE
-from sonosco.model.deserializer import Deserializer
+from sonosco.serialization import Deserializer
 
 
 LOGGER = logging.getLogger(SONOSCO)

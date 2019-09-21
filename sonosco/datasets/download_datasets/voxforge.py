@@ -2,11 +2,9 @@ import os
 import click
 import logging
 from six.moves import urllib
-import argparse
 import re
 import tempfile
 import shutil
-import subprocess
 import tarfile
 import io
 import sonosco.common.audio_tools as audio_tools

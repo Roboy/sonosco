@@ -16,7 +16,7 @@
 # Modified to support pytorch Tensors
 
 import torch
-from sonosco.model.serialization import serializable
+from sonosco.serialization import serializable
 
 from .decoder import Decoder
 
