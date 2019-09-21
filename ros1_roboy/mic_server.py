@@ -9,6 +9,13 @@ import logging
 @click.option('--host', '-h', default="0.0.0.0", help='Host')
 @click.option('--port', '-p', default=10002, help='Port', type=int)
 def main(host, port):
+    """
+    Creates websocket server that publishes audio from mic in chunks on gives host:port address
+    Args:
+        host: ip of server
+        port: port of server
+
+    """
     FORMAT = pyaudio.paInt16
     CHANNELS = 1
     RATE = 16000

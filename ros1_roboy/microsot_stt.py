@@ -1,9 +1,8 @@
 import azure.cognitiveservices.speech as speechsdk
-import librosa
 import tempfile
 
 
-class MicrosoftSTT():
+class MicrosoftSTT:
 
     def __init__(self, key, region, sample_rate):
         self.key = key

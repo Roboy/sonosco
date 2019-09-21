@@ -2,15 +2,11 @@
 import logging
 import signal
 
-from sonosco.models import DeepSpeech2
-
-from sonosco.inference.deepspeech2_inference import DeepSpeech2Inference
 from sonosco.inference.las_inference import LasInference
 from sonosco.ros1.server import SonoscoROS1
 from roboy_cognition_msgs.srv import RecognizeSpeech
 from roboy_control_msgs.msg import ControlLeds
-from webrtcvad_input import VadInput
-from std_msgs.msg import Empty
+# from std_msgs.msg import Empty
 from mic_client import MicrophoneClient
 
 # model_path = "pretrained/deepspeech_final.pth"
@@ -37,11 +33,11 @@ def vad_callback(request, publishers):
     msg.mode = 2
     msg.duration = 0
     publishers['ledmode'].publish(msg)
-    # with MicrophoneClient() as audio_input:
-    # while not leave:
-    #     audio = audio_input.request_audio()
-    transcription = asr.infer_from_path("/ros1/to_trans.wav")
-    msg = Empty()
+    with MicrophoneClient() as audio_input:
+        while not leave:
+            audio = audio_input.request_audio()
+            transcription = asr.infer(audio)
+    # msg = Empty()
     # publishers['ledfreez'].publish(msg)
 
     return transcription
@@ -97,6 +93,14 @@ CONFIG = {
 
 
 def main(args=None):
+    """
+    ROS1 server that handles speech recognition requests
+    Args:
+        args:
+
+    Returns:
+
+    """
     with SonoscoROS1(CONFIG) as server:
         server.run()
 

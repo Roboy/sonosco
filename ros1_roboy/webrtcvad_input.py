@@ -1,11 +1,10 @@
 from sonosco.inputs.audio import SonoscoAudioInput
 import webrtcvad
 import collections
-import os
-import signal
 import pyaudio
 import sys
 import logging
+
 
 class VadInput(SonoscoAudioInput):
 
@@ -78,7 +77,6 @@ class VadInput(SonoscoAudioInput):
         self.stream.stop_stream()
         print("* done recording")
         return data
-
 
     def __enter__(self):
         return self

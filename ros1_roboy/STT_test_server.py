@@ -3,7 +3,6 @@ import logging
 
 from sonosco.inputs.audio import SonoscoAudioInput
 from sonosco.models import DeepSpeech2
-
 from sonosco.models.deepspeech2_inference import DeepSpeech2Inference
 from sonosco.ros1.server import SonoscoROS1
 from roboy_cognition_msgs.srv import RecognizeSpeech

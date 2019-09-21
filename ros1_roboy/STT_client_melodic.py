@@ -3,7 +3,9 @@ from pyroboy.common_definitions import speech_recognition_srv
 
 
 class STT:
-
+    """
+    Example of client using ROS melodic
+    """
     def __init__(self):
         self.client = rospy.ServiceProxy("/roboy/cognition/speech/recognition", speech_recognition_srv.type)
 
