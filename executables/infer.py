@@ -8,8 +8,8 @@ from sonosco.common.path_utils import parse_yaml
 from sonosco.models import TDSSeq2Seq
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
-from sonosco.config.global_settings import CUDA_ENABLED
-from sonosco.model.deserializer import ModelDeserializer
+from sonosco.common.global_settings import CUDA_ENABLED
+from sonosco.serialization import Deserializer
 
 
 LOGGER = logging.getLogger(SONOSCO)
@@ -24,8 +24,8 @@ def main(config_path, audio_path, plot):
     config = parse_yaml(config_path)["infer"]
     device = torch.device("cuda" if CUDA_ENABLED else "cpu")
 
-    loader = ModelDeserializer()
-    model = loader.deserialize_model(TDSSeq2Seq, config["model_checkpoint_path"])
+    loader = Deserializer()
+    model = loader.deserialize(TDSSeq2Seq, config["model_checkpoint_path"])
     model.to(device)
     model.eval()
 

@@ -3,25 +3,27 @@ import click
 import io
 import logging
 import sonosco.common.path_utils as path_utils
-from sonosco.datasets.download_datasets.data_utils import order_and_prune_files
-from sonosco.common.utils import setup_logging
-from sonosco.common.constants import *
+import sonosco.common.audio_tools as audio_tools
+
 from tqdm import tqdm
+from sonosco.common.constants import SONOSCO
+from sonosco.datasets.download_datasets.create_manifest import order_and_prune_files
+from sonosco.common.utils import setup_logging
 
 LOGGER = logging.getLogger(__name__)
 
 
 @click.command()
-@click.option("--merge-dir", default="temp/data", type=str, help="Directory to the folders, all the manifest are stored in.")
-@click.option("--min-duration", default=1, type=int, help="Prunes any samples shorter than the min duration.")
-@click.option("--max-duration", default=15, type=int, help="Prunes any samples longer than the max duration")
-@click.option("--output-path", default="temp/data/manifests/combined_manifest.csv", type=str, help="Output path to merged manifest")
+@click.option("--merge-dir", default="temp/data", type=str,
+              help="Directory to the folder , all the manifest are stored in.")
+@click.option("--min-duration", default=None, type=int,
+              help="If provided, prunes any samples shorter than the min duration.")
+@click.option("--max-duration", default=None, type=int,
+              help="If provided, prunes any samples longer than the max duration")
+@click.option("--output-path", default="temp/data/manifests/combined_manifest.csv", type=str,
+              help="Output path, to store manifest.")
 def main(merge_dir, min_duration, max_duration, output_path):
-    global LOGGER
-    LOGGER = logging.getLogger(SONOSCO)
-    setup_logging(LOGGER)
     LOGGER.info("Start merging manifests...")
-
     merge_dir = os.path.join(os.path.expanduser("~"), merge_dir)
     output_path = os.path.join(os.path.expanduser("~"), output_path)
     output_directory = output_path[:-len(output_path.split("/")[-1])][:-1]
@@ -42,9 +44,13 @@ def main(merge_dir, min_duration, max_duration, output_path):
     with io.FileIO(output_path, "w") as file:
         for wav_path in tqdm(file_paths, total=len(file_paths)):
             transcript_path = wav_path.replace('/wav/', '/txt/').replace('.wav', '.txt')
-            sample = os.path.abspath(wav_path) + ',' + os.path.abspath(transcript_path) + '\n'
+            duration = audio_tools.get_duration(wav_path)
+            sample = os.path.abspath(wav_path) + ',' + os.path.abspath(transcript_path) + ',' + duration + '\n'
             file.write(sample.encode('utf-8'))
     LOGGER.info("Final manifest was created!")
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
+    LOGGER = logging.getLogger(SONOSCO)
+    setup_logging(LOGGER)
     main()

@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker build  -t ros1_roboy .
+docker build  -t ros1_roboy_2 .

@@ -16,12 +16,14 @@
 # Modified to support pytorch Tensors
 
 import torch
+from sonosco.serialization import serializable
 
 from .decoder import Decoder
 
-
+# TODO: Make it actually serializable by extracting init
+@serializable
 class GreedyDecoder(Decoder):
-    def __init__(self, labels, blank_index=None):
+    def __init__(self, labels="_'ABCDEFGHIJKLMNOPQRSTUVWXYZ#", blank_index=None):
         super(GreedyDecoder, self).__init__(labels, blank_index)
 
     def convert_to_strings(self, sequences, sizes=None, remove_repetitions=False, return_offsets=False):
@@ -50,15 +52,15 @@ class GreedyDecoder(Decoder):
                     # if this char is a repetition and remove_repetitions=true, then skip
                     if remove_repetitions and i != 0 and char == self.int_to_char.get(sequence[i - 1].item()):
                         pass
-                    elif char == self.labels[self.space_index]:
-                        string += ' '
-                        offsets.append(i)
+                    #elif char == self.labels[self.space_index]:
+                    #    string += ' '
+                    #    offsets.append(i)
                     else:
                         string = string + char
                         offsets.append(i)
         return string, torch.tensor(offsets, dtype=torch.int)
 
-    def decode(self, probs, sizes=None):
+    def decode(self, probs, sizes=None, remove_repetitions=False):
         """
         Returns the argmax decoding given the probability matrix. Removes
         repeated elements in the sequence, as well as blanks.
@@ -66,11 +68,12 @@ class GreedyDecoder(Decoder):
         Arguments:
             probs: Tensor of character probabilities from the network. Expected shape of batch x seq_length x output_dim
             sizes(optional): Size of each sequence in the mini-batch
+            remove_repetitions(optional)
         Returns:
             strings: sequences of the model's best guess for the transcription on inputs
             offsets: time step per character predicted
         """
         _, max_probs = torch.max(probs, 2)
         strings, offsets = self.convert_to_strings(max_probs.view(max_probs.size(0), max_probs.size(1)), sizes,
-                                                   remove_repetitions=False, return_offsets=True)
+                                                   remove_repetitions=remove_repetitions, return_offsets=True)
         return strings, offsets

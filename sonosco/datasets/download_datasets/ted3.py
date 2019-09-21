@@ -1,22 +1,22 @@
 import os
 import click
 import logging
-import argparse
-import subprocess
 import unicodedata
 import tarfile
 import io
 import shutil
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.path_utils as path_utils
-from sonosco.datasets.download_datasets.data_utils import create_manifest
+
+from tqdm import tqdm
+from sonosco.datasets.download_datasets.create_manifest import create_manifest
 from sonosco.common.utils import setup_logging
 from sonosco.common.constants import *
-from tqdm import tqdm
 
 LOGGER = logging.getLogger(__name__)
 
 TED_LIUM_V2_DL_URL = "http://www.openslr.org/resources/51/TEDLIUM_release-3.tgz"
+
 
 def try_download_ted3(target_dir, sample_rate, min_duration, max_duration):
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
@@ -98,27 +98,26 @@ def prepare_dir(ted_dir, sample_rate):
         for utterance_id, utterance in enumerate(all_utterances):
             target_wav_file = os.path.join(wav_dir, "{}_{}.wav".format(utterance["filename"], str(utterance_id)))
             target_txt_file = os.path.join(txt_dir, "{}_{}.txt".format(utterance["filename"], str(utterance_id)))
-            audio_tools.transcode_recordings_ted3(sph_file_full, target_wav_file, utterance["start_time"], utterance["end_time"],
-                          sample_rate=sample_rate)
+            audio_tools.transcode_recordings_ted3(sph_file_full, target_wav_file, utterance["start_time"],
+                                                  utterance["end_time"], sample_rate=sample_rate)
             with io.FileIO(target_txt_file, "w") as f:
                 f.write(_preprocess_transcript(utterance["transcript"]).encode('utf-8'))
         counter += 1
 
+
 @click.command()
 @click.option("--target-dir", default="temp/data/ted3", type=str, help="Directory to store the dataset.")
 @click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
-
 @click.option("--min-duration", default=1, type=int,
               help="Prunes training samples shorter than the min duration (given in seconds).")
 @click.option("--max-duration", default=15, type=int,
               help="Prunes training samples longer than the max duration (given in seconds).")
-
-
 def main(**kwargs):
     global LOGGER
     LOGGER = logging.getLogger(SONOSCO)
     setup_logging(LOGGER)
     try_download_ted3(**kwargs)
+
 
 if __name__ == "__main__":
     main()

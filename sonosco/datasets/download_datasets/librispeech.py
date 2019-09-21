@@ -6,7 +6,7 @@ import logging
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.path_utils as path_utils
 
-from sonosco.datasets.download_datasets.data_utils import create_manifest
+from sonosco.datasets.download_datasets.create_manifest import create_manifest
 from sonosco.common.utils import setup_logging
 from sonosco.common.constants import *
 from tqdm import tqdm
@@ -120,6 +120,7 @@ def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
               help="Prunes training samples shorter than the min duration (given in seconds).")
 @click.option("--max-duration", default=15, type=int,
               help="Prunes training samples longer than the max duration (given in seconds).")
+
 def main(**kwargs):
     """Processes and downloads LibriSpeech dataset."""
     try_download_librispeech(**kwargs)

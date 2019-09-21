@@ -1,6 +1,6 @@
 <template>
   <div class="Transcriptor">
-    <h3 v-if="isConnected">Ready to transcribe!</h3>
+    <h3 v-if="isConnected">Connected to transcription server!</h3>
 
     <div class="md-layout">
 
@@ -35,6 +35,7 @@
       <md-button class="md-raised" @click="recordStop()">{{ recordButtonText }}</md-button>
       <md-button class="md-raised" @click="playAudio()">Play</md-button>
       <md-button class="md-raised" @click="transcribe()">Transcribe</md-button>
+      <md-switch v-model="visualComparison">Comparison</md-switch>
     </div>
 
   </div>
@@ -42,6 +43,7 @@
 
 <script>
 import Model from './Model'
+import {bus} from '../main'
 
 let audioChunks = null
 let audioBlob = null
@@ -84,7 +86,8 @@ export default {
       isConnected: false,
       editableTranscript: '',
       socketMessage: '',
-      recordButtonText: 'Record'
+      recordButtonText: 'Record',
+      visualComparison: false
     }
   },
 
@@ -156,6 +159,16 @@ export default {
       if (audio && typeof audio.play === 'function') {
         this.$socket.emit('transcribe', audioBlob, this.$store.getters.getPickedModels.map(el => el['id']))
       }
+    }
+  },
+
+  watch: {
+    visualComparison (newValue) {
+      bus.$emit('updateTranscriptions')
+    },
+
+    editableTranscript (newValue) {
+      bus.$emit("updateRefTranscriptions", newValue)
     }
   }
 }
