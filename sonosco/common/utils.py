@@ -42,11 +42,13 @@ def random_float(low: float, high: float):
 def copy_code(source_dir, dest_dir, exclude_dirs: Tuple[str] = tuple(), exclude_files: Tuple[str] = tuple()):
     """
     Copies code from source_dir to dest_dir. Excludes specified folders and files by substring-matching.
-    Parameters:
+
+    Args:
         source_dir (string): location of the code to copy
         dest_dir (string): location where the code should be copied to
         exclude_dirs (list of strings): folders containing strings specified in this list will be ignored
         exclude_files (list of strings): files containing strings specified in this list will be ignored
+
     """
     source_basename = path.basename(source_dir)
     for root, dirs, files in os.walk(source_dir, topdown=True):
@@ -62,7 +64,8 @@ def copy_code(source_dir, dest_dir, exclude_dirs: Tuple[str] = tuple(), exclude_
         # do not treat the root as a subdir
         if subdir_basename == source_basename:
             subdir_basename = ""
-        dest_subdir = os.path.join(dest_dir, subdir_basename)
+
+        dest_subdir = os.path.join(root, dest_dir, subdir_basename)
 
         # create destination folder
         if not os.path.exists(dest_subdir):

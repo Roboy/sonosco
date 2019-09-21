@@ -8,6 +8,7 @@ import sonosco.common.path_utils as path_utils
 import sonosco.common.utils as utils
 
 from random import random
+from typing import TypeVar
 from .trainer import ModelTrainer
 from .callbacks.model_checkpoint import ModelCheckpoint
 from .tb_callbacks import TensorBoardCallback
@@ -17,6 +18,8 @@ from time import time
 
 LOGGER = logging.getLogger(__name__)
 
+Experiment = TypeVar("Experiment")
+
 
 class Experiment:
     """
@@ -24,14 +27,17 @@ class Experiment:
     timestamp and provided name. Automatically starts logging the console output and creates a copy
     of the currently executed code in the experiment folder. The experiment's subfolder paths are provided
     to the outside as member variables. It also allows adding of more subfolders conveniently.
+
     Args:
         experiment_name (string): name of the exerpiment to be created
+        logger: python logger from logging package
+        seed: experiment seed
         experiments_path (string): location where all experiments will be stored, default is './experiments'
-    Example:
-        >>> experiment = Experiment('mnist_classification')
-        >>> print(experiment.plots) # path to experiment plots
+        config: configurations from which to initialize the experiment object
+        sub_directories: iterable of strings with the names of subdirectories
+        exclude_dirs: iterable of strings with names of directories which should be excluded from being copied
+        exclude_files: iterables of strings with names of files which should be excluded from copying
     """
-
     def __init__(self,
                  experiment_name,
                  logger: logging.Logger = LOGGER,
@@ -66,7 +72,16 @@ class Experiment:
         self._set_logging()
 
     @staticmethod
-    def _set_experiments_dir(experiments_path):
+    def _set_experiments_dir(experiments_path: str) -> str:
+        """
+        Set experiment directory.
+
+        Args:
+            experiments_path: experiment path
+
+        Returns: Path to the experiments folder
+
+        """
         if experiments_path is not None:
             return experiments_path
 
@@ -75,42 +90,70 @@ class Experiment:
         return path.join(local_path, "experiments")
 
     @staticmethod
-    def _set_experiment_name(experiment_name):
+    def _set_experiment_name(experiment_name: str) -> str:
+        """
+        Set experiment name.
+
+        Args:
+            experiment_name: experiment name
+
+        Returns: timestamped experiment name
+
+        """
         date_time = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d_%H:%M:%S')
         return f"{date_time}_{experiment_name}"
 
     @staticmethod
-    def _set_seed(seed):
+    def _set_seed(seed: int) -> None:
+        """
+        Set experiment seed.
+
+        Args:
+            seed: seed
+
+        """
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
         np.random.seed(seed)
         random.seed(seed)
 
-    def _set_logging(self):
+    def _set_logging(self) -> None:
+        """
+        Set logging to be forwarded to the logs folder inside of the experiment.
+        """
         utils.add_log_file(path.join(self.logs_path, "logs"), self.logger)
 
-    def _init_directories(self):
-        """ Create all basic directories. """
+    def _init_directories(self) -> None:
+        """
+        Create all basic directories.
+        """
         path_utils.try_create_directory(self.experiment_path)
         for sub_dir_name in self._sub_directories:
             self.add_directory(sub_dir_name)
 
-    def _add_member(self, key, value):
-        """ Add a member variable named 'key' with value 'value' to the experiment instance. """
+    def _add_member(self, key: str, value: str) -> None:
+        """
+        Add a member variable named 'key' with value 'value' to the experiment instance.
+        """
         self.__dict__[key] = value
 
-    def _copy_sourcecode(self):
-        """ Copy code from execution directory in experiment code directory. """
+    def _copy_sourcecode(self) -> None:
+        """
+        Copy code from execution directory in experiment code directory.
+        """
         sources_path = os.path.dirname(os.path.dirname(__file__))
         sources_path = sources_path if sources_path != '' else './'
         utils.copy_code(sources_path, self.code_path,
                         exclude_dirs=self._exclude_dirs,
                         exclude_files=self._exclude_files)
 
-    def add_directory(self, dir_name):
+    def add_directory(self, dir_name: str) -> None:
         """
         Add a sub-directory to the experiment. The directory will be automatically
         created and provided to the outside as a member variable.
+
+        Args:
+            dir_name: directory name
         """
         # store in sub-dir list
         if dir_name not in self._sub_directories:
@@ -121,10 +164,15 @@ class Experiment:
         # create directory
         path_utils.try_create_directory(dir_path)
 
-    def setup_model_trainer(self, trainer: ModelTrainer, checkpoints: bool = True, tensorboard: bool = True):
+    def setup_model_trainer(self, trainer: ModelTrainer, checkpoints: bool = True, tensorboard: bool = True) -> None:
         """
         Setup a model_trainer object with specified parameters, by default with checkpoint
-        callback and tensorboard callback. Add this model trainer to the modeltrainers dictionary.
+        callback and tensorboard callback. Add this model trainer to the model trainers dictionary.
+
+        Args:
+            trainer: model trainer object
+            checkpoints: flag for saving model checkpoints after each epoch
+            tensorboard: flag for creating visualization in tensorboard
         """
         self.__trainer = trainer
 
@@ -133,7 +181,7 @@ class Experiment:
         if tensorboard:
             self.__trainer.add_callback(TensorBoardCallback(log_dir=self.plots_path))
 
-    def start(self):
+    def start(self) -> None:
         """
         Starts model trainer.
         """
@@ -148,7 +196,7 @@ class Experiment:
                                    config=self.config)
         LOGGER.info(f'Model serialization done')
 
-    def stop(self):
+    def stop(self) -> None:
         """
         Stops model trainer.
         """
@@ -161,13 +209,15 @@ class Experiment:
                                    config=self.config)
 
     @staticmethod
-    def add_file(folder_path, filename, content):
-        """ Adds a file with provided content to folder. Convenience function. """
+    def add_file(folder_path: str, filename: str, content: str) -> None:
+        """
+        Adds a file with provided content to folder. Convenience function.
+        """
         with open(path.join(folder_path, filename), 'w') as text_file:
             text_file.write(content)
 
     @staticmethod
-    def create(config: dict, logger: logging.Logger):
+    def create(config: dict, logger: logging.Logger) -> Experiment:
         """
         :param config: dict - specify a .yaml config with one or more parameters: name, seed,
         experiment_path, sub_dirs, exclude_dirs, exclude_files and read it in as a dictionary.

@@ -1,7 +1,8 @@
 import logging
 import sys
 
-from ..abstract_callback import AbstractCallback
+from typing import Dict, List
+from ..abstract_callback import AbstractCallback, ModelTrainer
 
 
 LOGGER = logging.getLogger(__name__)
@@ -16,12 +17,28 @@ class StepwiseLearningRateReduction(AbstractCallback):
         min_lr (float): lower bound for learning rate
     """
 
-    def __init__(self, epoch_steps, reduction_factor, min_lr=None):
+    def __init__(self, epoch_steps: int, reduction_factor: float, min_lr: float = None) -> None:
         self._epoch_steps = epoch_steps
         self._reduction_factor = reduction_factor
         self._min_lr = min_lr
 
-    def __call__(self, epoch, step, performance_measures, context):
+    def __call__(self,
+                 epoch: int,
+                 step: int,
+                 performance_measures: Dict,
+                 context: ModelTrainer,
+                 validation: bool = False) -> None:
+        """
+        Execute learning rate reduction if conditions are met.
+
+        Args:
+            epoch: epoch step
+            step: step inside of the epoch
+            performance_measures: performance measures dictionary
+            context: model trainer
+            validation: should validation dataloader be used for comparison
+
+        """
         # execute at the beginning of every Nth epoch
         if epoch > 0 and step == 0 and epoch % self._epoch_steps == 0:
 
@@ -39,19 +56,35 @@ class StepwiseLearningRateReduction(AbstractCallback):
 class ScheduledLearningRateReduction(AbstractCallback):
     """
     Reduces the learning rate of the optimizer for every scheduled epoch.
+
     Args:
         epoch_schedule (list of int): defines at which epoch the learning rate will be reduced
         reduction_factor (float): multiplicative factor for learning rate reduction
         min_lr (float): lower bound for learning rate
     """
 
-    def __init__(self, epoch_schedule, reduction_factor, min_lr=None):
+    def __init__(self, epoch_schedule: List[int], reduction_factor: float, min_lr: float = None) -> None:
         self._epoch_schedule = sorted(epoch_schedule)
         self._reduction_factor = reduction_factor
         self._min_lr = min_lr
 
-    def __call__(self, epoch, step, performance_measures, context):
+    def __call__(self,
+                 epoch: int,
+                 step: int,
+                 performance_measures: Dict,
+                 context: ModelTrainer,
+                 validation: bool = False) -> None:
+        """
+        Execute learning rate reduction if conditions are met.
 
+        Args:
+            epoch: epoch step
+            step: step inside of the epoch
+            performance_measures: performance measures dictionary
+            context: model trainer
+            validation: should validation dataloader be used for comparison
+
+        """
         if not self._epoch_schedule:    # stop if schedule is empty
             return
 
@@ -74,6 +107,7 @@ class ScheduledLearningRateReduction(AbstractCallback):
 class ReduceLROnPlateau(AbstractCallback):
     """
     Reduce the learning rate if the train or validation loss plateaus.
+
     Args:
         monitor (string): name of the relevant loss or metric (usually 'val_loss')
         factor (float): factor by which the lr is decreased at each step
@@ -98,8 +132,23 @@ class ReduceLROnPlateau(AbstractCallback):
         self.wait = 0
         self.best_loss = sys.float_info.max
 
-    def __call__(self, epoch, step, performance_measures, context):
+    def __call__(self,
+                 epoch: int,
+                 step: int,
+                 performance_measures: Dict,
+                 context: ModelTrainer,
+                 validation: bool = False) -> None:
+        """
+        Execute learning rate reduction if conditions are met.
 
+        Args:
+            epoch: epoch step
+            step: step inside of the epoch
+            performance_measures: performance measures dictionary
+            context: model trainer
+            validation: should validation dataloader be used for comparison
+
+        """
         if self.monitor not in performance_measures:
             return
 

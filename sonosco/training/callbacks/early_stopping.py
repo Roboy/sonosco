@@ -1,7 +1,8 @@
 import logging
 import sys
 
-from ..abstract_callback import AbstractCallback
+from typing import Dict
+from ..abstract_callback import AbstractCallback, ModelTrainer
 
 
 LOGGER = logging.getLogger(__name__)
@@ -25,8 +26,23 @@ class EarlyStopping(AbstractCallback):
         self.counter = 0
         self.stopped_epoch = 0
 
-    def __call__(self, epoch, step, performance_measures, context):
+    def __call__(self,
+                 epoch: int,
+                 step: int,
+                 performance_measures: Dict,
+                 context: ModelTrainer,
+                 validation: bool = False) -> None:
+        """
+        Stop training if the conditions are met.
 
+        Args:
+            epoch: epoch step
+            step: step inside of the epoch
+            performance_measures: performance measures dictionary
+            context: model trainer
+            validation: should validation dataloader be used for comparison
+
+        """
         if step != len(context.train_data_loader) - 1:  # only continue at end of epoch
             return
 
