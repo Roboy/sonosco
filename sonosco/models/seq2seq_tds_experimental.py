@@ -6,11 +6,10 @@ import torch.nn.functional as torch_functional
 from collections import OrderedDict
 from typing import List, Dict
 from dataclasses import field
-
 from sonosco.serialization import serializable
 from sonosco.blocks.modules import SubsampleBlock, TDSBlock, Linear, BatchRNN, InferenceBatchSoftmax, supported_rnns
 from sonosco.blocks.attention import DotAttention
-from common.global_settings import CUDA_ENABLED, DEVICE
+from sonosco.common.global_settings import CUDA_ENABLED, DEVICE
 from sonosco.common.utils import labels_to_dict
 
 

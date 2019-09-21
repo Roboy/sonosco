@@ -1,7 +1,6 @@
 import os
 import click
 import logging
-from six.moves import urllib
 import re
 import tempfile
 import shutil
@@ -9,14 +8,17 @@ import tarfile
 import io
 import sonosco.common.audio_tools as audio_tools
 import sonosco.common.path_utils as path_utils
+
+from six.moves import urllib
+from tqdm import tqdm
 from sonosco.datasets.download_datasets.create_manifest import create_manifest
 from sonosco.common.utils import setup_logging
-from sonosco.common.constants import *
-from tqdm import tqdm
+from sonosco.common.constants import SONOSCO
 
 LOGGER = logging.getLogger(__name__)
 
 VOXFORGE_URL_16kHz = 'http://www.repository.voxforge1.org/downloads/SpeechCorpus/Trunk/Audio/Main/16kHz_16bit/'
+
 
 def try_download_voxforge(target_dir, sample_rate, min_duration, max_duration):
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
@@ -30,6 +32,7 @@ def try_download_voxforge(target_dir, sample_rate, min_duration, max_duration):
     for f in tqdm(all_files, total=len(all_files)):
         prepare_sample(f.replace(".tgz", ""), VOXFORGE_URL_16kHz + f, path_to_data, sample_rate)
     create_manifest(path_to_data, os.path.join(path_to_data,'voxforge_train_manifest.csv'), min_duration, max_duration)
+
 
 def _get_recordings_dir(sample_dir, recording_name):
     wav_dir = os.path.join(sample_dir, recording_name, "wav")
@@ -89,17 +92,14 @@ def prepare_sample(recording_name, url, target_folder, sample_rate):
 
         shutil.rmtree(dirpath)
 
+
 @click.command()
 @click.option("--target-dir", default="temp/data/voxforge", type=str, help="Directory to store the dataset.")
 @click.option("--sample-rate", default=16000, type=int, help="Sample rate.")
-
 @click.option("--min-duration", default=1, type=int,
               help="Prunes training samples shorter than the min duration (given in seconds).")
 @click.option("--max-duration", default=15, type=int,
               help="Prunes training samples longer than the max duration (given in seconds).")
-
-
-
 def main(**kwargs):
     global LOGGER
     LOGGER = logging.getLogger(SONOSCO)

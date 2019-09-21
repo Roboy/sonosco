@@ -1,6 +1,6 @@
 import inspect
-from typing import Set
 
+from typing import Set
 from sonosco.common.constants import COLLECTIONS, PRIMITIVES, CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
 
 

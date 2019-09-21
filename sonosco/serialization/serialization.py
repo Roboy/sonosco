@@ -1,11 +1,11 @@
 import collections
-
-from sonosco.common.constants import CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
-from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
 import typing
+import torch
+
+from dataclasses import _process_class, _create_fn, _set_new_attribute, fields
 from typing import List, Set, Tuple, Dict
 from torch import nn
-import torch
+from sonosco.common.constants import CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
 
 __primitives = {int, float, str, bool}
 # TODO support for dict with Union value type

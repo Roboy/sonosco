@@ -1,14 +1,11 @@
-from typing import Dict
-
-from dataclasses import field
-
-from sonosco.serialization import serializable
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from typing import Dict
+from dataclasses import field
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from sonosco.serialization import serializable
 from sonosco.blocks.attention import DotProductAttention
 from sonosco.blocks.modules import supported_rnns
 
