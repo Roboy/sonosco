@@ -1,106 +1,197 @@
-# Roboy Sonosco
-Roboy Sonosco (from Lat. sonus - sound and nōscō - I know, recognize) - a library for Speech Recognition based on Deep Learning models
+![# Sonosco](./docs/imgs/sonosco_3.jpg)
+<br>
+<br>
+<br>
+<br>
 
-## Installation
+Sonosco (from Lat. sonus - sound and nōscō - I know, recognize) 
+is a library for training and deploying deep speech recognition models.
 
-The supported OS is Ubuntu 18.04 LTS (however, it should work fine on other distributions).
-Supported Python version is 3.6+.
-Supported CUDA version is 10.0.
-Supported PyTorch version is 1.0.
+The goal of this project is to enable fast, repeatable and structured training of deep 
+automatic speech recognition (ASR) models as well as providing a transcription server (REST API & frontend) to 
+try out the trained models for transcription. <br>
+Additionally, we provide interfaces to ROS in order to use it with 
+the anthropomimetic robot [Roboy](https://roboy.org/).
+<br>
+<br>
+<br>
 
----
+___
+### Installation
 
-Install CUDA 10.0 from [NVIDIA website](https://developer.nvidia.com/cuda-10.0-download-archive). Make sure that your local gcc, g++, cmake versions are not older than the ones used to compile your OS kernel.
+#### Via pip
+The easiest way to use Sonosco's functionality is via pip:
+```
+pip install sonosco
+```
+**Note**: Sonosco requires Python 3.7 or higher. 
 
-You will need to download the latest [cuDNN](https://developer.nvidia.com/rdp/cudnn-archive) for CUDA 10.0. 
-Unzip it:
-```
-tar -xzvf cudnn-9.0-linux-x64-v7.tgz
-```
-Run
-```
-sudo cp cuda/include/cudnn.h /usr/local/cuda/include
-sudo cp cuda/lib64/libcudnn* /usr/local/cuda/lib64
-sudo chmod a+r /usr/local/cuda/include/cudnn.h /usr/local/cuda/lib64/libcudnn*
-```
----
+For reliability, we recommend using an environment virtualization tool, like virtualenv or conda.
 
-**All of the following steps you may perform inside [Anaconda](https://www.anaconda.com/) or [virtualenv](https://virtualenv.pypa.io/en/latest/)**
+<br>
+<br>
+#### For developers or trying out the transcription server
 
-Install [PyTorch](https://pytorch.org/get-started/locally/). For your particular configuration, you may want to build it from the [sources](https://github.com/pytorch/pytorch).
+Clone the repository and install dependencies:
+```
+# Create a virtual python environment to not pollute the global setup
+conda create -n 'sonosco' python=3.7
 
-Install SeanNaren's fork for Warp-CTC bindings. **Deprecated**: will be updated to use [built-in](https://pytorch.org/docs/stable/nn.html#torch.nn.CTCLoss) functions.
-```
-git clone https://github.com/SeanNaren/warp-ctc.git
-cd warp-ctc; mkdir build; cd build; cmake ..; make
-export CUDA_HOME="/usr/local/cuda"
-cd ../pytorch_binding && python setup.py install
-```
+# activate the virtual environment
+conda activate sonosco
 
-Install pytorch audio:
-```
-sudo apt-get install sox libsox-dev libsox-fmt-all
-git clone https://github.com/pytorch/audio.git
-cd audio && python setup.py install
-```
+# Clone the repo
+git clone https://github.com/Roboy/sonosco.git
 
-If you want decoding to support beam search with an optional language model, install [ctcdecode](https://github.com/parlance/ctcdecode):
-```
-git clone --recursive https://github.com/parlance/ctcdecode.git
-cd ctcdecode && pip install .
-```
-
-Clone this repo and run this within the repo:
-```
+# Install normal requirements
 pip install -r requirements.txt
+
+# Link your local sonosco clone into your virtual environment
+pip install .
+```
+Now you can check out some of the [Getting Started]() tutorials, to train a model or use 
+the transcription server.
+<br>
+<br>
+<br>
+____________
+### High Level Design
+
+
+![# High-Level-Design](./docs/imgs/high-level-design.svg)
+
+The project is split into 4 parts that correlate with each other:
+
+For data(-processing) scripts are provided to download and preprocess 
+some publicly available datasets for speech recognition. Additionally, 
+we provide scripts and functions to create manifest files 
+(i.e. catalog files) for your own data and merge existing manifest files
+into one.
+
+This data or rather the manifest files can then be used to easily train and 
+evaluate an ASR model. We provide some ASR model architectures, such as LAS, 
+TDS and DeepSpeech2 but also individual pytorch models can be designed to be trained.
+
+The trained model can then be used in a transcription server, that consists 
+of a REST API as well as a simple Vue.js frontend to transcribe voice recorded 
+by a microphone and compare the transcription results to other models (that can
+be downloaded in our [Github](https://github.com/Roboy/sonosco) repository).
+
+Further we provide example code, how to use different ASR models with ROS
+and especially the Roboy ROS interfaces (i.e. topics & messages).
+
+<br>
+<br>
+
+  
+______
+### Data (-processing)
+
+##### Downloading publicly available datasets
+We provide scripts to download and process the following publicly available datasets:
+* [An4](http://www.speech.cs.cmu.edu/databases/an4/) - Alphanumeric database
+* [Librispeech](http://www.openslr.org/12) - reading english books
+* [TED-LIUM 3](https://lium.univ-lemans.fr/en/ted-lium3/) (ted3) - TED talks
+* [Voxforge](http://www.voxforge.org/home/downloads)
+* common voice (old version)
+
+Simply run the respective scripts in `sonosco > datasets > download_datasets` with the
+output_path flag and it will download and process the dataset. Further, it will create 
+a manifest file for the dataset.
+
+For example
+
+```
+python an4.py --target-dir temp/data/an4
+```
+<br>
+<br>
+
+##### Creating a manifest from your own data
+
+If you want to create a manifest from your own data, order your files as follows:
+```
+data_directory    
+└───txt
+│   │   transcription01.txt
+│   │   transcription02.txt
+│   
+└───wav
+    │   audio01.wav
+    │   audio02.wav
+```
+To create a manifest, run the `create_manifest.py` script with the data directory and an outputfile 
+to automatically create a manifest file for your data.
+
+For example:
+```
+python create_manifest.py --data_path path/to/data_directory --output-file temp/data/manifest.csv
 ```
 
-### Mixed Precision
-If you want to use mixed precision training, you have to install [NVIDIA Apex](https://devblogs.nvidia.com/apex-pytorch-easy-mixed-precision-training/):
+<br>
+<br>
+
+##### Merging manifest files 
+
+In order to merge multiple manifests into one, just specify a folder that contains all manifest 
+files to be merged and run the ``` merge_manifest.py```.
+This will look for all .csv files and merge the content together in the specified output-file.
+
+For example:
 ```
-git clone --recursive https://github.com/NVIDIA/apex.git
-cd apex && pip install .
+python merge_manifest.py --merge-dir path/to/manifests_dir --output-path temp/manifests/merged_manifest.csv
 ```
 
-## Usage
+<br>
+<br>
 
-### Dataset
 
-To create a dataset you must create a CSV manifest file containing the locations of the training data. This has to be in the format of:
-```
-/path/to/audio.wav,/path/to/text.txt
-/path/to/audio2.wav,/path/to/text2.txt
-...
-```
-There is an example in examples directory.
+___
+### Model Training
 
-### Training, Testing and Inference
+One goal of this framework is to keep training as easy as possible and enable 
+keeping track of already conducted experiments. 
+<br>
+<br>
 
-Fundamentally, you can run the scripts the same way:
-```
-python3 train.py --config /path/to/config/file.yaml
-python3 test.py --config /path/to/config/file.yaml
-python3 infer.py --config /path/to/config/file.yaml
-```
-The scripts are initialised via configuration files.
+#### Analysis Object Model
 
-#### Configuration
+For model training, there are multiple objects that interact with each other.
 
-Configuration file contains arguments for ModelWrapper initialisation as well as extra parameters. Like this:
-```
-train:
-  ...
-  log-dir: 'logs' # Location for log files
-  def-dir: 'examples/checkpoints/', # Default location to save/load models
-  model-name: 'asr_final.pth' # File name to save the best model
-  sample-rate: 16000 # Sample rate
-  window: 'hamming' # Window type for spectrogram generation
-  batch-size: 32 # Batch size for training
-  checkpoint: True # Enables checkpoint saving of model
-  ...
-```
-More configuration examples with descriptions you may find in the config directory.
+![# Analysis Object Model](./docs/imgs/aom.svg)
 
-## Acknowledgements
+For Model training, one can define different metrics, that get evaluated during the training
+process. These metrics get evaluated at specified steps during an epoch and during
+validation.<br>
+Sonosco provides different metrics already, such as [Word Error Rate (WER)]() or
+ [Character Error Rate (CER)]().  But additional metrics can be created in a similar scheme. 
+ See [Metrics](). 
+ 
+Additionally, callbacks can be defined. A Callback is an arbitrary code that can be executed during
+training. Sonosco provides for example different Callbacks, such as [Learning Rate Reduction](), 
+[ModelSerializationCallback](), [TensorboardCallback](), ... <br>
+Custom Callbacks can be defined following the examples. See [Callbacks](). 
 
-This project is partially based on SeanNaren's [deepspeech.pytorch](https://github.com/SeanNaren/deepspeech.pytorch) repository.
+Most importantly, a model needs to be defined. The model is basically any torch module. For 
+(de-) serialization, this model needs to conform to the [Serialization Guide]().<br>
+Sonosco provides already existing model architectures that can be simply imported, such as 
+[Listen Attend Spell](), [Time-depth Separable Convolutions]() and [DeepSpeech2]().
+
+We created a specific AudioDataset Class that is based on the pytorch Dataset class. 
+This AudioDataset requires an AudioDataProcessor in order to process the specified manifest file.
+Further we created a special AudioDataLoader based on pytorch's Dataloader class, that 
+takes the AudioDataset and provides the data in batches to the model training.
+
+Metrics, Callbacks, the Model and the AudioDataLoader are then provided to the ModelTrainer.
+This ModelTrainer takes care of the training process. See [Getting Starter]().
+
+The ModelTrainer can then be registered to the Experiment, that takes care of provenance.
+I.e. when starting the training, all your code is time_stamped and saved in a separate directory, 
+so you can always repeat the same experiment. Additionally, the serialized model and modeltrainer,
+logs and tensorboard logs are saved in this folder.
+
+Further, a Serializer needs to be provided to the Experiment. This object can serialize any
+arbitrary class with its parameters, that can then be deserialized using the Deserializer.<br>
+When the ```Èxperiment.stop()``` method is called, the model and the ModelTrainer get serialized, 
+so that you can simply continue the training, with all current parameters (such as epoch steps,...)
+when deserializing the ModelTrainer and continuing training. 
