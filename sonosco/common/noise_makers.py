@@ -10,7 +10,15 @@ class NoiseMaker(ABC):
         """Adds noise to the audio signal."""
         pass
 
-    def add_noise(self, audio):
+    def add_noise(self, audio: np.ndarray) -> np.ndarray:
+        """
+        Adds noise to the audio
+        Args:
+            audio:
+
+        Returns: enchanted audio
+
+        """
         return self(audio)
 
 
@@ -19,6 +27,13 @@ class GaussianNoiseMaker(NoiseMaker):
     def __init__(self, std=0.002):
         self.std = std
 
-    def __call__(self, audio):
+    def __call__(self, audio: np.ndarray) -> np.ndarray:
+        """
+        Adds noise to the audio
+        Args:
+            audio:
+
+        Returns: enchanted audio
+        """
         noise = np.random.randn(len(audio))
         return audio + self.std * noise

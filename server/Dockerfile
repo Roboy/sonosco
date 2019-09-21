@@ -19,7 +19,8 @@ RUN apt install ffmpeg \
                 libsndfile1 \
                 portaudio19-dev \
                 python3-pyaudio \
-                git -y
+                git \
+                vim -y
 
 RUN pip3 install certifi==2019.3.9 \
                  chardet==3.0.4 \
@@ -39,7 +40,7 @@ RUN pip3 install certifi==2019.3.9 \
                  catkin_pkg \
                  librosa \
                  ipdb
-RUN pip3 install torch
+RUN pip3 install torch==1.2.0
 
 COPY . .
 
