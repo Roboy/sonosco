@@ -3,7 +3,7 @@ from typing import Dict
 
 import torch
 
-from sonosco.model.serialization import serializable
+from sonosco.serialization import serializable
 
 from sonosco.training.abstract_callback import AbstractCallback
 from torch.utils.tensorboard import SummaryWriter

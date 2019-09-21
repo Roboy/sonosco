@@ -11,7 +11,7 @@ from random import random
 from .trainer import ModelTrainer
 from .model_checkpoint import ModelCheckpoint
 from .tensorboard_callback import TensorBoardCallback
-from sonosco.model.serializer import Serializer
+from sonosco.serialization import Serializer
 
 from time import time
 

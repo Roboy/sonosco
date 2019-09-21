@@ -1,10 +1,3 @@
-from typing import Dict
-
-from dataclasses import field
-
-from sonosco.model.serialization import serializable
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,10 +5,9 @@ import torch.nn.functional as F
 from typing import List, Dict
 from dataclasses import field
 from collections import OrderedDict
-from sonosco.model.serialization import serializable
-from .modules import SubsampleBlock, TDSBlock, Linear, BatchRNN, InferenceBatchSoftmax, supported_rnns
-from sonosco.models.attention import DotProductAttention
-from sonosco.models.modules import supported_rnns
+from sonosco.serialization import serializable
+from sonosco.blocks.modules import SubsampleBlock, TDSBlock, Linear
+from sonosco.blocks.attention import DotProductAttention
 
 IGNORE_ID = -1
 

@@ -10,7 +10,7 @@ from typing import Callable, Union, Tuple, List, Any
 from sonosco.decoders.decoder import Decoder
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
-from sonosco.model.serialization import serializable
+from sonosco.serialization import serializable
 
 LOGGER = logging.getLogger(__name__)
 

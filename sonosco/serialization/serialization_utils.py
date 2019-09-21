@@ -1,7 +1,7 @@
 import inspect
 from typing import Set
 
-from sonosco.common.constants import *
+from sonosco.common.constants import COLLECTIONS, PRIMITIVES, CLASS_MODULE_FIELD, CLASS_NAME_FIELD, SERIALIZED_FIELD
 
 
 def get_constructor_args(cls) -> Set[str]:
@@ -42,6 +42,7 @@ def is_serialized_collection_of_serializables(obj: any) -> bool:
     return is_serialized_collection(obj) and \
            len(obj) != 0 and \
            all(is_serialized_dataclass(o) for o in obj)
+
 
 # TODOL Will catch collections of types as well, change this
 def is_serialized_collection_of_callables(obj: any) -> bool:

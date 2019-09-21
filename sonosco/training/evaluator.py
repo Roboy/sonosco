@@ -2,7 +2,6 @@ import logging
 import torch
 import torch.nn
 import torch.optim.optimizer
-import math
 import os
 import json
 import numpy as np
@@ -10,7 +9,6 @@ import numpy as np
 from dataclasses import field, dataclass
 from torch.utils.data import RandomSampler
 from collections import defaultdict
-from sonosco.common.constants import SONOSCO
 
 
 from typing import Callable, Union, Tuple, List, Any

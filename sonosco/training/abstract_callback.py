@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from sonosco.model.serialization import serializable
+from sonosco.serialization import serializable
 
 
 @serializable

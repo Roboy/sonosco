@@ -3,10 +3,10 @@ import sys
 import os.path as path
 from typing import Dict
 
-from sonosco.model.serialization import serializable
+from sonosco.serialization import serializable
 
 from .abstract_callback import AbstractCallback
-from sonosco.model.serializer import Serializer
+from sonosco.serialization import Serializer
 
 LOGGER = logging.getLogger(__name__)
 
