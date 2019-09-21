@@ -40,12 +40,13 @@ RUN pip3 install certifi==2019.3.9 \
                  catkin_pkg \
                  librosa \
                  ipdb
-RUN pip3 install torch==1.2.0
-
-COPY . .
 
 RUN git clone https://github.com/Roboy/sonosco.git
 RUN cd sonosco; pip3 install -e .
-RUN cd sonosco/server/frontend; npm install; npm run build
+RUN cd frontend; npm install; npm run build
+
+COPY . .
+
+ENTRYPOINT [ "bash", "python3 app.py" ]
 
 
