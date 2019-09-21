@@ -1,18 +1,16 @@
 import logging
 import torch
-from sonosco.model.serializer import Serializer
 
+from sonosco.serialization import Serializer, Deserializer
 from sonosco.models.seq2seq_las import Seq2Seq
 from sonosco.common.constants import SONOSCO
 from sonosco.common.path_utils import parse_yaml
 from sonosco.training import ModelTrainer
 from sonosco.datasets import create_data_loaders
 from sonosco.decoders import GreedyDecoder
-from sonosco.training.word_error_rate import word_error_rate
-from sonosco.training.character_error_rate import character_error_rate
+from sonosco.training.metrics import word_error_rate, character_error_rate
 from sonosco.training.losses import cross_entropy_loss
-from common.global_settings import CUDA_ENABLED
-from sonosco.model.deserializer import Deserializer
+from sonosco.common.global_settings import CUDA_ENABLED
 
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -63,4 +61,6 @@ def test_mode_trainer_serialization():
     assert trainer_deserialized is not None
     assert deserialized_config == config
 
-test_mode_trainer_serialization()
+
+if __name__ == "__main__":
+    test_mode_trainer_serialization()

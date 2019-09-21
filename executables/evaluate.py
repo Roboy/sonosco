@@ -4,19 +4,19 @@ import torch
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
 from sonosco.common.path_utils import parse_yaml
-from sonosco.training.word_error_rate import word_error_rate
-from sonosco.training.character_error_rate import character_error_rate
+from sonosco.training.metrics import word_error_rate, character_error_rate
 from sonosco.training import Experiment
 from sonosco.decoders import GreedyDecoder
 from sonosco.training.evaluator import ModelEvaluator
 from sonosco.models import DeepSpeech2
-from common.global_settings import CUDA_ENABLED
+from sonosco.common.global_settings import CUDA_ENABLED
 from torch.utils.data import RandomSampler
 from sonosco.datasets.processor import AudioDataProcessor
 from sonosco.datasets.loader import AudioDataLoader
 from sonosco.datasets.dataset import AudioDataset
 
 LOGGER = logging.getLogger(SONOSCO)
+
 
 def evaluate_deepspeech():
     setup_logging(LOGGER)
@@ -27,9 +27,6 @@ def evaluate_deepspeech():
 
     experiment = Experiment.create(config, LOGGER)
 
-    #model_deserializer = ModelDeserializer()
-
-    #model = model_deserializer.deserialize_model(cls=TDSSeq2Seq, path=path_to_model_checkpoint)
     model = DeepSpeech2.load_model(path_to_model_checkpoint)
     model.eval()
 
@@ -48,9 +45,10 @@ def evaluate_deepspeech():
                                config['num_bootstraps'],
                                decoder=GreedyDecoder(config['labels']),
                                device=device,
-                               metrics = metrics)
+                               metrics=metrics)
 
     evaluator.start_evaluation(log_path=experiment.logs)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     evaluate_deepspeech()
