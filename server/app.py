@@ -2,10 +2,10 @@ import librosa
 import torch
 import json
 import os
-
+import logging
 import tempfile
-from flask_cors import CORS
 
+from flask_cors import CORS
 from flask import Flask, render_template, make_response
 from flask_socketio import SocketIO, emit
 from uuid import uuid1
@@ -14,7 +14,6 @@ from model_loader import load_models
 from sonosco.common.path_utils import try_create_directory
 from external.model_factory import create_external_model
 from concurrent.futures import ThreadPoolExecutor
-import logging
 
 EXTERNAL_MODELS = {"microsoft": None}
 REFERENCE_MODEL_ID_KEY = "reference_id"
@@ -34,32 +33,6 @@ db_path = create_pseudo_db(config['audio_database_path'])
 session_dir = create_session_dir(config['sonosco_home'])
 
 logging.basicConfig(level=logging.WARNING, format="ROS RESPONSE: %(message)s")
-
-
-try:
-
-    import sys
-    import rospy
-    import ipdb
-
-    import os.path, sys
-
-    sys.path.append(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
-
-    from roboy_cognition_msgs.srv import RecognizeSpeech
-
-
-    def stt_client():
-        rospy.wait_for_service("/roboy/cognition/speech/recognition")
-        try:
-            stt = rospy.ServiceProxy("/roboy/cognition/speech/recognition", RecognizeSpeech)
-            resp = stt()
-            logging.warning(f"{resp.text}")
-            return resp.text
-        except rospy.ServiceException as e:
-            logging.error(f"Service call failed: {e}")
-except:
-    pass
 
 
 @app.route('/', defaults={'path': ''})
@@ -116,10 +89,7 @@ def on_transcribe(wav_bytes, model_ids):
         output[REFERENCE_MODEL_ID_KEY] = ref_value
 
         emit("transcription", output)
-        try:
-            stt_client()
-        except:
-            pass
+
     finally:
         if temp_audio_file:
             pass
@@ -139,13 +109,15 @@ def on_save_sample(wav_bytes, transcript, user_id):
     try_create_directory(sample_path)
     path_to_wav = os.path.join(sample_path, "audio.wav")
     path_to_txt = os.path.join(sample_path, "transcript.txt")
+    temp_audio_file = None
     try:
         with tempfile.NamedTemporaryFile(delete=False) as temp_audio_file:
             temp_audio_file.write(wav_bytes)
         loaded, sr = librosa.load(temp_audio_file.name, sr=config['sample_rate'])
         librosa.output.write_wav(path_to_wav, loaded, config['sample_rate'])
     finally:
-        os.unlink(temp_audio_file.name)
+        if temp_audio_file:
+            os.unlink(temp_audio_file.name)
 
     with open(path_to_txt, "w") as txt_file:
         txt_file.write(str(transcript))
