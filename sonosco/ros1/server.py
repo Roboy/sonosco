@@ -1,11 +1,8 @@
-import multiprocessing
 import os
-
 import logging
-from concurrent.futures.thread import ThreadPoolExecutor
-
 import rospy
 
+from concurrent.futures.thread import ThreadPoolExecutor
 from sonosco.inference.dummp_asr import DummyASR
 from sonosco.inputs.dummy_input import DummyInput
 from sonosco.common.constants import SONOSCO

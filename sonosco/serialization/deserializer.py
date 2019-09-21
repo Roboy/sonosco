@@ -3,9 +3,9 @@ import logging
 import sys
 import torch
 import deprecation
+
 from typing import Dict, Any
 from functools import reduce
-
 from sonosco.common.constants import SONOSCO_CONFIG_SERIALIZE_NAME
 from sonosco.common.constants import CLASS_NAME_FIELD, CLASS_MODULE_FIELD, SERIALIZED_FIELD
 from .serialization_utils import get_constructor_args, get_class_by_name, is_serialized_primitive, \

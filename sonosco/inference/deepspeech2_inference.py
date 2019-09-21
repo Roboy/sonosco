@@ -5,7 +5,7 @@ from sonosco.inference.asr import SonoscoASR
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
 from sonosco.models.deepspeech2 import DeepSpeech2
-from common.global_settings import DEVICE
+from sonosco.common.global_settings import DEVICE
 
 
 class DeepSpeech2Inference(SonoscoASR):

@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-from common.global_settings import CUDA_ENABLED
+
+from sonosco.common.global_settings import CUDA_ENABLED
 
 SOFT_WINDOW_SIGMA = 4.0
 
