@@ -35,7 +35,7 @@ class AudioDataset(Dataset):
         sample = self.ids[index]
         audio_path, transcript_path = sample[0], sample[1]
 
-        sound = self.processor.parse_audio(audio_path, raw=True)
+        sound = self.processor.parse_audio_from_file(audio_path, raw=True)
         transcript = self.processor.parse_transcript(transcript_path)
 
         return sound, transcript
@@ -44,7 +44,7 @@ class AudioDataset(Dataset):
         sample = self.ids[index]
         audio_path, transcript_path = sample[0], sample[1]
 
-        spectrogram = self.processor.parse_audio(audio_path)
+        spectrogram = self.processor.parse_audio_from_file(audio_path)
         transcript = self.processor.parse_transcript(transcript_path)
 
         return spectrogram, transcript

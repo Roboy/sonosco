@@ -4,6 +4,7 @@ import numpy as np
 import webrtcvad
 import sys
 import logging
+import wave
 
 from collections import deque
 from sonosco.inputs.audio import SonoscoAudioInput
@@ -12,8 +13,12 @@ logging.basicConfig(level=logging.INFO)
 
 
 class MicrophoneClient(SonoscoAudioInput):
+    """
+    Connects to mic_server.py, aggregates chunked audio in to wave format and returns it to the caller in
+    request_audio method.
+    """
 
-    def __init__(self, port=10002, host='192.168.65.2', sample_rate=16000, chunk_size=1024):
+    def __init__(self, port=10002, host='192.168.1.138', sample_rate=16000, chunk_size=1024):
         # self.format = pyaudio.paInt16
 
         self.SAMPLE_WIDTH = 2  # pyaudio.get_sample_size(self.format)  # size of each sample
@@ -67,7 +72,7 @@ class MicrophoneClient(SonoscoAudioInput):
             while not got_a_sentence:  # and not leave:
                 chunk = self.stream.read(self.CHUNK_BYTES)
                 active = self.vad.is_speech(chunk, self.RATE)
-                logging.info('1' if active else '0')
+                # logging.info('1' if active else '0')
                 ring_buffer_flags[ring_buffer_index] = 1 if active else 0
                 ring_buffer_index += 1
                 ring_buffer_index %= self.NUM_WINDOW_CHUNKS
@@ -89,8 +94,15 @@ class MicrophoneClient(SonoscoAudioInput):
                         got_a_sentence = True
 
             data = b''.join(voiced_frames)
-            logging.info("* done recording")
-            return data
+            wf = wave.open("audio2.wave", "wb")
+
+            wf.setframerate(16000)
+            wf.setsampwidth(2)
+            wf.setnchannels(1)
+            wf.writeframes(data)
+            with open("audio2.wave", "rb") as data_wav:
+                logging.info("* done recording")
+                return data_wav.read()
 
         except Exception as e:
             logging.exception(f"Mic client exception {e}")

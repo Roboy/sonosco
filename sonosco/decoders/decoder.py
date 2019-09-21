@@ -16,9 +16,11 @@
 # Modified to support pytorch Tensors
 
 import Levenshtein as Lev
+from sonosco.serialization import serializable
+
 from sonosco.common.utils import reverse_labels_to_dict
 
-
+@serializable
 class Decoder(object):
     """
     Basic decoder class from which all other decoders inherit. Implements several

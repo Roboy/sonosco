@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 import os
+import sys
 import subprocess
 import os.path as path
 
@@ -15,11 +16,11 @@ def setup_logging(logger: logging.Logger, filename=None, verbosity=False):
         add_log_file(filename, logger)
 
     # Somehow stream handler is already setup before this or after at some different place
-    # c_handler = logging.StreamHandler()
-    # c_handler.setLevel(logging.DEBUG) if verbosity else c_handler.setLevel(logging.INFO)
-    # c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # c_handler.setFormatter(c_format)
-    # logger.addHandler(c_handler)
+    c_handler = logging.StreamHandler(sys.stdout)
+    c_handler.setLevel(logging.DEBUG) if verbosity else c_handler.setLevel(logging.INFO)
+    c_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    c_handler.setFormatter(c_format)
+    logger.addHandler(c_handler)
 
 
 def add_log_file(filename: str, logger: logging.Logger):
@@ -101,8 +102,8 @@ def save_run_params_in_file(folder_path, run_config):
 
 
 def labels_to_dict(labels: str):
-    return dict([(labels[i], i + 1) for i in range(len(labels))])
+    return dict([(labels[i], i) for i in range(len(labels))])
 
 
 def reverse_labels_to_dict(labels: str):
-    return dict([(i+1, c) for (i, c) in enumerate(labels)])
+    return dict([(i, c) for (i, c) in enumerate(labels)])

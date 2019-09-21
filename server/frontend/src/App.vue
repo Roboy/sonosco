@@ -1,8 +1,7 @@
 <template>
   <div id="app">
     <div class="header">
-      <h1>SONOSCO</h1>
-      <img src="./assets/roboy.jpg" width="100" style="margin: 10px" align="right">
+      <img src="./assets/sonosco.png" style="margin: 10px" align="center">
     </div>
     <cookie-law>
       <div slot="message">

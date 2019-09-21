@@ -126,9 +126,10 @@ venv.bak/
 [Ss]cripts
 !scripts
 pyvenv.cfg
-.venv
-pip-selfcheck.json
+.venv*
 
+pip-selfcheck.json
+venv*
 pretrained
 **/node_modules
 executables/log/

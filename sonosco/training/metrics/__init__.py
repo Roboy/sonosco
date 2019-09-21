@@ -1,0 +1,2 @@
+from .character_error_rate import character_error_rate
+from .word_error_rate import word_error_rate
