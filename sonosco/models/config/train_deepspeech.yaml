@@ -1,8 +1,12 @@
 train:
-  train_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
-  val_manifest: '/Users/yuriy/temp/data/libri_speech/libri_test_clean_manifest.csv'
+  train_manifest: '/home/roboy/sonosco/datasets/all_sh_train_manifest.csv'
+  test_manifest: '/home/roboy/sonosco/datasets/all_sh_train_manifest.csv'
+  val_manifest: '/home/roboy/sonosco/datasets/all_sh_val_manifest.csv'
+  labels_path: '/Users/florianlay/temp/labels.json' # Contains all characters for transcription
   log_dir: 'logs' # Location for log files
   def_dir: 'examples/checkpoints/' # Default location to save/load models
+
+  decoder: GreedyDecoder
 
   load_from: 'asr_final.pth' # File name containing a checkpoint to continue/finetune
 
@@ -15,7 +19,7 @@ train:
   hidden_size: 800 # Hidden size of RNNs
   hidden_layers: 5 # Number of RNN layers
   rnn_type: 'gru' # Type of the RNN unit: gru|lstm are supported
-  labels: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # labels used by the model
+  #labels: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' # labels used by the model
 
   max_epochs: 70 # Number of training epochs
   learning_rate: 3.0e-4 # Initial learning rate
@@ -37,7 +41,7 @@ train:
 
   seed: 123456 # Seed to generators
   cuda: True # Use cuda to train model
-  half_precision: True # Uses half precision to train a model
+  half_precision: Trues # Uses half precision to train a model
   apex: True # Uses mixed precision to train a model
   static_loss_scaling: False # Static loss scale for mixed precision
   dynamic_loss_scaling: True # Use dynamic loss scaling for mixed precision

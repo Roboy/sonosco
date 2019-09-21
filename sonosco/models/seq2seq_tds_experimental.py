@@ -10,7 +10,7 @@ from dataclasses import field
 from sonosco.serialization import serializable
 from sonosco.blocks.modules import SubsampleBlock, TDSBlock, Linear, BatchRNN, InferenceBatchSoftmax, supported_rnns
 from sonosco.blocks.attention import DotAttention
-from sonosco.config.global_settings import CUDA_ENABLED, DEVICE
+from common.global_settings import CUDA_ENABLED, DEVICE
 from sonosco.common.utils import labels_to_dict
 
 

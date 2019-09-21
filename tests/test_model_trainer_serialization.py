@@ -11,7 +11,7 @@ from sonosco.decoders import GreedyDecoder
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.losses import cross_entropy_loss
-from sonosco.config.global_settings import CUDA_ENABLED
+from common.global_settings import CUDA_ENABLED
 from sonosco.model.deserializer import Deserializer
 
 LOGGER = logging.getLogger(SONOSCO)

@@ -4,7 +4,7 @@ from sonosco.inference.asr import SonoscoASR
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
 from sonosco.models.seq2seq_las import Seq2Seq
-from sonosco.config.global_settings import DEVICE
+from common.global_settings import DEVICE
 
 
 class LasInference(SonoscoASR):

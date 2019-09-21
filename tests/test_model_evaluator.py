@@ -1,11 +1,8 @@
 import logging
-import click
 import torch
 
-from sonosco.models.seq2seq_tds import TDSSeq2Seq
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
-from sonosco.model.deserializer import Deserializer
 from sonosco.common.path_utils import parse_yaml
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
@@ -13,7 +10,7 @@ from sonosco.training import Experiment
 from sonosco.decoders import GreedyDecoder
 from sonosco.training.evaluator import ModelEvaluator
 from sonosco.models import DeepSpeech2
-from sonosco.config.global_settings import CUDA_ENABLED
+from common.global_settings import CUDA_ENABLED
 from torch.utils.data import RandomSampler
 from sonosco.datasets.processor import AudioDataProcessor
 from sonosco.datasets.loader import AudioDataLoader
@@ -24,7 +21,7 @@ LOGGER = logging.getLogger(SONOSCO)
 def evaluate_deepspeech():
     setup_logging(LOGGER)
     path_to_model_checkpoint = '/Users/florianlay/roboy/sonosco/pretrained/deepspeech_final.pth'
-    config_path = "../sonosco/config/bootstrap_deepspeech.yaml"
+    config_path = "bootstrap_deepspeech.yaml"
 
     config = parse_yaml(config_path)
 

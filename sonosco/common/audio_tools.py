@@ -2,8 +2,6 @@ import subprocess
 import numpy as np
 import librosa
 
-from .noise_makers import NoiseMaker, GaussianNoiseMaker
-
 
 def get_duration(file_path):
     return float(subprocess.check_output([f'soxi -D "{file_path.strip()}"'], shell=True))

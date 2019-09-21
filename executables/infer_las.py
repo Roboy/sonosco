@@ -8,7 +8,7 @@ from sonosco.common.path_utils import parse_yaml
 from sonosco.models import Seq2Seq
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
-from sonosco.config.global_settings import DEVICE
+from common.global_settings import DEVICE
 from sonosco.serialization import Deserializer
 
 

@@ -13,7 +13,7 @@ from sonosco.decoders import GreedyDecoder
 from sonosco.training.word_error_rate import word_error_rate
 from sonosco.training.character_error_rate import character_error_rate
 from sonosco.training.losses import cross_entropy_loss
-from sonosco.config.global_settings import DEVICE
+from common.global_settings import DEVICE
 from sonosco.training.las_text_comparison_callback import LasTextComparisonCallback
 from sonosco.model.deserializer import Deserializer
 
@@ -25,7 +25,7 @@ PADDING_VALUE = '%'
 
 
 @click.command()
-@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_tds_new.yaml",
+@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_tds_v2.yaml",
               type=click.STRING, help="Path to train configurations.")
 def main(config_path):
     config = parse_yaml(config_path)["train"]
