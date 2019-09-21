@@ -8,8 +8,8 @@ from sonosco.common.path_utils import parse_yaml
 from sonosco.models import TDSSeq2Seq
 from sonosco.decoders import GreedyDecoder
 from sonosco.datasets.processor import AudioDataProcessor
-from common.global_settings import CUDA_ENABLED
-from sonosco.model.deserializer import Deserializer
+from sonosco.common.global_settings import CUDA_ENABLED
+from sonosco.serialization import Deserializer
 
 
 LOGGER = logging.getLogger(SONOSCO)

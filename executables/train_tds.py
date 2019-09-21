@@ -1,21 +1,19 @@
 #!/usr/bin/python3.7
-
 import logging
 import click
 
-from sonosco.models.seq2seq_tds_new import Seq2Seq
+from sonosco.models import Seq2Seq
 from sonosco.common.constants import SONOSCO
 from sonosco.common.utils import setup_logging
 from sonosco.common.path_utils import parse_yaml
 from sonosco.training import Experiment, ModelTrainer
 from sonosco.datasets import create_data_loaders
 from sonosco.decoders import GreedyDecoder
-from sonosco.training.word_error_rate import word_error_rate
-from sonosco.training.character_error_rate import character_error_rate
+from sonosco.training.metrics import word_error_rate, character_error_rate
 from sonosco.training.losses import cross_entropy_loss
-from common.global_settings import DEVICE
-from sonosco.training.las_text_comparison_callback import LasTextComparisonCallback
-from sonosco.model.deserializer import Deserializer
+from sonosco.common.global_settings import DEVICE
+from sonosco.training.tb_callbacks.las_text_comparison_callback import LasTextComparisonCallback
+from sonosco.serialization import Deserializer
 
 LOGGER = logging.getLogger(SONOSCO)
 
@@ -25,7 +23,7 @@ PADDING_VALUE = '%'
 
 
 @click.command()
-@click.option("-c", "--config_path", default="../sonosco/config/train_seq2seq_tds_v2.yaml",
+@click.option("-c", "--config_path", default="../sonosco/models/config/train_seq2seq_tds_v2.yaml",
               type=click.STRING, help="Path to train configurations.")
 def main(config_path):
     config = parse_yaml(config_path)["train"]

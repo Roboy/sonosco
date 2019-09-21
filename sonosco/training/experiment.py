@@ -9,8 +9,8 @@ import sonosco.common.utils as utils
 
 from random import random
 from .trainer import ModelTrainer
-from .model_checkpoint import ModelCheckpoint
-from .tensorboard_callback import TensorBoardCallback
+from .callbacks.model_checkpoint import ModelCheckpoint
+from .tb_callbacks import TensorBoardCallback
 from sonosco.serialization import Serializer
 
 from time import time

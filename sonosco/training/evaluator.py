@@ -9,13 +9,10 @@ import numpy as np
 from dataclasses import field, dataclass
 from torch.utils.data import RandomSampler
 from collections import defaultdict
-
-
 from typing import Callable, Union, Tuple, List, Any
-
-from sonosco.decoders.decoder import Decoder
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from sonosco.decoders.decoder import Decoder
 
 LOGGER = logging.getLogger(__name__)
 

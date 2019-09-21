@@ -6,11 +6,10 @@ import torch.nn.utils.clip_grad as grads
 from collections import defaultdict
 from dataclasses import field
 from typing import Callable, Union, Tuple, List, Any
-
-from sonosco.decoders.decoder import Decoder
 from torch.utils.data import DataLoader
 from .abstract_callback import AbstractCallback
 from sonosco.serialization import serializable
+from sonosco.decoders.decoder import Decoder
 
 LOGGER = logging.getLogger(__name__)
 
