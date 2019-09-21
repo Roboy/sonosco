@@ -7,7 +7,7 @@ Roboy Sonosco (from Lat. sonus - sound and nosco - I know, recognize) - a librar
 The easiest way to install ravestate is through pip:
 
 ``
-pip install ravestate
+pip install sonosco 
 ``
 
 
