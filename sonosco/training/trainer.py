@@ -4,7 +4,7 @@ import torch.optim.optimizer
 import torch.nn.utils.clip_grad as grads
 
 from collections import defaultdict
-from dataclasses import field, dataclass
+from dataclasses import field
 from typing import Callable, Union, Tuple, List, Any
 
 from sonosco.decoders.decoder import Decoder

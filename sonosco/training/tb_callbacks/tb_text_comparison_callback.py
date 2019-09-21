@@ -1,16 +1,15 @@
 import logging
-import torch
 
 from sonosco.serialization import serializable
+from ..abstract_callback import AbstractCallback
 
-from sonosco.training.abstract_callback import AbstractCallback
 from torch.utils.tensorboard import SummaryWriter
 
 LOGGER = logging.getLogger(__name__)
 
 
 @serializable
-class TbTeacherForcingTextComparisonCallback(AbstractCallback):
+class TbTextComparisonCallback(AbstractCallback):
     log_dir: str
     samples: int = 4
 
@@ -32,14 +31,26 @@ class TbTeacherForcingTextComparisonCallback(AbstractCallback):
         batch = next(iter(context.test_data_loader))
         batch = context._recursive_to_cuda(batch)
         batch_x, batch_y, input_lens, target_lens = batch
-        batch_x = batch_x.squeeze(1).transpose(1, 2)
-        split_targets = torch.split(batch_y, target_lens.tolist())
-        model_output, lens, loss = model(batch_x, input_lens, split_targets)
 
-        transcriptions, decoded_offsets = decoder.decode(model_output, lens)
+        # unflatten targets
+        split_targets = []
+        offset = 0
+        for size in target_lens:
+            split_targets.append(batch_y[offset:offset + size])
+            offset += size
+
         groundtruths = decoder.convert_to_strings(split_targets)
 
+        transcriptions = list()
+
+        for i in range(min(self.samples, batch_x.shape[0])):
+            # import pdb; pdb.set_trace()
+            sample_x, sample_len = batch_x[i].transpose(1, 2), input_lens[i]
+            out, output_lens, attention = model(sample_x, sample_len)
+            decoded_output, decoded_offsets = decoder.decode(out, output_lens)
+            transcriptions.append(decoded_output)
+
         for transcription, groundtruth in zip(transcriptions, groundtruths):
-            comparison = f"Teacher-Forching Transcription: {transcription[0]}. Groundtruth: {groundtruth}"
+            comparison = f"Transcription: {transcription[0]}. Groundtruth: {groundtruth}"
             LOGGER.info(comparison)
-            self.writer.add_text("teacher_forcing_text_comparison", comparison, step)
+            self.writer.add_text("inference_text_comparison", comparison, step)

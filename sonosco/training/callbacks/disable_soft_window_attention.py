@@ -1,8 +1,7 @@
 import logging
 
 from sonosco.serialization import serializable
-
-from sonosco.training.abstract_callback import AbstractCallback
+from ..abstract_callback import AbstractCallback
 
 LOGGER = logging.getLogger(__name__)
 
