@@ -67,7 +67,7 @@ cd server
 ./build.sh
 
 # Run the built image
-./run.sh
+./run.sh <path/to/pretrained/models>
 ```
 
 Open http://localhost:5000 in Chrome. You should be able to add models for performing
@@ -75,6 +75,7 @@ transcription by clicking on the plus button. Once the models are added, record 
 voice by clicking on the record button. You can replay and transcribe with the
 corresponding buttons.
 
+You can get pretrained models from the release tab in this repository.
 ____________
 ### High Level Design
 
