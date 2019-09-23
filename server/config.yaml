@@ -10,7 +10,7 @@ models:
   #   name: 'LAS_1'
 
   - id: 'las5'
-    path: '/work/pretrained_host/las_model.pt'
+    path: '/work/pretrained_host/las_model_5.pt'
     decoder: 'greedy'
     name: 'LAS'
 
