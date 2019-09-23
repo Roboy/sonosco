@@ -1,3 +1,5 @@
+import logging
+
 from sonosco.inference.deepspeech2_inference import DeepSpeech2Inference
 from sonosco.inference.las_inference import LasInference
 
@@ -21,6 +23,6 @@ def load_models(config):
             try:
                 models[model_config["id"]] = model_id_to_inference[model_config["id"]](model_config["path"])
             except Exception as e:
-                raise e
+                logging.error(f"Could not load {model_config['id']}, because of {e}")
 
     return models
