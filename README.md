@@ -61,7 +61,11 @@ ____________
 #### Dockerized inference server
 
 Get the hold of our new fully trained models from the latest release! Try out the LAS model for the best performance.
-Then specify the folder with the model to the runner script as shown in the following snippet.
+Then specify the folder with the model to the runner script as shown underneath.
+
+You can get the docker image from dockerhub under `yuriyarabskyy/sonosco-inference:1.0`. Just run
+`cd server && ./run.sh <path/to/pretrained/models> yuriyarabskyy/sonosco-inference:1.0` to pull and start the server or
+optionally build your own image by executing the following commands.
 
 ```
 cd server
