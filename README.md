@@ -60,6 +60,9 @@ ____________
 
 #### Dockerized inference server
 
+Get the hold of our new fully trained models from the latest release! Try out the LAS model for the best performance.
+Then specify the folder with the model to the runner script as shown in the following snippet.
+
 ```
 cd server
 
