@@ -64,7 +64,7 @@ Get the hold of our new fully trained models from the latest release! Try out th
 Then specify the folder with the model to the runner script as shown underneath.
 
 You can get the docker image from dockerhub under `yuriyarabskyy/sonosco-inference:1.0`. Just run
-`cd server && ./run.sh <path/to/pretrained/models> yuriyarabskyy/sonosco-inference:1.0` to pull and start the server or
+`cd server && ./run.sh yuriyarabskyy/sonosco-inference:1.0` to pull and start the server or
 optionally build your own image by executing the following commands.
 
 ```
@@ -74,8 +74,11 @@ cd server
 ./build.sh
 
 # Run the built image
-./run.sh <path/to/pretrained/models>
+./run.sh sonosco_server
 ```
+
+You can also specify the path to your own models by writing
+`./run.sh <path/to/models> <image_name>`.
 
 Open http://localhost:5000 in Chrome. You should be able to add models for performing
 transcription by clicking on the plus button. Once the models are added, record your own
