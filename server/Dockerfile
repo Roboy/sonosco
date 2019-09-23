@@ -43,10 +43,10 @@ RUN pip3 install certifi==2019.3.9 \
 
 RUN git clone https://github.com/Roboy/sonosco.git
 RUN cd sonosco; pip3 install -e .
+COPY . .
 RUN cd frontend; npm install; npm run build
 
-COPY . .
 
-ENTRYPOINT [ "bash", "python3 app.py" ]
+ENTRYPOINT [ "python3",  "app.py" ]
 
 
