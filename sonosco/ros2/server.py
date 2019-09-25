@@ -31,7 +31,7 @@ class SonoscoROS2(Node):
         LOGGER.info(f"Topics {self.topics}")
         LOGGER.info("Sonosco ROS2 server is ready!")
 
-    def asr_callback(self, request, response):
+    def asr_callback(self, request: any, response: any) -> any:
         """
         Callback invoked on ROS requests
         Args:

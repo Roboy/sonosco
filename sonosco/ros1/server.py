@@ -1,5 +1,7 @@
 import os
 import logging
+from typing import Callable
+
 import rospy
 
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -47,7 +49,7 @@ class SonoscoROS1:
 
         LOGGER.info("Sonosco ROS1 server is ready!")
 
-    def run(self):
+    def run(self) -> None:
         """
         Starts the server
 
@@ -55,7 +57,7 @@ class SonoscoROS1:
         rospy.init_node(self.node_name)
         rospy.spin()
 
-    def __default_callback(self, request, publishers):
+    def __default_callback(self, request: any, publishers: any) -> str:
         """
         Default callback for handling ros requests, uses default asr and audio input
         Args:
@@ -69,7 +71,7 @@ class SonoscoROS1:
         audio = self.default_audio_interface.request_audio()
         return self.default_asr_interface.infer(audio)
 
-    def __callback_async_wrapper(self, callback):
+    def __callback_async_wrapper(self, callback: Callable) -> Callable:
         """
         Helper callback wrapper
         Args:
