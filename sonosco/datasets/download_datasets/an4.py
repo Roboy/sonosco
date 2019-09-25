@@ -17,6 +17,15 @@ AN4_URL = 'http://www.speech.cs.cmu.edu/databases/an4/an4_raw.bigendian.tar.gz'
 
 
 def try_download_an4(target_dir, sample_rate, min_duration, max_duration):
+    """
+    Method to download an4 dataset. Creates manifest files.
+    Args:
+        target_dir:
+        sample_rate:
+        min_duration:
+        max_duration:
+
+    """
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     if not os.path.exists(path_to_data):
         os.makedirs(path_to_data)
@@ -47,6 +56,16 @@ def try_download_an4(target_dir, sample_rate, min_duration, max_duration):
 
 
 def create_wav_and_transcripts(path, data_tag, sample_rate, extracted_dir, wav_subfolder_name):
+    """
+    Creates wav and transcripts.
+    Args:
+        path:
+        data_tag:
+        sample_rate:
+        extracted_dir:
+        wav_subfolder_name:
+
+    """
     tag_path = os.path.join(path,data_tag)
     transcript_path_new = os.path.join(tag_path, 'txt')
     wav_path_new = os.path.join(tag_path, 'wav')
@@ -63,6 +82,15 @@ def create_wav_and_transcripts(path, data_tag, sample_rate, extracted_dir, wav_s
 
 
 def convert_audio_to_wav(train_path, sample_rate):
+    """
+    Creates audio file to wav
+    Args:
+        train_path:
+        sample_rate:
+
+    Returns:
+
+    """
     with os.popen('find %s -type f -name "*.raw"' % train_path) as pipe:
         for line in pipe:
             raw_path = line.strip()
@@ -71,6 +99,18 @@ def convert_audio_to_wav(train_path, sample_rate):
 
 
 def format_files(file_ids, new_transcript_path, new_wav_path, transcripts, wav_path):
+    """
+    Formats files accordingly.
+    Args:
+        file_ids:
+        new_transcript_path:
+        new_wav_path:
+        transcripts:
+        wav_path:
+
+    Returns:
+
+    """
     with open(file_ids, 'r') as f:
         with open(transcripts, 'r') as t:
             paths = f.readlines()
@@ -88,6 +128,15 @@ def format_files(file_ids, new_transcript_path, new_wav_path, transcripts, wav_p
 
 
 def _process_transcript(transcripts, x):
+    """
+    Helper method to split into words.
+    Args:
+        transcripts:
+        x:
+
+    Returns:
+
+    """
     extracted_transcript = transcripts[x].split('(')[0].strip("<s>").split('<')[0].strip().upper()
     return extracted_transcript
 

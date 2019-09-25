@@ -21,6 +21,17 @@ def main(*args, **kwargs):
     create_manifest(*args, **kwargs)
 
 def create_manifest(data_path, output_file, min_duration=None, max_duration=None):
+    """
+    Creates manifest files at data_path
+    Args:
+        data_path:
+        output_file:
+        min_duration:
+        max_duration:
+
+    Returns:
+
+    """
     LOGGER.info(f"Creating a manifest for path: {data_path}")
     file_paths = [os.path.join(dirpath, f)
                   for dirpath, dirnames, files in os.walk(data_path)
@@ -35,6 +46,16 @@ def create_manifest(data_path, output_file, min_duration=None, max_duration=None
             file.write(sample.encode('utf-8'))
 
 def order_and_prune_files(file_paths, min_duration, max_duration):
+    """
+    Sorts and prune manifest file between given duration.
+    Args:
+        file_paths:
+        min_duration:
+        max_duration:
+
+    Returns:
+
+    """
     LOGGER.info("Sorting manifests...")
     path_and_duration = [(path, audio_tools.get_duration(path)) for path in file_paths]
 

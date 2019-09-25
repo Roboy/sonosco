@@ -19,6 +19,17 @@ TED_LIUM_V2_DL_URL = "http://www.openslr.org/resources/51/TEDLIUM_release-3.tgz"
 
 
 def try_download_ted3(target_dir, sample_rate, min_duration, max_duration):
+    """
+    Method to download ted3 data set. Creates manifest files.
+    Args:
+        target_dir:
+        sample_rate:
+        min_duration:
+        max_duration:
+
+    Returns:
+
+    """
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     path_utils.try_create_directory(path_to_data)
 
@@ -70,14 +81,40 @@ def get_utterances_from_stm(stm_file):
 
 
 def _preprocess_transcript(phrase):
+    """
+    Strings the phrase.
+    Args:
+        phrase:
+
+    Returns:
+
+    """
     return phrase.strip().upper()
 
 
 def filter_short_utterances(utterance_info, min_len_sec=1.0):
+    """
+    Filters out short utterances.
+    Args:
+        utterance_info:
+        min_len_sec:
+
+    Returns:
+
+    """
     return utterance_info["end_time"] - utterance_info["start_time"] > min_len_sec
 
 
 def prepare_dir(ted_dir, sample_rate):
+    """
+    Prepares directory for the dataset.
+    Args:
+        ted_dir:
+        sample_rate:
+
+    Returns:
+
+    """
     # directories to store converted wav files and their transcriptions
     wav_dir = os.path.join(ted_dir, "wav")
     path_utils.try_create_directory(wav_dir)

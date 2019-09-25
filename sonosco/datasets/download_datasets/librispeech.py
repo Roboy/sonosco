@@ -29,6 +29,18 @@ LIBRI_SPEECH_URLS = {
 
 
 def try_download_librispeech(target_dir, sample_rate, files_to_use, min_duration, max_duration):
+    """
+    Method to download librispeech data set. Creates manifest files.
+    Args:
+        target_dir:
+        sample_rate:
+        files_to_use:
+        min_duration:
+        max_duration:
+
+    Returns:
+
+    """
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     if not os.path.exists(path_to_data):
         os.makedirs(path_to_data)
@@ -88,10 +100,30 @@ def try_download_librispeech(target_dir, sample_rate, files_to_use, min_duration
 
 
 def _preprocess_transcript(phrase):
+    """
+    strip the phrase
+    Args:
+        phrase:
+
+    Returns:
+
+    """
     return phrase.strip().upper()
 
 
 def _process_file(wav_dir, txt_dir, base_filename, root_dir, sample_rate):
+    """
+    Process given wav files.
+    Args:
+        wav_dir:
+        txt_dir:
+        base_filename:
+        root_dir:
+        sample_rate:
+
+    Returns:
+
+    """
     full_recording_path = os.path.join(root_dir, base_filename)
     assert os.path.exists(full_recording_path) and os.path.exists(root_dir)
     wav_recording_path = os.path.join(wav_dir, base_filename.replace(".flac", ".wav"))
