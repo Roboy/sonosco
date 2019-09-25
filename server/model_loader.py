@@ -1,3 +1,4 @@
+import os
 import logging
 
 from sonosco.inference.deepspeech2_inference import DeepSpeech2Inference
