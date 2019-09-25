@@ -8,7 +8,6 @@ import logging
 from torch.utils.data import Dataset
 from .processor import AudioDataProcessor
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -31,7 +30,15 @@ class AudioDataset(Dataset):
         self.size = len(ids)
         self.processor = processor
 
-    def get_raw(self, index):
+    def get_raw(self, index: int) -> (any, str):
+        """
+
+        Args:
+            index: index of audio
+
+        Returns: audio, transcript
+
+        """
         sample = self.ids[index]
         audio_path, transcript_path = sample[0], sample[1]
 

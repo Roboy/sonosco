@@ -6,20 +6,33 @@ from torch.utils.data import DataLoader
 from .dataset import AudioDataProcessor, AudioDataset
 from .samplers import BucketingSampler
 
-
 LOGGER = logging.getLogger(__name__)
 
 
 class AudioDataLoader(DataLoader):
-
-    def __init__(self, *args, **kwargs):
-        '''
-        Creates a data loader for AudioDatasets.
-        '''
+    def __init__(self, *args: any, **kwargs: any):
+        """
+        Extension of PyTroch DataLoader with custom _collate_fn for audio data sets.
+        Args:
+            *args:
+            **kwargs:
+        """
         super(AudioDataLoader, self).__init__(*args, **kwargs)
         self.collate_fn = self._collate_fn
 
-    def _collate_fn(self, batch):
+    def _collate_fn(self, batch: torch.Tensor) -> (torch.Tensor, torch.Tensor, torch.IntTensor, torch.IntTensor):
+        """
+        Pads the audio samples in the batch.
+        Pad the tensors to have equal lengths, therefore transpose the tensors in
+        the batch. The tensors have shape: freq_size x sequence_length
+        and need to be of shape: sequence_length x  freq_length, as sequence length differs
+        but not the freq_length
+        Args:
+            batch:  batch to pad
+
+        Returns: inputs, targets, inputs_lengths, target_lengths
+
+        """
         # sort the batch in decreasing order of sequence length
         batch = sorted(batch, key=lambda sample: sample[0].size(1), reverse=True)
 
@@ -33,16 +46,24 @@ class AudioDataLoader(DataLoader):
         # inputs need to be transposed back from shape batch_size x sequence_length x  freq_length
         # to batch_size x freq_length x sequence_length. Additionally, unsqueeze tensor
         inputs = inputs.transpose(1, 2).unsqueeze(1)
-        input_lengths = torch.IntTensor(list(map(lambda x: x[0].size(1), batch))) # create tensor of input lengths
+        input_lengths = torch.IntTensor(list(map(lambda x: x[0].size(1), batch)))  # create tensor of input lengths
 
-        targets_arr = list(zip(*batch))[1] # extract targets array from batch ( batch is array of tuples)
-        target_lengths = torch.IntTensor(list(map(lambda x: len(x), targets_arr))) # create tensor of target lengths
-        targets = torch.cat(list(map(lambda x: torch.IntTensor(x), targets_arr))) # create tensor of targets
+        targets_arr = list(zip(*batch))[1]  # extract targets array from batch ( batch is array of tuples)
+        target_lengths = torch.IntTensor(list(map(lambda x: len(x), targets_arr)))  # create tensor of target lengths
+        targets = torch.cat(list(map(lambda x: torch.IntTensor(x), targets_arr)))  # create tensor of targets
 
         return inputs, targets, input_lengths, target_lengths
 
 
-def create_data_loaders(**kwargs):
+def create_data_loaders(**kwargs: any) -> (DataLoader, DataLoader, DataLoader):
+    """
+    Creates DataLoaders for training, validation and test data sets
+    Args:
+        **kwargs: config of the data loaders
+
+    Returns: train_loader, val_loader, test_loader
+
+    """
     processor = AudioDataProcessor(**kwargs)
 
     # create train loader
