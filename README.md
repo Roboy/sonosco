@@ -50,7 +50,7 @@ pip install -r requirements.txt
 # Link your local sonosco clone into your virtual environment
 pip install -e .
 ```
-Now you can check out some of the [Getting Started]() tutorials, to train a model or use 
+Now you can check out some of the [Getting Started](#getting_started) tutorials, to train a model or use 
 the transcription server.
 <br>
 <br>
@@ -107,7 +107,7 @@ TDS and DeepSpeech2 but also individual pytorch models can be designed to be tra
 The trained model can then be used in a transcription server, that consists 
 of a REST API as well as a simple Vue.js frontend to transcribe voice recorded 
 by a microphone and compare the transcription results to other models (that can
-be downloaded in our [Github](https://github.com/Roboy/sonosco) repository).
+be downloaded in our [Github](https://github.com/Roboy/sonosco/releases) repository).
 
 Further we provide example code, how to use different ASR models with ROS
 and especially the Roboy ROS interfaces (i.e. topics & messages).
@@ -195,19 +195,19 @@ For model training, there are multiple objects that interact with each other.
 For Model training, one can define different metrics, that get evaluated during the training
 process. These metrics get evaluated at specified steps during an epoch and during
 validation.<br>
-Sonosco provides different metrics already, such as [Word Error Rate (WER)]() or
- [Character Error Rate (CER)]().  But additional metrics can be created in a similar scheme. 
- See [Metrics](). 
+Sonosco provides different metrics already, such as [Word Error Rate (WER)](#wer) or
+ [Character Error Rate (CER)](#wer).  But additional metrics can be created in a similar scheme. 
+ See [Metrics](#metrics). 
  
 Additionally, callbacks can be defined. A Callback is an arbitrary code that can be executed during
-training. Sonosco provides for example different Callbacks, such as [Learning Rate Reduction](), 
-[ModelSerializationCallback](), [TensorboardCallback](), ... <br>
-Custom Callbacks can be defined following the examples. See [Callbacks](). 
+training. Sonosco provides for example different Callbacks, such as [Learning Rate Reduction](#lr), 
+[ModelSerialisationCallback](#ser_call), [TensorboardCallback](#tb), ... <br>
+Custom Callbacks can be defined following the examples. See [Callbacks](#callbacks). 
 
 Most importantly, a model needs to be defined. The model is basically any torch module. For 
-(de-) serialization, this model needs to conform to the [Serialization Guide]().<br>
+(de-) serialisation, this model needs to conform to the [serialisation Guide](#serialisation).<br>
 Sonosco provides already existing model architectures that can be simply imported, such as 
-[Listen Attend Spell](), [Time-depth Separable Convolutions]() and [DeepSpeech2]().
+[Listen Attend Spell](#las), [Time-depth Separable Convolutions](#tds) and [DeepSpeech2](#ds2).
 
 We created a specific AudioDataset Class that is based on the pytorch Dataset class. 
 This AudioDataset requires an AudioDataProcessor in order to process the specified manifest file.
@@ -215,7 +215,7 @@ Further we created a special AudioDataLoader based on pytorch's Dataloader class
 takes the AudioDataset and provides the data in batches to the model training.
 
 Metrics, Callbacks, the Model and the AudioDataLoader are then provided to the ModelTrainer.
-This ModelTrainer takes care of the training process. See [Getting Starter]().
+This ModelTrainer takes care of the training process. See [Getting Started](#getting_started).
 
 The ModelTrainer can then be registered to the Experiment, that takes care of provenance.
 I.e. when starting the training, all your code is time_stamped and saved in a separate directory, 
@@ -224,6 +224,139 @@ logs and tensorboard logs are saved in this folder.
 
 Further, a Serializer needs to be provided to the Experiment. This object can serialize any
 arbitrary class with its parameters, that can then be deserialized using the Deserializer.<br>
-When the ```Èxperiment.stop()``` method is called, the model and the ModelTrainer get serialized, 
+When the ```Experiment.stop()``` method is called, the model and the ModelTrainer get serialized, 
 so that you can simply continue the training, with all current parameters (such as epoch steps,...)
 when deserializing the ModelTrainer and continuing training. 
+
+___
+<a name="getting_started"></a>
+### Getting Started
+
+___
+<a name="metrics"></a>
+### Metrics
+You can define metrics that get evaluated every epoch step. An example metric is the word error:
+```
+   def word_error_rate(model_out: torch.Tensor, batch: Tuple, context=None) -> float:
+      inputs, targets, input_percentages, target_sizes = batch
+
+      # unflatten targets
+      split_targets = []
+      offset = 0
+      for size in target_sizes:
+          split_targets.append(targets[offset:offset + size])
+          offset += size
+
+      out, output_sizes = model_out
+
+      decoded_output, _ = context.decoder.decode(out, output_sizes)
+      target_strings = context.decoder.convert_to_strings(split_targets)
+      wer = 0
+      for x in range(len(target_strings)):
+          transcript, reference = decoded_output[x][0], target_strings[x][0]
+          try:
+              wer += decoder.wer(transcript, reference) / float(len(reference.split()))
+          except ZeroDivisionError:
+              pass
+      del out
+
+      wer *= 100.0 / len(target_strings)
+      return wer
+```
+The metric is some arbitrary function that gets the model output, the batch and the context, 
+which is the modeltrainer, so that within the metric you can access all parameters of the modeltrainer.
+The metric returns then the metric to the model trainer, that prints it out every epoch step and can be used 
+from within the [Callbacks](#callbacks).
+
+Sonosco already provides predefined metrics, such as [Character Error Rate (CER)]() and [Word Error Rate (WER)]().
+___
+<a name="callbacks" class="anchor"></a>
+### Callbacks
+A callback is an arbitrary code that can be executed during training. <br>
+When defining a new callback all you need to do is inherit from the AbstractCallback class:
+```
+@serializable
+class AbstractCallback(ABC):
+    """
+    Interface that defines how callbacks must be specified.
+    """
+
+    @abstractmethod
+    def __call__(self, epoch: int, step: int, performance_measures: dict, context: ModelTrainer) -> None:
+        """
+        Called after every batch by the ModelTrainer.
+
+        Args:
+            epoch (int): current epoch number
+            step (int): current batch number
+            performance_measures (dict): losses and metrics based on a running average
+            context (ModelTrainer): reference to the calling ModelTrainer, allows to access members
+
+        """
+        pass
+
+    def close(self) -> None:
+        """
+        Handle cleanup work if necessary. Will be called at the end of the last epoch.
+        """
+        pass
+```
+Each callback is called at every epoch step and receives the current epoch, the current step, all 
+performance measures , i.e. a list of all metrics and the context, which is the modeltrainer itself, 
+so you can access all parameters of the modeltrainer from within the callback.
+<br><br>
+Sonosco already provides a lot of callbacks:<br>
+ * [Early Stopping](): Early Stopping to terminate training early if the monitored metric did not improve
+    over a number of epochs.
+ * [Gradient Collector](): Collects the layer-wise gradient norms for each epoch.
+ * [History Recorder](): Records all losses and metrics during training.
+ 
+ * [Stepwise Learning Rate Reduction](): Reduces the learning rate of the optimizer every N epochs.
+ * [Scheduled Learning Rate Reduction](): Reduces the learning rate of the optimizer for every scheduled epoch.
+ * [Model Checkpoint](): Saves the model and optimizer state at the point with lowest validation error throughout training.
+ 
+ Further, sonosco provides a couple of callbacks that store information for tensorboard:
+ * [TensorBoard Callback](): Log all metrics in tensorboard.
+ * [Tb Text Comparison Callback](): Perform inference on a tds model and compare the generated text with groundtruth and add it to tensorboard.
+ * [Tb Teacher Forcing Text Comparison Callback](): Perform decoding using teacher forcing and compare predictions to groundtruth and visualize in tensorboard.
+ * [Las Text Comparison Callback](): Perform inference on an las model and compare the generated text with groundtruth and add it to tensorboard.
+___
+<a name="Models" class="anchor"></a>
+### Models
+Sonosco provides some predefined deep speech recognition models, that can be used for training:
+
+#### Deep Speech 2
+We took the pytorch implementation of the [Deep Speech 2](https://arxiv.org/abs/1512.02595) model from [Sean Naren](https://github.com/SeanNaren/deepspeech.pytorch) 
+and ported it to the sonosco [guidelines](#serialisation). 
+
+#### Listen Attend Spell (LAS)
+We took the pytorch implementation of the [Listen Attend Spell](https://arxiv.org/abs/1508.01211v2) model from [AzizCode92](https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch) 
+and ported it to the sonosco [guidelines](#serialisation).
+
+#### Sequence-to-Sequence Model with Time-Depth Separable Convolutions
+We implemented a sequence-to-sequence model with Time-Depth separable convolutions in pytorch, following [a paper from Facebook AI](https://arxiv.org/abs/1904.02619).
+
+<br><br>
+These models can be simply imported and used for training. (See [Getting Started](#getting_started))
+
+
+___
+<a name="serialisation" class="anchor"></a>
+### Serialisation Guide
+
+___
+<a name="server" class="anchor"></a>
+### Transcription Server
+
+___
+<a name="ros" class="anchor"></a>
+### ROS
+
+___
+<a name="acknowledgements" class="anchor"></a>
+### Acknowledgements
+First of all we want to thank the roboy team for providing infrastructure to train some models.
+We want to thank Christoph Schöller for his [PyCandle](https://github.com/cschoeller/pycandle) library,
+that we took as an inspiration for our model training process.
+Further, we want to thank [Sean Naren](https://github.com/SeanNaren/deepspeech.pytorch) for his pytorch implementation of the Deep Speech 2 model.
+And [AzizCode92](https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch) for his pytorch implementation of the LAS model.
