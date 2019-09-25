@@ -64,7 +64,7 @@ class Seq2Seq(nn.Module):
 
 @serializable
 class Encoder(nn.Module):
-    r"""Applies a multi-layer LSTM to an variable length input sequence.
+    """Applies a multi-layer LSTM to an variable length input sequence.
     """
 
     input_size: int

@@ -20,14 +20,28 @@ from sonosco.serialization import serializable
 
 from .decoder import Decoder
 
+
 # TODO: Make it actually serializable by extracting init
 @serializable
 class GreedyDecoder(Decoder):
     def __init__(self, labels="_'ABCDEFGHIJKLMNOPQRSTUVWXYZ#", blank_index=None):
         super(GreedyDecoder, self).__init__(labels, blank_index)
 
-    def convert_to_strings(self, sequences, sizes=None, remove_repetitions=False, return_offsets=False):
-        """Given a list of numeric sequences, returns the corresponding strings"""
+    def convert_to_strings(self, sequences: list,
+                           sizes: dict = None,
+                           remove_repetitions: bool = False,
+                           return_offsets: bool = False) -> any:
+        """
+        Given a list of numeric sequences, returns the corresponding strings
+        Args:
+            sequences: sequences to process
+            sizes: sizes of sequences
+            remove_repetitions: indicator
+            return_offsets: indicator
+
+        Returns:
+
+        """
         strings = []
         offsets = [] if return_offsets else None
         for x in range(len(sequences)):
@@ -41,7 +55,17 @@ class GreedyDecoder(Decoder):
         else:
             return strings
 
-    def process_string(self, sequence, size, remove_repetitions=False):
+    def process_string(self, sequence: dict, size: int, remove_repetitions: bool = False) -> (str, torch.Tensor):
+        """
+        Process string to tensor
+        Args:
+            sequence: sequence to process
+            size: size of sequences
+            remove_repetitions: indicator
+
+        Returns: string, tensor
+
+        """
         string = ''
         offsets = []
         for i in range(size):
@@ -52,7 +76,7 @@ class GreedyDecoder(Decoder):
                     # if this char is a repetition and remove_repetitions=true, then skip
                     if remove_repetitions and i != 0 and char == self.int_to_char.get(sequence[i - 1].item()):
                         pass
-                    #elif char == self.labels[self.space_index]:
+                    # elif char == self.labels[self.space_index]:
                     #    string += ' '
                     #    offsets.append(i)
                     else:
@@ -60,7 +84,7 @@ class GreedyDecoder(Decoder):
                         offsets.append(i)
         return string, torch.tensor(offsets, dtype=torch.int)
 
-    def decode(self, probs, sizes=None, remove_repetitions=False):
+    def decode(self, probs: torch.Tensor, sizes: dict = None, remove_repetitions: bool = False):
         """
         Returns the argmax decoding given the probability matrix. Removes
         repeated elements in the sequence, as well as blanks.

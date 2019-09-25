@@ -10,6 +10,11 @@ from sonosco.common.global_settings import DEVICE
 class LasInference(SonoscoASR):
 
     def __init__(self, model_path):
+        """
+        LAS inference implementation.
+        Args:
+            model_path: path to LAs model
+        """
         super().__init__(model_path)
         self.model, self.config = self.loader.deserialize(Seq2Seq, model_path, with_config=True)
         self.model.eval()
@@ -17,6 +22,14 @@ class LasInference(SonoscoASR):
         self.decoder = GreedyDecoder(self.config["labels"])
 
     def infer_from_path(self, path: str) -> str:
+        """
+        Infer speech from audio under path
+        Args:
+            path: path to audio
+
+        Returns: inferred text
+
+        """
         spect, lens = self.processor.parse_audio_for_inference(path)
         spect = spect.to(DEVICE)
 

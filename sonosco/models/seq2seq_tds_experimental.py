@@ -12,7 +12,6 @@ from sonosco.blocks.attention import DotAttention
 from sonosco.common.global_settings import CUDA_ENABLED, DEVICE
 from sonosco.common.utils import labels_to_dict
 
-
 LOGGER = logging.getLogger(__name__)
 
 EOS = '$'
@@ -159,13 +158,13 @@ class TDSDecoder(nn.Module):
         """
         Performs teacher-forcing inference if y_labels and y_lens are given, otherwise
         step-by-step inference while feeding the previously generated output into the rnn.
-
-        :param encoding: [B,T,E]
-        :param encoding_lens: len(encoding_lens)=B
-        :param hidden: [B,H]
-        :param y_labels: [B,T,Y]
-        :param y_lens: len(y_lens)=B
-        :return: probabilities and lengths
+        Args:
+            encoding: [B,T,E]
+            encoding_lens: len(encoding_lens)=B
+            hidden: [B,H]
+            y_labels: [B,T,Y]
+            y_lens: len(y_lens)=B
+            : probabilities and lengths
         """
         # split into keys and values
         # keys [B,T,K], values [B,T,V]
@@ -262,8 +261,10 @@ class TDSDecoder(nn.Module):
         3. Sample vector Z of tokens (uniform distribution over tokens excl. eos) [B,T,token]
         4. Calc: Y_hat = R o Z + (1-R) o Y (Y being teacher forced tokens)
 
-        :param y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
-        :return: tensor of tokens, partially groundtruth partially sampled
+        Args:
+            y_labels: (torch tensor) [B, T, V] - tensor of groundtruth tokens
+        Returns
+            tensor of tokens, partially groundtruth partially sampled
         '''
         sampled_tensor = torch.randn(size=y_labels.size())
         sampled_tensor[sampled_tensor > self.sampling_prob] = 1
@@ -284,9 +285,11 @@ class TDSDecoder(nn.Module):
     def _one_hot(self, ys):
         """
         Create one-hot encoding with zeroing out padding.
-        :param tensor: index tensor [B, T]
-        :param vocab_dim: scalar
-        :return: [B, T, vocab_dim]
+        Args:
+            tensor: index tensor [B, T]
+            vocab_dim: scalar
+        Returns:
+            [B, T, vocab_dim]
         """
         mask = ys != PADDING_VALUE
 
@@ -294,7 +297,8 @@ class TDSDecoder(nn.Module):
         for i, y in enumerate(ys):
             unpadded_one_hot = torch_functional.one_hot(y[mask[i]], self.vocab_dim)
             padded_one_hot = torch.cat([unpadded_one_hot,
-                                        torch.zeros(((~mask[i]).sum(), self.vocab_dim), device=DEVICE, dtype=torch.long)])
+                                        torch.zeros(((~mask[i]).sum(), self.vocab_dim), device=DEVICE,
+                                                    dtype=torch.long)])
             one_hot_ys.append(padded_one_hot)
 
         return torch.stack(one_hot_ys)
@@ -302,9 +306,12 @@ class TDSDecoder(nn.Module):
     def _embed(self, ys):
         """
         Create one-hot encoding with zeroing out padding.
-        :param tensor: index tensor [B, T]
-        :param vocab_dim: scalar
-        :return: [B, T, vocab_dim]
+        Args:
+            tensor: index tensor [B, T]
+            vocab_dim: scalar
+
+        Returns:
+            [B, T, vocab_dim]
         """
         mask = ys != PADDING_VALUE
 
@@ -363,7 +370,7 @@ class TDSSeq2Seq(nn.Module):
                 y_out_labels = y_out_labels.cuda()
 
             probs, y_lens = self.decoder(encoding, encoding_lens, initial_decoder_hidden, y_in_labels, y_lens)
-            #import pdb; pdb.set_trace()
+            # import pdb; pdb.set_trace()
             loss = torch_functional.cross_entropy(probs.view((-1, probs.size(2))), y_out_labels.view(-1),
                                                   ignore_index=PADDING_VALUE)
             return probs, y_lens, loss

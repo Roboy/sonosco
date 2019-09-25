@@ -11,6 +11,11 @@ from sonosco.common.global_settings import DEVICE
 class DeepSpeech2Inference(SonoscoASR):
 
     def __init__(self, model_path):
+        """
+        DeepSpeech inference implementation.
+        Args:
+            model_path: path to DeepSpeech model
+        """
         super().__init__(model_path)
         self.model = DeepSpeech2.load_model(model_path)
         self.model.eval()
@@ -18,6 +23,14 @@ class DeepSpeech2Inference(SonoscoASR):
         self.decoder = GreedyDecoder(self.model.labels, blank_index=self.model.labels.index('_'))
 
     def infer_from_path(self, path: str) -> str:
+        """
+        Infer speech from audio under path
+        Args:
+            path: path to audio
+
+        Returns: inferred text
+
+        """
         loaded, sr = librosa.load(path, sr=self.processor.sample_rate)
         spect = self.processor.parse_audio(sound=loaded, sample_rate=sr)
         spect = spect.view(1, 1, spect.size(0), spect.size(1))

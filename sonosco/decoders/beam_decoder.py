@@ -21,8 +21,29 @@ from .decoder import Decoder
 
 class BeamCTCDecoder(Decoder):
 
-    def __init__(self, labels, lm_path=None, alpha=0, beta=0, cutoff_top_n=40, cutoff_prob=1.0, beam_width=100,
-                 num_processes=4, blank_index=0):
+    def __init__(self,
+                 labels: str,
+                 lm_path: str = None,
+                 alpha: int = 0,
+                 beta: int = 0,
+                 cutoff_top_n: int = 40,
+                 cutoff_prob: float = 1.0,
+                 beam_width: int = 100,
+                 num_processes: int = 4,
+                 blank_index: int = 0):
+        """
+        CTC decoder.
+        Args:
+            labels: labels
+            lm_path: language model path
+            alpha: ctc param
+            beta: ctc param
+            cutoff_top_n: ctc param
+            cutoff_prob: ctc param
+            beam_width: ctc param
+            num_processes: ctc param
+            blank_index: ctc param
+        """
         super(BeamCTCDecoder, self).__init__(labels)
         try:
             from ctcdecode import CTCBeamDecoder
@@ -31,7 +52,16 @@ class BeamCTCDecoder(Decoder):
         self._decoder = CTCBeamDecoder(labels, lm_path, alpha, beta, cutoff_top_n, cutoff_prob, beam_width,
                                        num_processes, blank_index)
 
-    def convert_to_strings(self, out, seq_len):
+    def convert_to_strings(self, out: any, seq_len: dict) -> list:
+        """
+        Converts outputs to string
+        Args:
+            out: outputs
+            seq_len: length of sequence
+
+        Returns: results
+
+        """
         results = []
         for b, batch in enumerate(out):
             utterances = []
@@ -45,7 +75,16 @@ class BeamCTCDecoder(Decoder):
             results.append(utterances)
         return results
 
-    def convert_tensor(self, offsets, sizes):
+    def convert_tensor(self, offsets: any, sizes: dict) -> list:
+        """
+        Converts offsets to tensor.
+        Args:
+            offsets:
+            sizes:
+
+        Returns:
+
+        """
         results = []
         for b, batch in enumerate(offsets):
             utterances = []
