@@ -78,7 +78,7 @@ cd server
 ```
 
 You can also specify the path to your own models by writing
-`./run.sh <path/to/models> <image_name>`.
+`./run.sh <image_name> <path/to/models>`.
 
 Open http://localhost:5000 in Chrome. You should be able to add models for performing
 transcription by clicking on the plus button. Once the models are added, record your own

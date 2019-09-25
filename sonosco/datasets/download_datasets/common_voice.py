@@ -19,6 +19,18 @@ COMMON_VOICE_URL = "https://common-voice-data-download.s3.amazonaws.com/cv_corpu
 
 
 def try_download_common_voice(target_dir, sample_rate, files_to_use, min_duration, max_duration):
+    """
+    Method to download common voice data set. Creates manifest files.
+    Args:
+        target_dir:
+        sample_rate:
+        files_to_use:
+        min_duration:
+        max_duration:
+
+    Returns:
+
+    """
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     path_utils.try_create_directory(path_to_data)
 

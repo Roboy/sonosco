@@ -21,6 +21,15 @@ VOXFORGE_URL_16kHz = 'http://www.repository.voxforge1.org/downloads/SpeechCorpus
 
 
 def try_download_voxforge(target_dir, sample_rate, min_duration, max_duration):
+    """
+    Method to download voxforge data set. Creates manifest files.
+    Args:
+        target_dir:
+        sample_rate:
+        min_duration:
+        max_duration:
+
+    """
     path_to_data = os.path.join(os.path.expanduser("~"), target_dir)
     path_utils.try_create_directory(path_to_data)
 
@@ -35,6 +44,15 @@ def try_download_voxforge(target_dir, sample_rate, min_duration, max_duration):
 
 
 def _get_recordings_dir(sample_dir, recording_name):
+    """
+    Returns directory of recordings
+    Args:
+        sample_dir:
+        recording_name:
+
+    Returns:
+
+    """
     wav_dir = os.path.join(sample_dir, recording_name, "wav")
     if os.path.exists(wav_dir):
         return "wav", wav_dir
