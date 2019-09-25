@@ -14,6 +14,12 @@ LOGGER = logging.getLogger(SONOSCO)
 # TODO: Create new service type with audio input, or handle the audio input (mic, odas) here (decouple with interfaces)
 class SonoscoROS2(Node):
     def __init__(self, config, asr_interface):
+        """
+        Sonosco handler of ROS2 server
+        Args:
+            config: config of the server
+            asr_interface: default interface to user for ASR
+        """
         super().__init__('stt')
         LOGGER.info(f"Sonosco ROS2 server running running with PID: {os.getpid()}")
 
@@ -26,6 +32,15 @@ class SonoscoROS2(Node):
         LOGGER.info("Sonosco ROS2 server is ready!")
 
     def asr_callback(self, request, response):
+        """
+        Callback invoked on ROS requests
+        Args:
+            request: ROS request
+            response:  ROS response
+
+        Returns: response
+
+        """
         LOGGER.info('Incoming Audio')
         # TODO: won't work with current service layout
         transcription = self.asr_interface.infer(request.text)
