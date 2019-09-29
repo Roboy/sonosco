@@ -27,6 +27,10 @@ In the next step, create a ``config.yaml`` file, that contains the following:
       labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' "
       test_step: 1
       checkpoint_path: 'path/to/checkpoint_dir_in_experiment'
+      window_size: 0.02
+      window_stride: 0.01
+      window: 'hamming'
+      sample_rate: 16000
 
     model:
       encoder:
@@ -96,7 +100,7 @@ For the model trainer, we can create a dict, that is then just passed for initia
         'lr': config['training']["learning_rate"],
         'custom_model_eval': True,
         'metrics': [word_error_rate, character_error_rate],
-        'decoder': GreedyDecoder(config['labels']),
+        'decoder': GreedyDecoder(config['training']['labels']),
         'device': device,
         'test_step': config['training']["test_step"]}
 
