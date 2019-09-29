@@ -57,7 +57,7 @@ the transcription server.
 <br>
 ____________
 ### Quick Start
-
+<a name="start" class="anchor"></a>
 #### Dockerized inference server
 
 Get the hold of our new fully trained models from the latest release! Try out the LAS model for the best performance.
@@ -118,7 +118,7 @@ and especially the Roboy ROS interfaces (i.e. topics & messages).
   
 ______
 ### Data (-processing)
-
+<a name="data" class="anchor"></a>
 ##### Downloading publicly available datasets
 We provide scripts to download and process the following publicly available datasets:
 * [An4](http://www.speech.cs.cmu.edu/databases/an4/) - Alphanumeric database
@@ -180,6 +180,7 @@ python merge_manifest.py --merge-dir path/to/manifests_dir --output-path temp/ma
 
 ___
 ### Model Training
+<a name="model_training" class="anchor"></a>
 
 One goal of this framework is to keep training as easy as possible and enable 
 keeping track of already conducted experiments. 
@@ -232,6 +233,143 @@ ___
 <a name="getting_started"></a>
 ### Getting Started
 
+In the following we will give you a short tutorial how to train the Listen Attend Spell model.
+
+First of all, it is required to have some data. For that simply download one of the publicly available datasets using one of our scripts, see the [Data Section](#data).
+
+In the next step, create a ```config.yaml``` file, that contains the following:
+
+```
+experiment:
+  experiment_path: "path/to_directory/where/experiment/is_stored"
+  experiment_name: 'getting_started_w_las'
+  gloabl_seed: 1234
+  
+data:
+  train_manifest: "path/to/train_manifest.csv"
+  val_manifest: "path/to/val_manifest.csv"
+  test_manifest: "path/to/test_manifest.csv"
+  batch_size: 4 
+  num_data_workers: 8
+  
+training:
+  max_epochs: 10
+  learning_rate: 1.0e-3 
+  labels: "ABCDEFGHIJKLMNOPQRSTUVWXYZ' "
+  test_step: 1
+  checkpoint_path: 'path/to/checkpoint_dir_in_experiment'
+  
+model:
+  encoder:
+    input_size: 161
+    hidden_size: 256
+    num_layers: 1
+    dropout: 0.2
+    bidirectional: True
+    rnn_type: "lstm"
+
+  decoder:
+    embedding_dim: 128
+    hidden_size: 512
+    num_layers: 1
+    bidirectional_encoder: True
+    vocab_size: 28
+    sos_id: 27
+    eos_id: 26
+```
+
+Under 'experiment_path' all your code, logs and checkpoints will be saved during training. 
+Further a global seed per experiment can be set. <br>
+Under 'data' the manifest files for the data need to be specified, together with batch size and 
+the amount of workers for the dataloader.<br>
+'training' contains the maximum epochs to be trained, the initial learning rate, the labels, i.e. 
+characters the model is trained on and test_step is the step in an epoch, where validation is performed.
+
+'model' contains parameters for the model to be trained, in this case, the LAS model requires parameters
+for its encoder and decoder.
+
+Let's setup the logger:
+```
+import logging
+reload(logging)
+logging.basicConfig(level=logging.INFO)
+```
+In order to start training, we first need to import all required functions:
+```
+import torch
+from sonosco.common.path_utils import parse_yaml
+from sonosco.datasets import create_data_loaders
+
+from sonosco.training import Experiment, ModelTrainer
+from sonosco.serialization import Deserializer
+from sonosco.decoders import GreedyDecoder
+from sonosco.models import Seq2Seq
+
+from sonosco.training.metrics import word_error_rate
+from sonosco.training.metrics import character_error_rate
+from sonosco.training.losses import cross_entropy_loss
+```
+Let's load the created .yaml file and create the dataloaders:
+```
+config = parse_yaml('path/to/config.yaml')
+device = torch.device("cpu")
+train_loader, val_loader, test_loader = create_data_loaders(**config['data'])
+```
+For the model trainer, we can create a dict, that is then just passed for initialization:
+```
+training_args = {
+    'loss': cross_entropy_loss,
+    'epochs': config['training']["max_epochs"],
+    'train_data_loader': train_loader,
+    'val_data_loader': val_loader,
+    'test_data_loader': test_loader,
+    'lr': config['training']["learning_rate"],
+    'custom_model_eval': True,
+    'metrics': [word_error_rate, character_error_rate],
+    'decoder': GreedyDecoder(config['labels']),
+    'device': device, 
+    'test_step': config['training']["test_step"]}
+```
+With the following code, you can now easily start training and continue it:
+```
+experiment = Experiment.create(config, logging.getLogger())
+
+CONTINUE = False
+
+if not CONTINUE:
+    model = Seq2Seq(config['model']["encoder"], config['model']["decoder"])
+    trainer = ModelTrainer(model, **training_args)
+else:
+    loader = Deserializer()
+    trainer, config = loader.deserialize(ModelTrainer, config['training']["checkpoint_path"], {
+            'train_data_loader': train_loader,'val_data_loader': val_loader, 'test_data_loader': test_loader,
+    }, with_config=True)
+
+experiment.setup_model_trainer(trainer, checkpoints=True, tensorboard=True)
+
+try:
+    if not CONTINUE:
+        experiment.start()
+    else:
+        experiment.__trainer.continue_training()
+except KeyboardInterrupt:
+    experiment.stop()
+```
+We now go through this snippet in detail:<br>
+First, we set up the experiment and set the bool ```CONTINUTE=FALSE``` so that we 
+start the training.<br>
+We setup the modeltrainer with the las model and all the parameters we specified in the ```training_args``` dictionary.
+
+Now we register the modeltrainer to the experiment and start it.
+<br>
+The try-except block catches keyboard interuptions, where the experiment will then save the model checkpoint aswell as the model trainer.
+This serialized model trainer can then be used to continue training, just by setting the ```CONTINUE=True``` and rerunning the script.
+What happens now is, that the modeltrainer, that is saved at the path, specified in the config file, is deserialized and continues training.
+
+That's it !<br>
+You successfully train an LAS model.
+<br><br>
+For a more detailed description of each component, have a look at [general description](#model_training) of the model training process and its components.
 ___
 <a name="metrics"></a>
 ### Metrics
@@ -332,6 +470,7 @@ and ported it to the sonosco [guidelines](#serialisation).
 #### Listen Attend Spell (LAS)
 We took the pytorch implementation of the [Listen Attend Spell](https://arxiv.org/abs/1508.01211v2) model from [AzizCode92](https://github.com/AzizCode92/Listen-Attend-and-Spell-Pytorch) 
 and ported it to the sonosco [guidelines](#serialisation).
+This model can be imported using: ```from sonosco.models import Seq2Seq```
 
 #### Sequence-to-Sequence Model with Time-Depth Separable Convolutions
 We implemented a sequence-to-sequence model with Time-Depth separable convolutions in pytorch, following [a paper from Facebook AI](https://arxiv.org/abs/1904.02619).
@@ -344,13 +483,41 @@ ___
 <a name="serialisation" class="anchor"></a>
 ### Serialisation Guide
 
+In order to enable the serialization of a model, the following steps need to be followed.<br>
+1. add the ```@serializable``` decorator on top of the class. <br>
+This will automatically add a ```__init__()``` function, so you...
+2. need to specify all required parameters that need to be initialized write after the model description
+**with type annotations!!**
+
+That's it. To see a full example, check out this [serialization example](https://github.com/Roboy/sonosco/blob/master/tests/test_serialization.py) or 
+check one of the [models](https://github.com/Roboy/sonosco/tree/master/sonosco/models) in the sonosco repository.
 ___
 <a name="server" class="anchor"></a>
 ### Transcription Server
+In the picture below, you see the GUI we created for our transcription server.
+To start this server, follow the [Quick Start](#start).
+![# Transcription Server](./docs/imgs/transcription_server.png)
 
+By pressing on the red plus button, one can add different models, that can be specified in a respective config file.<br>
+Then you can record your voice, by clicking on the 'RECORD' button, listen to it by pressing the 'PLAY' button 
+and finally transcribing it with 'TRANSCRIBE'. 
+
+![# Transcription Server 2](./docs/imgs/transcription.png)
+The transcription of both models is displayed in the respective block. Further,
+a popup shows up, where you are asked to correct the transcription. When you click on 'IMPROVE',
+the audio and the respective transcription are saves to `~/.sonosco/audio_data/web_collected/`.
+If one uses the 'Comparison' toggle, the transcriptions are additionally compared to the corrected transcription.
+
+#### How to use your own model
+In order to use your own model with the model trainer, additionally to the serialization guide, you need to implement an inference snippet.
+For this, simply follow the [example](https://github.com/Roboy/sonosco/tree/master/sonosco/inference) of the other models.<br>
+And then specify your model in the ```../sonosco/server/model_loader.py``` script. (Have a look at the [repo](https://github.com/Roboy/sonosco/blob/master/server/model_loader.py))
 ___
 <a name="ros" class="anchor"></a>
 ### ROS
+
+In order to use Sonosco with roboy or another ROS project, do the following:
+TO BE DONE
 
 ___
 <a name="acknowledgements" class="anchor"></a>
