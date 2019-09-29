@@ -37,6 +37,9 @@ def serializable(_cls: type = None, *, model=False, enforced_serializable: list 
     Args:
         _cls type: Python Class object
         model bool: indicator whether class is a Pytorch model
+        enforced_serializable bool: will try to serialize provided fields even if they are not recognized as supported
+                                    (i.e. primitives, lists of primitives, types, callables and other serializable objects).
+        skip_fields bool: fields to skip during serialization.
 
     Returns: enchanted class
 
