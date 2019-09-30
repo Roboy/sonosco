@@ -111,3 +111,5 @@ be downloaded in our [Github](https://github.com/Roboy/sonosco/releases) reposit
 
 Further we provide example code, how to use different ASR models with ROS
 and especially the Roboy ROS interfaces (i.e. topics & messages).
+
+Check our [Documentation](https://sonosco.readthedocs.io/en/latest/index.html) to learn more!
