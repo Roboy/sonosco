@@ -37,8 +37,8 @@ performance measures , i.e. a list of all metrics and the context, which is the 
 so you can access all parameters of the modeltrainer from within the callback.
 
 Sonosco already provides a lot of callbacks:
- * Early Stopping: Early Stopping to terminate training early if the monitored metric did not improve
-    over a number of epochs.
+
+ * Early Stopping: Early Stopping to terminate training early if the monitored metric did not improve over a number of epochs.
  * Gradient Collector: Collects the layer-wise gradient norms for each epoch.
  * History Recorder: Records all losses and metrics during training.
 
@@ -47,6 +47,7 @@ Sonosco already provides a lot of callbacks:
  * Model Checkpoint: Saves the model and optimizer state at the point with lowest validation error throughout training.
 
  Further, sonosco provides a couple of callbacks that store information for tensorboard:
+
  * TensorBoard Callback: Log all metrics in tensorboard.
  * Tb Text Comparison Callback: Perform inference on a tds model and compare the generated text with groundtruth and add it to tensorboard.
  * Tb Teacher Forcing Text Comparison Callback: Perform decoding using teacher forcing and compare predictions to groundtruth and visualize in tensorboard.

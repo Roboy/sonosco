@@ -34,6 +34,6 @@ You can define metrics that get evaluated every epoch step. An example metric is
 The metric is some arbitrary function that gets the model output, the batch and the context,
 which is the modeltrainer, so that within the metric you can access all parameters of the modeltrainer.
 The metric returns then the metric to the model trainer, that prints it out every epoch step and can be used
-from within the [Callbacks](#callbacks).
+from within the :ref:`Callbacks <callbacks>`.
 
 Sonosco already provides predefined metrics, such as Character Error Rate (CER) and Word Error Rate (WER).
