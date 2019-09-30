@@ -19,6 +19,34 @@ a popup shows up, where you are asked to correct the transcription. When you cli
 the audio and the respective transcription are saves to ``~/.sonosco/audio_data/web_collected/`` .
 If one uses the 'Comparison' toggle, the transcriptions are additionally compared to the corrected transcription.
 
+How to use the transcription server without docker
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Of course you can also use the transcription server without docker.
+To do so, you first need to specify the model you want to use with its inference code in the ``model_loader.py``, this file can be
+found at ``server > model_loader.py``.
+
+For the LAS model, this looks like this:
+::
+    from sonosco.inference.las_inference import LasInference
+
+    model_id_to_inference = {
+        "las": LasInference}
+
+Afterwards, just specify the model, with the path to the checkpoint file in the ``server > config.yaml``:
+::
+    models:
+        -  id: 'las'
+           path: '~/pretrained/las.pt'
+           decoder: 'greedy'
+           name: 'LAS'
+
+The next thing to do is build the frontend, for this, navigate to ``server > frontend`` and run ``npm run build``.
+
+When this is finished, start the transcription server by running ``python app.py`` in the ``server`` directory.
+Open ``http://localhost:5000`` and use your model.
+
+
 How to use your own model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
