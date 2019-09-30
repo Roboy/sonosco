@@ -1,1 +1,4 @@
 from .tensorboard_callback import TensorBoardCallback
+from .tb_text_comparison_callback import TbTextComparisonCallback
+from .tb_teacher_forcing_text_comparison_callback import TbTeacherForcingTextComparisonCallback
+from .las_text_comparison_callback import LasTextComparisonCallback
