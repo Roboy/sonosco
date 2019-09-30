@@ -4,6 +4,10 @@
 <br>
 <br>
 
+| **`Documentation`** |
+|-----------------|
+| [![Documentation](https://img.shields.io/badge/api-reference-blue.svg)](https://sonosco.readthedocs.io/en/latest/) |
+
 Sonosco (from Lat. sonus - sound and nōscō - I know, recognize) 
 is a library for training and deploying deep speech recognition models.
 
