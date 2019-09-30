@@ -1,7 +1,7 @@
 .. _ros_desc:
 
-ROS
-====
+ROS Interface
+==============
 
 .. image:: imgs/ros.png
 

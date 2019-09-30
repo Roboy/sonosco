@@ -4,7 +4,7 @@ Transcription Server
 =====================
 
 In the picture below, you see the GUI we created for our transcription server.
-To start this server, follow the [Quick Start](#start).
+To start this server, follow the :ref:`Quick Start <quick_start>` .
 
 .. image:: imgs/transcription_server.png
 
