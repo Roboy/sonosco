@@ -1,8 +1,5 @@
 ![# Sonosco](docs/source/imgs/sonosco_3.jpg)
 <br>
-<br>
-<br>
-<br>
 
 | **`Documentation`** |
 |-----------------|
