@@ -99,7 +99,7 @@ the request yourself (the default ASR and audio interfaces are ignored):
             transcription = asr.infer(audio)
         return transcription
 
-List of publishers specified in config is passed to every callback.
+List of publishers specified in the config is passed to every callback.
 
 Example of ROS1 server usage can be found `here <https://github.com/Roboy/sonosco/tree/master/ros1_roboy>`_
 Take a look at `STT_server.py <https://github.com/Roboy/sonosco/tree/master/ros1_roboy/STT_server.py>`_ and
